@@ -11,7 +11,7 @@
    * Initialize the GitHub repository to serve as the centralized collaborative workspace for the team.
    * Reach a consensus on the game's visual assets, core mechanics, overall architecture, and future development direction.
    * Establish the core skeleton and initialization for the project, including the C++/SFML project setup, basic physics (gravity/collision), rendering a static map from a text file, implementing basic keyboard inputs for Mario, and structuring the base Enemy class.
-* **Completion Rate:** 67% of the weekly plan completed.
+* **Completion Rate:** 80% of the weekly plan completed.
 
 ## 2. Individual Task Breakdown
 
@@ -37,7 +37,7 @@
 * **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/feature/enemies-ai
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
-* **Completed Tasks:** no tasks completed
+* **Completed Tasks:** no tasks completed yet.
 
 ## 3. Challenges & Solutions
 
