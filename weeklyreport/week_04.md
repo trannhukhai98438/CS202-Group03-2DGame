@@ -61,6 +61,8 @@ Gemini. Gemini 3.1, Google, gemini.google.com, accessed 07:30 on June 21, 2026, 
 
 * Gemini. Gemini, Google, gemini.google.com, accessed 18:39 on July 4, 2026, prompt: "Provide a structural guide for building a base Character class using the Factory Method pattern in C++, including concrete Hero products (Mario1, Mario2) with different abilities, and a HeroFactory to instantiate them.", used for establishing the OOP architecture and entity spawning mechanics; AI generated the abstract class and factory templates, student adapted the polymorphism structure for the SFML project, debugged access modifiers, and integrated the code.
 
+* Gemini, Gemini 1.5 Pro, Google, gemini.google.com, accessed 11:15 on July 4, 2026, prompt: "Should we define the Direction struct like this or put it in a class?; used for refactoring the architecture of the `MoveDirection` structure from a standard struct to an `enum class` for better type safety, and designing a clean header/source directory layout for the entities component; AI provided the foundational OOP concepts and class declarations, student applied these suggestions to code the header files for the Enemy, Goomba, and Koopa classes on the development branch.
+
 ## 5. Next Week's Action Plan
 * **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
 * **Gameplay / Graphics:** [Tasks related to UI, level design, new entities, or AI behavior]
