@@ -1,7 +1,7 @@
 # Weekly Progress Report
 
 **Project:** Custom 2D Platformer - Group 3  
-**Date / Week:** 29/6 to 4/7 | Week 04  
+**Date / Week:** 30/6 to 4/7 | Week 04  
 
 ---
 
@@ -40,7 +40,18 @@
 **Issue 2:** [Describe the problem encountered]
 **Solution 2:** [Describe how the team fixed or plans to fix it]
 
-## 4. Next Week's Action Plan
+## 4. AI Usage Notes:
+*
+
+
+[Chat history]()
+
+*
+
+
+[Chat history]()
+
+## 5. Next Week's Action Plan
 * **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
 * **Gameplay / Graphics:** [Tasks related to UI, level design, new entities, or AI behavior]
 * **Expected Deadline:** [Target date for the next sprint's goals]
