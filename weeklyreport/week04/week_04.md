@@ -8,9 +8,10 @@
 ## 1. Weekly Overview
 * **Primary Goal:**:
    * Allocate tasks among team members, finalize the team leader role, define individual responsibilities, establish the workflow, and outline the projected project timeline.
-    * Initialize the GitHub repository to serve as the centralized collaborative workspace for the team.
-    * Reach a consensus on the game's visual assets, core mechanics, overall architecture, and future development direction.
-* **Completion Rate:** 70% of the weekly plan completed.
+   * Initialize the GitHub repository to serve as the centralized collaborative workspace for the team.
+   * Reach a consensus on the game's visual assets, core mechanics, overall architecture, and future development direction.
+   * Establish the core skeleton and initialization for the project, including the C++/SFML project setup, basic physics (gravity/collision), rendering a static map from a text file, implementing basic keyboard inputs for Mario, and structuring the base Enemy class.
+* **Completion Rate:** 67% of the weekly plan completed.
 
 ## 2. Individual Task Breakdown
 
@@ -36,16 +37,11 @@
 * **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/feature/enemies-ai
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:** no tasks completed
 
 ## 3. Challenges & Solutions
 
-**Issue 1:** [Describe the problem encountered, e.g., Collision bugs, memory leaks, or Git merge conflicts]
-**Solution 1:** [Describe how the team fixed or plans to fix it]
-
-**Issue 2:** [Describe the problem encountered]
-**Solution 2:** [Describe how the team fixed or plans to fix it]
+This week had no challenges or conflicts yet.
 
 ## 4. AI Usage Notes:
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:15 on July 3, 2026, prompt: "Provide a structural guide for building a core game engine in C++, starting with the initialization of the SFML RenderWindow and the implementation of a fixed-timestep game loop.", used for understanding the idea for the core engine for games; AI
@@ -57,13 +53,18 @@ introduced the concept and showed a demonstration for such a pattern, student re
 
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 18:30 on June 20, 2026, prompt: "Divide the game development project tasks among 4 people. Distribute the work evenly (from UI to Core - ensuring all members get an equal share). Create a complete plan for the phases. Note: Within the OOP framework, use SFML 2.x for the render window", used for planning the project structure, task delegation, and outlining the development phases based on OOP principles; AI provided a comprehensive Work Breakdown Structure (WBS) and a 9-week timeline, student used the plan to assign roles to team members and create the weekly report document.
 
-Gemini. Gemini 3.1, Google, gemini.google.com, accessed 07:30 on June 21, 2026, prompt: "Guide me on creating a GitHub repo for the project: how to create the repo, invite collaborators, create branches (expected to include a dev branch and a docs branch), and basic files for the project (such as readme, weekly report template - latex, etc.)", used for establishing the version control workflow and repository structure for the team; AI outlined step-by-step instructions for repository creation and branching strategies, student initialized the GitHub repository and invited collaborators.
+* Gemini. Gemini 3.1, Google, gemini.google.com, accessed 07:30 on June 21, 2026, prompt: "Guide me on creating a GitHub repo for the project: how to create the repo, invite collaborators, create branches (expected to include a dev branch and a docs branch), and basic files for the project (such as readme, weekly report template - latex, etc.)", used for establishing the version control workflow and repository structure for the team; AI outlined step-by-step instructions for repository creation and branching strategies, student initialized the GitHub repository and invited collaborators.
 
 * Gemini. Gemini, Google, gemini.google.com, accessed 18:39 on July 4, 2026, prompt: "Provide a structural guide for building a base Character class using the Factory Method pattern in C++, including concrete Hero products (Mario1, Mario2) with different abilities, and a HeroFactory to instantiate them.", used for establishing the OOP architecture and entity spawning mechanics; AI generated the abstract class and factory templates, student adapted the polymorphism structure for the SFML project, debugged access modifiers, and integrated the code.
 
 * Gemini, Gemini 1.5 Pro, Google, gemini.google.com, accessed 11:15 on July 4, 2026, prompt: "Should we define the Direction struct like this or put it in a class?; used for refactoring the architecture of the `MoveDirection` structure from a standard struct to an `enum class` for better type safety, and designing a clean header/source directory layout for the entities component; AI provided the foundational OOP concepts and class declarations, student applied these suggestions to code the header files for the Enemy, Goomba, and Koopa classes on the development branch.
 
 ## 5. Next Week's Action Plan
-* **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
-* **Gameplay / Graphics:** [Tasks related to UI, level design, new entities, or AI behavior]
+* **Core Mechanics:** 
+  * Implement basic gravity/collision and integrate complex collision detection (e.g., Mario stomping on Goombas).
+  * Finish basic keyboard inputs for movement and jumping, and code Mario's size-changing logic using the Strategy Pattern.
+* **Gameplay / Graphics:** 
+  * Develop the tilemap renderer to display a static Mario level (bricks, pipes) from a text file.
+  * Spawn classic items (Mushroom, Coin).
+  * Spawn Goombas/Koopas and implement basic walking/bouncing behavior.
 * **Expected Deadline:** 11/7/2026
