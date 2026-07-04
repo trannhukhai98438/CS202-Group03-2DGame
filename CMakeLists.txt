@@ -7,6 +7,8 @@ project(Custom2DPlatformer VERSION 1.0 DESCRIPTION "CS202 OOP Platformer Game" L
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Đảm bảo rằng SFML được build dưới dạng static library
+set(BUILD_SHARED_LIBS OFF)
 # 1. KHAI BÁO VÀ TẢI THƯ VIỆN BẰNG FETCHCONTENT
 include(FetchContent)
 
