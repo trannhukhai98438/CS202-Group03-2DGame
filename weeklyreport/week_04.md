@@ -6,8 +6,11 @@
 ---
 
 ## 1. Weekly Overview
-* **Primary Goal:** [Briefly describe the main objective for this week]
-* **Completion Rate:** [Percentage]% of the weekly plan completed.
+* **Primary Goal:**:
+   * Allocate tasks among team members, finalize the team leader role, define individual responsibilities, establish the workflow, and outline the projected project timeline.
+    * Initialize the GitHub repository to serve as the centralized collaborative workspace for the team.
+    * Reach a consensus on the game's visual assets, core mechanics, overall architecture, and future development direction.
+* **Completion Rate:** 70% of the weekly plan completed.
 
 ## 2. Individual Task Breakdown
 
@@ -20,8 +23,12 @@
 * **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/pull/1
 
 **25125045 - Trần Như Khải** is in charge of the **Hero & Items Logic**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:**:
+  * Allocated primary tasks among team members.
+  * Initialized the shared GitHub repository for the team.
+  * Coded the base `Character` class (serving as the parent class for both Hero and Enemy entities).
+  * Set up the fundamental structure for the `Mario` class and implemented the `HeroFactory` utilizing the Factory design pattern.
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/feature/Hero
 
 **25125024 - Đỗ Viết Hoàng Long** is handling the **Enemies & AI Design**.
 * **Completed Tasks:** Designed the abstract base class `Enemy` using the **Template Method Pattern** to enforce a structured 3-step patrol AI (`checkObstacles`, `move`, `applyAnimation`). Created concrete header structures for `Goomba` and `Koopa`.
@@ -48,7 +55,13 @@ and runs.
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:30 on July 3, 2026, prompt: "Explain the mechanics of the Singleton design pattern and demonstrate how to securely implement it to manage the core Game class without memory leaks.", used for understanding Singleton pattern and applying this pattern into the `Game` class; AI
 introduced the concept and showed a demonstration for such a pattern, student researches on the internet for the method, codes and runs.
 
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 18:30 on June 20, 2026, prompt: "Divide the game development project tasks among 4 people. Distribute the work evenly (from UI to Core - ensuring all members get an equal share). Create a complete plan for the phases. Note: Within the OOP framework, use SFML 2.x for the render window", used for planning the project structure, task delegation, and outlining the development phases based on OOP principles; AI provided a comprehensive Work Breakdown Structure (WBS) and a 9-week timeline, student used the plan to assign roles to team members and create the weekly report document.
+
+Gemini. Gemini 3.1, Google, gemini.google.com, accessed 07:30 on June 21, 2026, prompt: "Guide me on creating a GitHub repo for the project: how to create the repo, invite collaborators, create branches (expected to include a dev branch and a docs branch), and basic files for the project (such as readme, weekly report template - latex, etc.)", used for establishing the version control workflow and repository structure for the team; AI outlined step-by-step instructions for repository creation and branching strategies, student initialized the GitHub repository and invited collaborators.
+
+* Gemini. Gemini, Google, gemini.google.com, accessed 18:39 on July 4, 2026, prompt: "Provide a structural guide for building a base Character class using the Factory Method pattern in C++, including concrete Hero products (Mario1, Mario2) with different abilities, and a HeroFactory to instantiate them.", used for establishing the OOP architecture and entity spawning mechanics; AI generated the abstract class and factory templates, student adapted the polymorphism structure for the SFML project, debugged access modifiers, and integrated the code.
+
 ## 5. Next Week's Action Plan
 * **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
 * **Gameplay / Graphics:** [Tasks related to UI, level design, new entities, or AI behavior]
-* **Expected Deadline:** [Target date for the next sprint's goals]
+* **Expected Deadline:** 11/7/2026
