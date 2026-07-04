@@ -17,7 +17,7 @@
    * Implemented the Game class methods in `src/Core/Game.cpp`, including the game loop (run), event processing, updating, and rendering, with a fixed timestep and window management using SFML.
    * Updated `src/main.cpp` to start the game by invoking `Game::getInstance().run()`.
    * Modified `CMakeLists.txt` to ensure SFML is built as a static library by setting `BUILD_SHARED_LIBS` to `OFF`.
-* **Proof:** https://github.com/trannhukhai98438/CS20git add .2-Group03-2DGame/pull/1
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/pull/1
 
 **25125045 - Trần Như Khải** is in charge of the **Hero & Items Logic**.
 * **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
@@ -41,15 +41,12 @@
 **Solution 2:** [Describe how the team fixed or plans to fix it]
 
 ## 4. AI Usage Notes:
-*
-
-
-[Chat history]()
-
-*
-
-
-[Chat history]()
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:15 on July 3, 2026, prompt: "Provide a structural guide for building a core game engine in C++, starting with the initialization of the SFML RenderWindow and the implementation of a fixed-timestep game loop.", used for understanding the idea for the core engine for games; AI
+introduced the frames to capture the states, student researches on the internet for the method, codes
+and runs.
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:25 on July 3, 2026, prompt: "Resolve a runtime system error (sfml-system-d-2.dll was not found).", used for debugging; AI suggested to put the DLLs next to the executable, then add `set(BUILD_SHARED_LIBS OFF)` into `CMakeLists.txt` to prevent the error for other member; student applies the method and checks the status.
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:30 on July 3, 2026, prompt: "Explain the mechanics of the Singleton design pattern and demonstrate how to securely implement it to manage the core Game class without memory leaks.", used for understanding Singleton pattern and applying this pattern into the `Game` class; AI
+introduced the concept and showed a demonstration for such a pattern, student researches on the internet for the method, codes and runs.
 
 ## 5. Next Week's Action Plan
 * **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
