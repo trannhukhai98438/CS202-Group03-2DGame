@@ -17,15 +17,16 @@
    * Implemented the Game class methods in `src/Core/Game.cpp`, including the game loop (run), event processing, updating, and rendering, with a fixed timestep and window management using SFML.
    * Updated `src/main.cpp` to start the game by invoking `Game::getInstance().run()`.
    * Modified `CMakeLists.txt` to ensure SFML is built as a static library by setting `BUILD_SHARED_LIBS` to `OFF`.
-* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/pull/1
+* **Proof:** https://github.com/trannhukhai98438/CS20git add .2-Group03-2DGame/pull/1
 
 **25125045 - Trần Như Khải** is in charge of the **Hero & Items Logic**.
 * **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
 * **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
 
 **25125024 - Đỗ Viết Hoàng Long** is handling the **Enemies & AI Design**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:** Designed the abstract base class `Enemy` using the **Template Method Pattern** to enforce a structured 3-step patrol AI (`checkObstacles`, `move`, `applyAnimation`). Created concrete header structures for `Goomba` and `Koopa`.
+* **Note:** The current implementation relies on the base `Character` class. Since the official `Character.h` hasn't been pushed to the main repository yet, compilation might temporarily fail until the `Character` component is integrated.
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/feature/enemies-ai
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
 * **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
