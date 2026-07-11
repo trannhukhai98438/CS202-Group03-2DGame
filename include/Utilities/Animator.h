@@ -26,5 +26,6 @@ public:
     Animator(sf::Sprite& sprite);
     
     void addAnimation(const std::string& name, const Animation& animation);
+    
     void playAnimation(const std::string& name, float deltaTime);
 };
