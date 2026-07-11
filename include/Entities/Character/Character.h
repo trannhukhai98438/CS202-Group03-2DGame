@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "../Utilities/Animator.h"
+#include "Animator.h"
 
 class Character{
     protected:

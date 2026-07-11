@@ -1,4 +1,4 @@
-#include "../../include/Entities/Character.h"
+#include "Character.h"
 
 Character::Character(float x, float y) : animator(sprite) {
     position={x,y};

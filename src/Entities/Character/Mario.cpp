@@ -1,4 +1,4 @@
-#include "../../include/Entities/Mario.h"
+#include "Mario.h"
 
 Mario::Mario(float x, float y): Character(x,y){
     currentState = MarioState::Small;
