@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/Entities/Character.cpp
 <<<<<<< HEAD
 #include "Entities/Character.h"
 
@@ -44,6 +45,9 @@ bool Character::isDead() const {
     return !isAlive;
 =======
 #include "../../include/Entities/Character.h"
+=======
+#include "Character.h"
+>>>>>>> 141c08e (refactor: Restructure Entities files):src/Entities/Character/Character.cpp
 
 Character::Character(float x, float y) : animator(sprite) {
     position={x,y};
