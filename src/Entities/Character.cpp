@@ -1,6 +1,6 @@
 #include "../../include/Entities/Character.h"
 
-Character::Character(float x, float y){
+Character::Character(float x, float y) : animator(sprite) {
     position={x,y};
     velocity={0.f, 0.f};
     facingRight=true;
