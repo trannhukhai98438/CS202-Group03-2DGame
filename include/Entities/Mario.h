@@ -2,9 +2,21 @@
 
 #include "Character.h"
 
+enum class MarioState {
+    Small,
+    Super,
+    Fire,
+    Dead
+};
+
 class Mario:public Character{
     private:
-        bool isUntargetable;
+        bool isInvulnerable;
+        float invulnerableTimer;
+        const float MAX_INVULNERABLE_TIME = 2.0f;
+        MarioState currentState;
+        float moveSpeed;
+        float jumpVelocity;
     protected:
         // void specialAbility() override;
     public:
@@ -14,5 +26,5 @@ class Mario:public Character{
 
         void render(sf::RenderWindow& window) override;
 
-        void takedamage(int x) override;
+        void die() override;
 };
