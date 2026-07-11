@@ -2,18 +2,21 @@
 
 Character::Character(float x, float y){
     position={x,y};
-
+    velocity={0.f, 0.f};
+    facingRight=true;
+    isGrounded=false;
+    isActive=true;
 }
 
-void Character::takedamage(int x) // if the character have hp
+void Character::die()
 {
-    hp-=x;
-    if (hp<0) hp=0;
+    isActive=false;
 }
+
 sf::FloatRect Character::getBounds(){
     return hitbox.getGlobalBounds();
 }
 
 bool Character::isDead() const{
-    return (hp==0);
+    return (!isActive);
 }
