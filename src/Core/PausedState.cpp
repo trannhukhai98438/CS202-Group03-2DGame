@@ -13,14 +13,14 @@ PausedState::PausedState() {
     m_pauseText.setFillColor(sf::Color::White);
 
     m_resumeText.setFont(m_font);
-    m_resumeText.setString("Press ESC to Resume");
+    m_resumeText.setString("Press TAB to Resume");
     m_resumeText.setCharacterSize(24);
     m_resumeText.setFillColor(sf::Color::Yellow);
 }
 
 void PausedState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
-        if (event.key.code == sf::Keyboard::Escape) {
+        if (event.key.code == sf::Keyboard::Tab) {
             std::cout << "RESUMING GAME...\n";
             Game::getInstance().popState();
         }
