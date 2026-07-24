@@ -1,6 +1,7 @@
 #include "Core/MainMenuState.h"
 #include "Core/Game.h"
 #include "Core/PlayingState.h"
+#include "Core/TransitionState.h"
 #include <iostream>
 
 MainMenuState::MainMenuState() {
@@ -24,7 +25,7 @@ MainMenuState::MainMenuState() {
 void MainMenuState::processEvents(sf::Event& event) {
 	if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
 		std::cout << "ENTER pressed! Ready to load ...\n";
-		Game::getInstance().changeState(std::make_unique<PlayingState>());
+		Game::getInstance().changeState(std::make_unique<TransitionState>());
 	}
 }
 
