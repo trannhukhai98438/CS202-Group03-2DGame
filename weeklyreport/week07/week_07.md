@@ -6,14 +6,13 @@
 ---
 
 ## 1. Weekly Overview
-* **Primary Goal:**
-  * Implement basic gravity/collision and integrate complex collision detection (e.g., Mario stomping on Goombas).
-  * Finish Mario's size-changing logic.
-  * Develop the tilemap renderer to display a static Mario level (bricks, pipes) from a text file.
-  * Spawn classic items (Mushroom, Coin).
-  * Spawn Goombas/Koopas and implement basic walking/bouncing behavior.
-  * Design and implement core game state manager (Main Menu, Pause, Play)
-* **Completion Rate:** 25% of the weekly plan completed.
+* **Primary Goal:** Complete all delayed tasks from Week 4 to Week 7 to finalize the core mechanics, entity interactions, and UI integration.
+* **Core Physics & Collision (Minh Khoa):** Implement the delayed gravity system and precise AABB collision detection. Integrate complex interactions (e.g., Mario stomping on Goombas) and refine hitboxes to perfectly match the 1985 gameplay feel.
+* **Level Rendering & UI (Đăng Khoa):** Develop the tilemap renderer to display static Mario levels (bricks, pipes) from text files. Implement the Observer pattern to dynamically update the classic HUD (score, coins, time).
+* **Hero & Items Logic (Khải):** Spawn classic items (Mushroom, Coin) into the game. Finalize Mario's advanced mechanics, including invincibility frames and Fire Mario state transitions.
+* **Enemies & AI (Long):** Spawn Goombas and Koopas and implement their basic walking/bouncing behaviors. Finalize advanced enemy logic (e.g., Koopa shells sliding and hitting other enemies).
+
+* **Completion Rate:** 75% of the weekly plan completed.
 
 ## 2. Individual Task Breakdown
 
@@ -33,7 +32,9 @@
 	* https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/bce01de112a5a401cd218fd6beedee63da78167c
 
 **25125045 - Trần Như Khải** is in charge of the **Hero & Items Logic**.
-* **Completed Tasks:** no tasks completed this week
+* **In-process Tasks:** 
+* Refactoring and re-implementing the `Character` and `Hero` classes to improve the architecture.
+* Researching and collecting appropriate sprite sheets for both Mario and Luigi characters.
 
 **25125024 - Đỗ Viết Hoàng Long** is handling the **Enemies & AI Design**.
 * **Completed Tasks:**
@@ -46,11 +47,13 @@
 	* https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/fbf38dea9c132b0f7e107b1a73dd589b80e778bc
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
-* **Completed Tasks:** no tasks completed this week
+* **Completed Tasks:** 
+* Implemented LevelManagment class.
 
 ## 3. Challenges & Solutions
 
-no challenges or solutions in this week.
+**Issue 1:** The `Mario` class was becoming overly bloated and difficult to maintain as it had to manage too many parameters and complex character states (e.g., Dead, Fire, Giant, Small).
+**Solution 1:** Abstracted the core functionalities into a general `Hero` class and redesigned the character's form logic using the **Strategy Pattern**. This allows the character to swap states dynamically and keeps the code clean and scalable.
 
 ## 4. AI Usage Notes
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 23:00 on July 24, 2026, prompt: "How do I implement the remaining lifecycle states (GameOverState, VictoryState, and TransitionState) in C++ SFML, and does a TimePerFrame of 1/60th second guarantee exact state refresh rates?" to finalize the state machine architecture, AI suggested the implementation blueprints for the three states and explained the fixed time-step logic, Student reviewed the code and integrated the states into the engine.
@@ -59,15 +62,16 @@ no challenges or solutions in this week.
 * Gemini. Gemini 3.6 Flash, Google, gemini.google.com, accessed 19:30 on July 25, 2026, prompt: "What are the exact state transitions and gameplay mechanics for Goomba and Koopa in Super Mario Bros (stomping, squished duration, shell mode, and sliding shell velocity)?" to design realistic enemy behavior, AI explained the state transitions and movement parameters, Student implemented the Goomba and Koopa class methods.
 * Gemini. Gemini 3.6 Flash, Google, gemini.google.com, accessed 20:00 on July 25, 2026, prompt: "Draw an OOP class hierarchy graph and design pattern diagram for Enemy, EnemyState, and EnemyFactory to apply Template Method and State patterns." to map out object relationships before coding, AI provided an object relationship blueprint, Student reviewed the diagram and wrote the C++ classes.
 * Gemini. Gemini 3.6 Flash, Google, gemini.google.com, accessed 21:00 on July 25, 2026, prompt: "Format my completed task breakdown and proof links for Week 07 progress report following the course markdown template." to generate the weekly report documentation, AI formatted the detailed bullet points and GitHub commit URL, Student reviewed and integrated it into the week_07.md report.
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 22:05 on July 25, 2026, prompt: "How can State/Strategy Patterns be applied to the Hero for various character states?", to refactor the character's form logic, AI outlined the structural design and provided example interaction functions, Student referenced the structure to finalize the implementation of the Hero class.
 ## 5. Next Week's Action Plan
 * **Core Mechanics:** 
-  * Prioritize and complete the delayed physics engine: implement basic gravity and precise AABB collision detection[cite: 3, 5].
-  * Integrate complex entity collision logic (e.g., Mario stomping on Goombas)[cite: 3, 5].
-  * Finalize Mario's mechanics, including size-changing logic (Strategy Pattern) and state transitions (invincibility frames)[cite: 3, 5].
+  * Integrate the newly developed `PhysicsEngine` (gravity and AABB collision) with actual game entities (Hero, Enemies) instead of testing with dummy bounding boxes.
+  * Finalize Khải's in-process refactoring of the `Character` and `Hero` classes, fully implementing Mario's state-swapping logic via the Strategy Pattern.
+  * Implement complex entity interaction logic (e.g., Mario squishing Goombas, colliding with sliding Koopa shells, or taking damage).
+* **System Integration:** Merge all individual modules (Engine, Level Management, Hero, Enemies) into the main development branch to successfully assemble and run the first playable gameplay demo (All Members).
 * **Gameplay / Graphics:** 
-  * Fully develop the tilemap renderer to load and display static Mario levels (bricks, pipes) from text/csv files.
-  * Spawn classic items (Mushroom, Coin) using the Factory Pattern.
-  * Spawn classic enemies (Goombas, Koopas) and implement their basic walking/bouncing patrol AI.
-  * Implement the HUD (score, coins, lives) via the Observer Pattern.
-  * Begin Level Design by constructing the first classic level layout and placing entities strategically.
+  * Develop the tilemap renderer to load and display static Mario levels (bricks, pipes) from text/csv files (delayed task).
+  * Implement the dynamic HUD (score, coins, time) utilizing the Observer Pattern.
+  * Integrate the completed `Goomba` and `Koopa` classes into the main game loop to test their Patrol AI and state management.
+  * Spawn classic items (Mushroom, Coin) utilizing the Factory Pattern.
 * **Expected Deadline:** 01/8/2026
