@@ -1,6 +1,6 @@
 #include "Core/Game.h"
 
-Game::Game() : m_window(sf::VideoMode(800, 600), "Super Mario - Custom Engine")
+Game::Game() : m_window(sf::VideoMode(1280, 720), "Super Mario - Custom Engine")
 {
 }
 
@@ -31,12 +31,9 @@ void Game::processEvents() {
 }
 
 void Game::update(sf::Time dt) {
-	// TODO: State Pattern updates will go here.
-	// This is where gravity applies.
 }
 
 void Game::render() {
-	m_window.clear(sf::Color(92, 148, 252)); // Clear with a sky blue color
-	//TODO: Draw the entities of the current State here.
+	m_window.clear(sf::Color(92, 148, 252));
 	m_window.display();
 }

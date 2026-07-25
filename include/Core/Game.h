@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-//Singleton Pattern (only 1 instance of Game can exist at a time)
 class Game {
 private:
 	Game();
