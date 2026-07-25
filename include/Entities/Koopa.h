@@ -5,15 +5,28 @@
 
 class Koopa : public Enemy {
 private:
-    bool isShell;
+    float shellSpeed;
 
 public:
-    Koopa(float startX, float startY);
+    Koopa(float startX, float startY, float patrolRange = 120.0f);
 
-    void draw(sf::RenderWindow& window) override;
+    float getSpeed() const override;
+    int getDamageOnTouch() const override;
+    int getScoreValue() const override { return 200; }
+    std::string getCharacterType() const override { return "Koopa"; }
+
+    void render(sf::RenderWindow& window) override;
+    void takeDamage(int damage) override;
+    void onStomped(Character* attacker) override;
+    void onSideCollision(Character* attacker) override;
+
+    bool getIsShell() const;
+    bool getIsShellSpinning() const;
+    void kickShell(MoveDirection dir);
 
 protected:
     void checkObstacles() override;
+    void move(float deltaTime) override;
     void applyAnimation() override;
 };
 
