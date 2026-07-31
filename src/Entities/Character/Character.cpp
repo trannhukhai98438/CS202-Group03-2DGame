@@ -1,22 +1,58 @@
 #include "Character.h"
 
-Character::Character(float x, float y) : animator(sprite) {
-    position={x,y};
-    velocity={0.f, 0.f};
-    facingRight=true;
-    isGrounded=false;
-    isActive=true;
+Character::Character(float x, float y): animator(sprite), position({x,y}), isAlive(true), isGrounded(true), isFacingRight(true), hp(1){
+
 }
 
-void Character::die()
-{
-    isActive=false;
+bool Character::isDead(){
+    return !isAlive;
+}
+
+int Character::getHp(){
+    return hp;
 }
 
 sf::FloatRect Character::getBounds(){
     return hitbox.getGlobalBounds();
 }
 
-bool Character::isDead() const{
-    return (!isActive);
+void Character::setSize(float x, float y){
+    hitbox.setSize({x,y});
+    hitbox.setOrigin(x / 2.0f, y); // Bottom-Center origin
+}
+
+void Character::setVelocity(float x, float y){
+    velocity.x = x;
+    velocity.y = y;
+}
+
+sf::Vector2f Character::getVelocity(){
+    return velocity;
+}
+
+bool Character::isGrounded(){
+    return isGrounded;
+}
+
+void Character::setGrounded(bool grounded){
+    isGrounded = grounded;
+}
+
+void Character::setPosition(float x, float y){
+    position.x = x;
+    position.y = y;
+    sprite.setPosition(position);
+    hitbox.setPosition(position);
+}
+
+sf::Vector2f Character::getPosition(){
+    return position;
+}
+
+void Character::setFacingRight(bool facing){
+    isFacingRight = facing;
+}
+
+bool Character::getFacingRight() const {
+    return isFacingRight;
 }

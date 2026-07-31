@@ -1,28 +1,39 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Animator.h"
+#include <Animator.h>
 
 class Character{
-    protected:
-        sf::Vector2f position;
-        sf::Vector2f velocity;
-        sf::RectangleShape hitbox;
-        sf::Sprite sprite;
-        sf::Texture texture;
-        Animator animator;
-        bool isActive; // Replaces hp for alive/dead state
-        bool facingRight;
-        bool isGrounded;
-        // virtual void specialAbility()=0;
-    public:
-        Character(float x, float y); 
-        // Constructor of Derived classes calculate sprite frames from sprite texture
-        // and set up the animator by themselves because they have different sprite frames.
-        virtual ~Character()=default;
+protected:
+    sf::Sprite sprite;
+    sf::Texture texture;
+    Animator animator;
+    sf::Vector2f velocity;
+    sf::Vector2f position;
+    sf::RectangleShape hitbox;
+    bool isFacingRight;
+    bool isGrounded;
+    bool isAlive;
+    int hp;
+public:
+    Character(float x, float y);
+    virtual ~Character()=default;
 
-        virtual void update(float deltatime)=0;
-        virtual void render(sf::RenderWindow & window)=0;
-        virtual void die(); // Replaces takedamage
-        sf::FloatRect getBounds();
-        bool isDead() const;
+    virtual void update(float deltatime)=0;
+    virtual void render(sf::RenderWindow& window)=0;
+    virtual void takedamage()=0;
+    virtual void die()=0;
+
+    // getters and setters
+    bool isDead();
+    sf::FloatRect getBounds();
+    int getHp();
+    void setSize(float x, float y);
+    void setVelocity(float x, float y);
+    sf::Vector2f getVelocity();
+    void setPosition(float x, float y);
+    sf::Vector2f getPosition();
+    bool isGrounded();
+    void setGrounded(bool grounded);
+    void setFacingRight(bool facing);
+    bool getFacingRight() const;
 };

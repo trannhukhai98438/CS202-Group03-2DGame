@@ -30,4 +30,5 @@ void Animator::playAnimation(const std::string& name, float deltaTime) {
     }
 
     targetSprite.setTextureRect(anim.frames[currentFrameIndex]);
+    targetSprite.setOrigin(anim.frames[currentFrameIndex].width / 2.0f, (float)anim.frames[currentFrameIndex].height);
 }
