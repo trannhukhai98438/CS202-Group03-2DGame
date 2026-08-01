@@ -1,7 +1,7 @@
 #include "Entities/Enemy.h"
 
 Enemy::Enemy(float startX, float startY, float moveSpeed, float patrolRange)
-    : Character(startX, startY),
+    : BaseEntity(startX, startY),
       speed(moveSpeed),
       health(1),
       currentDir(MoveDirection::Left),
@@ -53,7 +53,7 @@ void Enemy::move(float deltaTime) {
 void Enemy::applyAnimation() {
 }
 
-void Enemy::interactWith(Character* other) {
+void Enemy::interactWith(BaseEntity* other) {
     if (!other || !other->getIsAlive()) return;
     sf::FloatRect bounds = getBounds();
     sf::FloatRect otherBounds = other->getBounds();
@@ -65,12 +65,12 @@ void Enemy::interactWith(Character* other) {
     }
 }
 
-void Enemy::onStomped(Character* attacker) {
+void Enemy::onStomped(BaseEntity* attacker) {
     (void)attacker;
     die();
 }
 
-void Enemy::onSideCollision(Character* attacker) {
+void Enemy::onSideCollision(BaseEntity* attacker) {
     if (!attacker) return;
     attacker->takeDamage(getDamageOnTouch());
 }
@@ -93,7 +93,7 @@ sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numFra
         int frameWidth = static_cast<int>(texSize.x / numFrames);
         int frameHeight = static_cast<int>(texSize.y);
         
-        float scale = targetHeight / static_cast<float>(frameHeight);
+        float scale = targetHeight / static_cast<float>(frameWidth);
         sprite.setScale(scale, scale);
 
         int bottomPadding = 0;
