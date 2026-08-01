@@ -61,9 +61,9 @@
 
 ## 5. Next Week's Action Plan
 * **Core Mechanics:** 
-  * Merge all individual feature branches into the primary `dev` branch to consolidate the codebase[cite: 6].
-  * Conduct system-wide adjustments, code reviews, and bug squashing to ensure stability across the integrated architecture[cite: 6].
+  * Merge all individual feature branches into the primary `dev` branch to consolidate the codebase.
+  * Conduct system-wide adjustments, code reviews, and bug squashing to ensure stability across the integrated architecture.
 * **Gameplay / Graphics:** 
-  * Finalize the core implementations for the Hero class, interactive Bricks, classic Items, and Enemy entities (Goombas, Koopas)[cite: 6].
-  * Construct a functional demo map layout to actively playtest all integrated features, verify complex entity interactions, and identify runtime bugs[cite: 6].
+  * Finalize the core implementations for the Hero class, interactive Bricks, classic Items, and Enemy entities (Goombas, Koopas).
+  * Construct a functional demo map layout to actively playtest all integrated features, verify complex entity interactions, and identify runtime bugs.
 * **Expected Deadline:** 8/8/2026
