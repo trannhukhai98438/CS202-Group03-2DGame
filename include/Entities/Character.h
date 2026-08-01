@@ -2,6 +2,7 @@
 #define CHARACTER_H
 
 #include <SFML/Graphics.hpp>
+#include "Utilities/Animator.h"
 #include <string>
 
 class Character {
@@ -9,6 +10,9 @@ protected:
     sf::Vector2f position;
     sf::Vector2f velocity;
     sf::RectangleShape shape;
+    sf::Sprite sprite;
+    sf::Texture texture;
+    Animator animator;
     bool isAlive;
     bool facingRight;
     bool isGrounded;
