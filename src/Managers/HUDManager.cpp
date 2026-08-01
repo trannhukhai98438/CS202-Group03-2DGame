@@ -16,7 +16,7 @@ bool HUDManager::init(const std::string& fontPath) {
     // General formatting configuration for SFML text
     auto setupText = [this](sf::Text& text, float x, float y) {
         text.setFont(m_font);
-        text.setCharacterSize(18);
+        text.setCharacterSize(24);
         text.setFillColor(sf::Color::White);
         text.setPosition(x, y);
     };
@@ -27,12 +27,6 @@ bool HUDManager::init(const std::string& fontPath) {
     setupText(m_worldText, 580.0f,  20.0f);
     setupText(m_timeText,  840.0f,  20.0f);
     setupText(m_livesText, 1060.0f, 20.0f);
-
-    m_scoreText.setCharacterSize(24);
-    m_coinsText.setCharacterSize(24);
-    m_worldText.setCharacterSize(24);
-    m_timeText.setCharacterSize(24);
-    m_livesText.setCharacterSize(24);
 
     updateTextStrings();
     return true;
