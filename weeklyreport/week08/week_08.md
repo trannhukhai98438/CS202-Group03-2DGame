@@ -20,8 +20,13 @@
 * **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
 
 **25125024 - Đỗ Viết Hoàng Long** is handling the **Enemies & AI Design**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:**
+  * Implemented the `Enemy` base class with patrol AI, sprite animation, and collision handling.
+  * Implemented `Goomba` enemy with 4-frame walk animation, patrol behavior, and squish-on-stomp mechanic.
+  * Implemented `Koopa` enemy with walk animation, Shell and SpinningShell states, and kick-on-side-collision mechanic.
+* **Proof:**
+  * https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/173e03b
+  * https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/3f66765
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
 * **Completed Tasks:**
@@ -42,11 +47,9 @@
 ## 4. AI Usage Notes
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 23:00 on July 24, 2026, prompt: "How do I implement HUDManager and integrate it into PlayingState in C++ SFML, and does decoupling player stats updates from the render pass optimize performance?" to finalize the in-game UI architecture, AI suggested the implementation blueprints for HUDManager and event-driven integration with PlayingState, Student reviewed the code and integrated the HUD system into the engine.
 
-
 [Chat history]()
 
-*
-
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 19:00 on July 29, 2026, prompt: "How to implement spritesheet animation and load custom texture shapes for Koopa and Goomba enemies in a C++ SFML platformer?" to research sprite sheet animation rendering and texture scaling, AI provided guidance on calculating source rectangles and dynamically adjusting sprite origins, Student reviewed the suggestions and implemented the sprite logic for Goomba and Koopa.
 
 [Chat history]()
 
