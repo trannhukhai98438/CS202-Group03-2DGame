@@ -3,6 +3,8 @@
 #include "Core/PausedState.h"
 
 PlayingState::PlayingState(): m_velocityX(200.f), m_velocityY(0.f){
+    m_hudManager.init("assets/fonts/SuperMario256.ttf");
+
 	// TODO (Khai): Replace these dummy shapes with actual Mario and level assets when available.
     m_dummyMario.setSize(sf::Vector2f(50.f, 50.f));
     m_dummyMario.setFillColor(sf::Color::Cyan);
@@ -24,9 +26,21 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
         m_velocityY = -600.f;
     }
+
+    // Bấm phím C để giả lập ăn 1 xu (+100 điểm)
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
+        m_hudManager.addCoin(1);
+        m_hudManager.addScore(100);
+    }
 }
 
 void PlayingState::update(sf::Time dt) {
+    m_hudManager.updateTimer(dt.asSeconds());
+    if (m_hudManager.getRemainingTime() <= 0.0f) {
+        // Time out --> Game Over
+        // Game::getInstance().changeState(std::make_unique<GameOverState>());
+    }
+
     // X-axis movement
     m_dummyMario.move(m_velocityX * dt.asSeconds(), 0.f);
     m_physics.resolveCollisionX(m_dummyMario, m_dummyFloor, m_velocityX);
@@ -42,4 +56,6 @@ void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_dummyFloor);
     window.draw(m_dummyMario);
     window.draw(m_dummyWall);
+
+    window.draw(m_hudManager);
 }
