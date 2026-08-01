@@ -8,4 +8,5 @@ public:
     void enter(Hero* hero) override;
     void update(Hero* hero, float deltatime) override;
     std::string getForm() override;
+    void takedamage(Hero* hero) override;
 };

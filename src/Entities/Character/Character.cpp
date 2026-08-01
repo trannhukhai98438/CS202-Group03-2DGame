@@ -49,12 +49,11 @@ bool Character::isDead() const {
 #include "Character.h"
 >>>>>>> 141c08e (refactor: Restructure Entities files):src/Entities/Character/Character.cpp
 
-Character::Character(float x, float y): animator(sprite), position({x,y}), isAlive(true), isGrounded(true), isFacingRight(true), hp(1){
-
+Character::Character(float x, float y): animator(sprite), position({x, y}), isActive(true), isGrounded(false), isFacingRight(true),hp(1){
 }
 
 bool Character::isDead(){
-    return !isAlive;
+    return !isActive;
 }
 
 int Character::getHp(){
@@ -66,7 +65,7 @@ sf::FloatRect Character::getBounds(){
 }
 
 void Character::setSize(float x, float y){
-    hitbox.setSize({x,y});
+    hitbox.setSize({x, y});
     hitbox.setOrigin(x / 2.0f, y); // Bottom-Center origin
 }
 
@@ -79,7 +78,7 @@ sf::Vector2f Character::getVelocity(){
     return velocity;
 }
 
-bool Character::isGrounded(){
+bool Character::getGrounded(){
     return isGrounded;
 }
 

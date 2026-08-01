@@ -1,18 +1,42 @@
 #include "Hero.h"
 #include "SlideState.h"
 #include "IdleState.h"
+#include "JumpState.h"
+#include "PhysicsConstants.h"
 #include <cmath>
 
 void SlideState::enter(Hero* hero){
-    // Nothing special on enter, but movement input will be locked during update
+    // No special setup — friction in update() will handle deceleration
 }
 
 void SlideState::update(Hero* hero, float deltatime){
-    // Lock all movement keys
-    // Friction will slow character down naturally
+    sf::Vector2f vel = hero->getVelocity();
 
-    // Wait until velocity X becomes 0 to transition back to Idle
-    if (std::abs(hero->getVelocity().x) < 0.1f){
+    // --- Safety: if airborne, transition to Jump ---
+    if (!hero->getGrounded()){
+        hero->setState(std::make_unique<JumpState>());
+        return;
+    }
+
+    // --- Heavy friction to stop quickly (1.5× normal) //temporary ---
+    float friction = PhysicsConstants::FRICTION * 1.5f * deltatime;
+    if (vel.x > 0.f) vel.x = std::max(0.f, vel.x - friction);
+    else if (vel.x < 0.f) vel.x = std::min(0.f, vel.x + friction);
+
+    // --- Apply gravity //temporary ---
+    vel.y += PhysicsConstants::GRAVITY * deltatime;
+    if (vel.y > PhysicsConstants::MAX_FALL_SPEED) vel.y = PhysicsConstants::MAX_FALL_SPEED;
+
+    hero->setVelocity(vel.x, vel.y);
+
+    // --- Integrate position //temporary ---
+    sf::Vector2f pos = hero->getPosition();
+    pos += vel * deltatime;
+    hero->setPosition(pos.x, pos.y);
+    // TODO: CollisionSystem corrects position and calls setGrounded() //temporary
+
+    // --- Transition: stopped → Idle ---
+    if (std::abs(vel.x) < PhysicsConstants::STOP_THRESHOLD){
         hero->setState(std::make_unique<IdleState>());
     }
 }

@@ -3,46 +3,76 @@
 #include "JumpState.h"
 #include "SlideState.h"
 #include "IdleState.h"
+#include "PhysicsConstants.h"
 #include <cmath>
 
 void RunState::enter(Hero* hero){
-    // Do nothing special on enter
+    // No special setup needed on enter
 }
 
 void RunState::update(Hero* hero, float deltatime){
-    //temporary physics constants
-    //float acceleration = 500.f; //temporary
+    // --- Safety: Run only valid when grounded ---
+    if (!hero->getGrounded()){
+        hero->setState(std::make_unique<JumpState>());
+        return;
+    }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+    sf::Vector2f vel = hero->getVelocity();
+    bool movingLeft  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+    bool movingRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+
+    // --- Horizontal acceleration ---
+    if (movingLeft){
         hero->setFacingRight(false);
-        // move left
-        //hero->setVelocity(-100.f, hero->getVelocity().y); //temporary
+        vel.x -= PhysicsConstants::ACCELERATION * deltatime; //temporary
+        if (vel.x < -PhysicsConstants::WALK_SPEED) vel.x = -PhysicsConstants::WALK_SPEED;
     }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    else if (movingRight){
         hero->setFacingRight(true);
-        // move right
-        //hero->setVelocity(100.f, hero->getVelocity().y); //temporary
+        vel.x += PhysicsConstants::ACCELERATION * deltatime; //temporary
+        if (vel.x > PhysicsConstants::WALK_SPEED) vel.x = PhysicsConstants::WALK_SPEED;
+    }
+    else {
+        // No horizontal input — apply friction
+        float friction = PhysicsConstants::FRICTION * deltatime; //temporary
+        if (vel.x > 0.f) vel.x = std::max(0.f, vel.x - friction);
+        else if (vel.x < 0.f) vel.x = std::min(0.f, vel.x + friction);
     }
 
+    // --- Apply gravity //temporary ---
+    vel.y += PhysicsConstants::GRAVITY * deltatime;
+    if (vel.y > PhysicsConstants::MAX_FALL_SPEED) vel.y = PhysicsConstants::MAX_FALL_SPEED;
+
+    hero->setVelocity(vel.x, vel.y);
+
+    // --- Integrate position //temporary ---
+    sf::Vector2f pos = hero->getPosition();
+    pos += vel * deltatime;
+    hero->setPosition(pos.x, pos.y);
+    // TODO: CollisionSystem corrects position and calls setGrounded() //temporary
+
+    // --- State transitions ---
+
+    // Jump
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
         hero->setState(std::make_unique<JumpState>());
         return;
     }
 
-    // Check slide: if moving right but pressing left, or vice versa
-    // (Logic handled by physics/input class usually, but if we do it here:)
-    if (hero->getVelocity().x > 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+    // Slide: moving in one direction but pressing the opposite key
+    if (vel.x > PhysicsConstants::STOP_THRESHOLD && movingLeft){
         hero->setState(std::make_unique<SlideState>());
         return;
     }
-    else if (hero->getVelocity().x < 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    if (vel.x < -PhysicsConstants::STOP_THRESHOLD && movingRight){
         hero->setState(std::make_unique<SlideState>());
         return;
     }
 
-    // Transition to idle if velocity is 0
-    if (std::abs(hero->getVelocity().x) < 0.1f && !sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    // Return to Idle when no input and velocity is negligible
+    if (!movingLeft && !movingRight && std::abs(vel.x) < PhysicsConstants::STOP_THRESHOLD){
         hero->setState(std::make_unique<IdleState>());
+        return;
     }
 }
 
