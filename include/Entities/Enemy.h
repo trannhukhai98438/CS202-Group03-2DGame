@@ -1,7 +1,7 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include "Character.h"
+#include "BaseEntity.h"
 #include "EnemyState.h"
 #include <memory>
 
@@ -10,7 +10,7 @@ enum class MoveDirection {
     Right = 1
 };
 
-class Enemy : public Character {
+class Enemy : public BaseEntity {
 protected:
     float speed;
     int health;
@@ -59,9 +59,9 @@ public:
     float getPatrolLeftBound() const { return patrolLeftBound; }
     float getPatrolRightBound() const { return patrolRightBound; }
 
-    void interactWith(Character* other) override;
-    void onStomped(Character* attacker) override;
-    void onSideCollision(Character* attacker) override;
+    void interactWith(BaseEntity* other) override;
+    void onStomped(BaseEntity* attacker) override;
+    void onSideCollision(BaseEntity* attacker) override;
 
     virtual void checkObstacles();
     virtual void move(float deltaTime);
