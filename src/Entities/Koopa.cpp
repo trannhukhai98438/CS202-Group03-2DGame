@@ -3,26 +3,27 @@
 Koopa::Koopa(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 50.0f, patrolRange),
       shellSpeed(250.0f) {
-    shape.setSize(sf::Vector2f(64.0f, 96.0f));
+    shape.setSize(sf::Vector2f(32.0f, 96.0f));
     shape.setFillColor(sf::Color(34, 139, 34));
     health = 2;
     changeState(std::make_unique<PatrolState>());
 
-    sf::Vector2i frameSize = loadSpriteTexture("assets/textures/koopa.png", 6, 96.0f);
+    sf::Vector2i frameSize = loadSpriteTexture("assets/textures/koopa.png", 6, 64.0f);
     if (frameSize.x > 0 && frameSize.y > 0) {
         int frameWidth = frameSize.x;
         int frameHeight = frameSize.y;
 
         animator.addAnimation("walk", Animation({
             sf::IntRect(0, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth * 2, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth * 3, 0, frameWidth, frameHeight)
+            sf::IntRect(frameWidth, 0, frameWidth, frameHeight)
         }, 0.15f));
         animator.addAnimation("shell", Animation({
-            sf::IntRect(frameWidth * 4, 0, frameWidth, frameHeight)
+            sf::IntRect(frameWidth * 2, 0, frameWidth, frameHeight)
         }, 0.2f));
         animator.addAnimation("spin", Animation({
+            sf::IntRect(frameWidth * 2, 0, frameWidth, frameHeight),
+            sf::IntRect(frameWidth * 3, 0, frameWidth, frameHeight),
+            sf::IntRect(frameWidth * 4, 0, frameWidth, frameHeight),
             sf::IntRect(frameWidth * 5, 0, frameWidth, frameHeight)
         }, 0.1f));
     }
@@ -49,12 +50,12 @@ bool Koopa::getIsShellSpinning() const {
     return getStateName() == "SpinningShell";
 }
 
-void Koopa::onStomped(Character* attacker) {
+void Koopa::onStomped(BaseEntity* attacker) {
     (void)attacker;
     takeDamage(1);
 }
 
-void Koopa::onSideCollision(Character* attacker) {
+void Koopa::onSideCollision(BaseEntity* attacker) {
     if (!attacker) return;
     if (getStateName() == "Shell") {
         MoveDirection kickDir = (attacker->getPosition().x < position.x) ? MoveDirection::Right : MoveDirection::Left;

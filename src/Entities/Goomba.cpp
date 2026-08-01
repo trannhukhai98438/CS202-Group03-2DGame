@@ -2,11 +2,12 @@
 
 Goomba::Goomba(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 40.0f, patrolRange) {
-    shape.setSize(sf::Vector2f(64.0f, 64.0f));
+    shape.setSize(sf::Vector2f(32.0f, 64.0f));
     shape.setFillColor(sf::Color(165, 42, 42));
     health = 1;
     changeState(std::make_unique<PatrolState>());
 
+    // Original Goomba uses 64.0f targetSize (which scales frameWidth to 64.0f)
     sf::Vector2i frameSize = loadSpriteTexture("assets/textures/goomba.png", 6, 64.0f);
     if (frameSize.x > 0 && frameSize.y > 0) {
         int frameWidth = frameSize.x;
@@ -33,7 +34,7 @@ bool Goomba::getIsSquished() const {
     return getStateName() == "Squished";
 }
 
-void Goomba::onStomped(Character* attacker) {
+void Goomba::onStomped(BaseEntity* attacker) {
     (void)attacker;
     takeDamage(1);
 }
