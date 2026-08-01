@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <Animator.h>
 
+class Item; // forward declaration — avoids circular include with Item.h
+
 class Character{
 protected:
     sf::Sprite sprite;
@@ -11,8 +13,8 @@ protected:
     sf::Vector2f position;
     sf::RectangleShape hitbox;
     bool isFacingRight;
-    bool isGrounded;
-    bool isAlive;
+    bool isGrounded;    // managed externally by CollisionSystem //TODO
+    bool isActive;      // false when character is dead / removed from scene
     int hp;
 public:
     Character(float x, float y);
@@ -32,7 +34,7 @@ public:
     sf::Vector2f getVelocity();
     void setPosition(float x, float y);
     sf::Vector2f getPosition();
-    bool isGrounded();
+    bool getGrounded();
     void setGrounded(bool grounded);
     void setFacingRight(bool facing);
     bool getFacingRight() const;

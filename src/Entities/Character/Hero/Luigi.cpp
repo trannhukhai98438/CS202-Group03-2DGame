@@ -36,7 +36,6 @@ Luigi::Luigi(float x, float y): Hero(x,y){
 
     setForm(std::make_unique<SmallForm>());
     setState(std::make_unique<IdleState>());
-    current = form->getForm() + state->getState();
 }
 
 void Luigi::specialAbility(){

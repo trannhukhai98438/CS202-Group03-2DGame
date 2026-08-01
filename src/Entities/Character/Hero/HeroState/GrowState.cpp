@@ -6,8 +6,8 @@
 GrowState::GrowState() : timer(0.f), maxTime(0.45f) {}
 
 void GrowState::enter(Hero* hero){
-    // Lock movement
-    hero->setVelocity(0.f, 0.f); 
+    timer = 0.f;              // reset in case triggered more than once
+    hero->setVelocity(0.f, 0.f); // lock movement during grow animation
 }
 
 void GrowState::update(Hero* hero, float deltatime){
