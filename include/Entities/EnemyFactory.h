@@ -4,12 +4,16 @@
 #include "Enemy.h"
 #include "Goomba.h"
 #include "Koopa.h"
+#include "Entities/Enemy.h"
+#include "Entities/Projectile.h"
 #include <memory>
 #include <string>
+#include <functional>
 
 enum class EnemyType {
     Goomba,
-    Koopa
+    Koopa,
+    Witch
 };
 
 class EnemyFactory {
@@ -17,7 +21,7 @@ public:
     EnemyFactory() = default;
     virtual ~EnemyFactory() = default;
 
-    static std::unique_ptr<Enemy> createEnemy(EnemyType type, float x, float y, float patrolRange = 100.0f);
+    static std::unique_ptr<Enemy> createEnemy(EnemyType type, float x, float y, float patrolRange = 100.0f, std::function<void(std::unique_ptr<Projectile>)> spawnCallback = nullptr);
     static std::unique_ptr<Enemy> createEnemyFromString(const std::string& typeStr, float x, float y, float patrolRange = 100.0f);
 };
 

@@ -18,17 +18,21 @@ protected:
     float startX;
     float patrolLeftBound;
     float patrolRightBound;
+    float m_spriteOffsetY = 0.0f;
     std::unique_ptr<EnemyState> currentState;
 
 public:
     Enemy(float startX, float startY, float moveSpeed = 50.0f, float patrolRange = 100.0f);
     virtual ~Enemy() = default;
 
+    void setSpriteOffsetY(float offset) { m_spriteOffsetY = offset; }
+    sf::Vector2i loadSpriteTexture(const std::string& texturePath, int numFrames, float targetHeight);
+
     void changeState(std::unique_ptr<EnemyState> newState);
     EnemyState* getCurrentState() const { return currentState.get(); }
     std::string getStateName() const { return currentState ? currentState->getName() : "None"; }
 
-    void update(float deltaTime) final override {
+    void update(float deltaTime) override {
         if (!isAlive) return;
 
         if (currentState) {

@@ -1,7 +1,10 @@
 #pragma once
 #include "Core/State.h"
 #include "Core/PhysicsEngine.h"
+#include "Entities/EnemyFactory.h"
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <memory>
 
 class PlayingState : public State {
 private:
@@ -11,6 +14,8 @@ private:
 	float m_velocityY;
 	sf::RectangleShape m_dummyWall;
 	PhysicsEngine m_physics;
+	std::vector<std::unique_ptr<Enemy>> m_enemies;
+	std::vector<std::unique_ptr<Projectile>> m_projectiles;
 public:
 	PlayingState();
 	void processEvents(sf::Event& event) override;
