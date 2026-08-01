@@ -35,7 +35,7 @@ bool HUDManager::init(const std::string& fontPath) {
 void HUDManager::updateTextStrings() {
     std::stringstream ssScore, ssCoins, ssWorld, ssTime, ssLives;
 
-    ssScore << "MARIO\n" << std::setw(6) << std::setfill('0') << m_score;
+    ssScore << "SCORE\n" << std::setw(6) << std::setfill('0') << m_score;
     ssCoins << "COINS\n" << "x" << std::setw(2) << std::setfill('0') << m_coins;
     ssWorld << "WORLD\n " << m_world;
     ssTime  << "TIME\n " << std::setw(3) << std::setfill('0') << static_cast<int>(m_remainingTime);
