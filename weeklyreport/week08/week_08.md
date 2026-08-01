@@ -24,8 +24,12 @@
 * **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:**
+  * Implemented HUDManager class.
+  * Integrate HUDManager into PlayingState.
+* **Proof:**
+  * https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/47a2fe6432e2fb0192b544c57c608178cea11e00
+  * https://github.com/trannhukhai98438/CS202-Group03-2DGame/commit/c9dd808b8cd6058e52755473695e7af4aa2db950
 
 ## 3. Challenges & Solutions
 
@@ -36,7 +40,7 @@
 **Solution 2:** [Describe how the team fixed or plans to fix it]
 
 ## 4. AI Usage Notes
-*
+* Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 23:00 on July 24, 2026, prompt: "How do I implement HUDManager and integrate it into PlayingState in C++ SFML, and does decoupling player stats updates from the render pass optimize performance?" to finalize the in-game UI architecture, AI suggested the implementation blueprints for HUDManager and event-driven integration with PlayingState, Student reviewed the code and integrated the HUD system into the engine.
 
 
 [Chat history]()
