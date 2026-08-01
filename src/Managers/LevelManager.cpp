@@ -11,16 +11,16 @@ bool LevelManager::loadLevel(const std::string& levelPath, const std::string& ti
     m_tileSize = tileSize;
     m_grid.clear();
 
-    // 1. Load the Texture image containing the brick frame.
+    // Load the Texture image containing the brick frame.
     if (!m_tileset.loadFromFile(tilesetPath)) {
         std::cerr << "[LevelManager] ERROR: cannot load tileset from" << tilesetPath << std::endl;
         return false;
     }
 
-    // 2. Open and read the TXT file containing the map matrix.
+    // Open and read the TXT file containing the map matrix.
     std::ifstream file(levelPath);
     if (!file.is_open()) {
-        std::cerr << "[LevelManager] ERROR: Cannot open map file from " << levelPath << std::endl;
+        std::cerr << "[LevelManager] ERROR: cannot open map file from " << levelPath << std::endl;
         return false;
     }
 
