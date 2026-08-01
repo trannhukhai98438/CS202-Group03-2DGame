@@ -1,4 +1,4 @@
-#include "Utilities/Animator.h"
+#include "../../include/Utilities/Animator.h"
 
 Animator::Animator(sf::Sprite& sprite)
     : targetSprite(sprite), currentFrameIndex(0), currentFrameTime(0.0f) {
@@ -10,7 +10,7 @@ void Animator::addAnimation(const std::string& name, const Animation& animation)
 
 void Animator::playAnimation(const std::string& name, float deltaTime) {
     if (animations.find(name) == animations.end()) {
-        return;
+        return; // Animation not found
     }
 
     if (currentAnimation != name) {
@@ -25,10 +25,10 @@ void Animator::playAnimation(const std::string& name, float deltaTime) {
     currentFrameTime += deltaTime;
 
     if (currentFrameTime >= anim.frameTime) {
-        currentFrameTime = 0.0f;
+        currentFrameTime = 0.0f; // Reset or subtract anim.frameTime
         currentFrameIndex = (currentFrameIndex + 1) % anim.frames.size();
     }
 
     targetSprite.setTextureRect(anim.frames[currentFrameIndex]);
-    targetSprite.setOrigin(anim.frames[currentFrameIndex].width / 2.0f, static_cast<float>(anim.frames[currentFrameIndex].height));
+    targetSprite.setOrigin(anim.frames[currentFrameIndex].width / 2.0f, (float)anim.frames[currentFrameIndex].height);
 }
