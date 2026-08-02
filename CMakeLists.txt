@@ -28,7 +28,13 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # 4. CHỈ ĐỊNH THƯ MỤC CHỨA FILE HEADER (.h)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero
+    ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero/HeroForm
+    ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero/HeroState
+    ${CMAKE_SOURCE_DIR}/include/Entities/Items
+)
 
 # 5. LINK THƯ VIỆN SFML VÀO PROJECT
 # SFML khi được tải bằng FetchContent sẽ giữ các tên target tiêu chuẩn
