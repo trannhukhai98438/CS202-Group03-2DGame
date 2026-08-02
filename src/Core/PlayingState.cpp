@@ -3,18 +3,18 @@
 #include "Core/PausedState.h"
 
 PlayingState::PlayingState() 
-	: m_velocityX(0.f), m_velocityY(0.f) {
-	m_dummyMario.setSize(sf::Vector2f(50.f, 50.f));
-	m_dummyMario.setFillColor(sf::Color::White);
-	m_dummyMario.setPosition(100.f, 550.f);
+    : m_velocityX(0.f), m_velocityY(0.f) {
+    m_hudManager.init("assets/fonts/SuperMario256.ttf");
 
-	m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
-	m_dummyFloor.setFillColor(sf::Color::Green);
-	m_dummyFloor.setPosition(0.f, 600.f);
+    m_hero = HeroFactory::createHero(HeroType::Mario, 100.f, 500.f);
 
-	m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
-	m_dummyWall.setFillColor(sf::Color::Yellow);
-	m_dummyWall.setPosition(800.f, 400.f);
+    m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
+    m_dummyFloor.setFillColor(sf::Color::Green);
+    m_dummyFloor.setPosition(0.f, 600.f);
+
+    m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
+    m_dummyWall.setFillColor(sf::Color::Yellow);
+    m_dummyWall.setPosition(800.f, 400.f);
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
         m_projectiles.push_back(std::move(p));
@@ -29,28 +29,54 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
     }
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-        m_velocityY = -600.f;
+    
+    // Simulate getting coins for UI testing
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
+        m_hudManager.addCoin(1);
+        m_hudManager.addScore(100);
     }
 }
 
 void PlayingState::update(sf::Time dt) {
-    // X-axis movement
-    m_dummyMario.move(m_velocityX * dt.asSeconds(), 0.f);
-    m_physics.resolveCollisionX(m_dummyMario, m_dummyFloor, m_velocityX);
-    m_physics.resolveCollisionX(m_dummyMario, m_dummyWall, m_velocityX);
-    // Y-axis movement
-    m_physics.applyGravity(m_velocityY, dt.asSeconds());
-    m_dummyMario.move(0.f, m_velocityY * dt.asSeconds());
-    m_physics.resolveCollisionY(m_dummyMario, m_dummyFloor, m_velocityY);
-    m_physics.resolveCollisionY(m_dummyMario, m_dummyWall, m_velocityY);
+    m_hudManager.updateTimer(dt.asSeconds());
+    if (m_hudManager.getRemainingTime() <= 0.0f) {
+        // Time out
+    }
+
+    if (m_hero) {
+        m_hero->update(dt.asSeconds());
+
+        // Simple floor collision - only if alive and falling
+        if (!m_hero->isDead() && m_hero->getPosition().y >= 600.f && m_hero->getVelocity().y > 0.f) {
+            m_hero->setPosition(m_hero->getPosition().x, 600.f);
+            m_hero->setVelocity(m_hero->getVelocity().x, 0.f);
+            m_hero->setGrounded(true);
+        }
+    }
 
     // Update enemies
     for (auto it = m_enemies.begin(); it != m_enemies.end();) {
         (*it)->update(dt.asSeconds());
         
-        if ((*it)->getIsAlive() && (*it)->getBounds().intersects(m_dummyMario.getGlobalBounds())) {
-            (*it)->interactWith(nullptr);
+        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
+            sf::FloatRect enemyBounds = (*it)->getBounds();
+            sf::FloatRect heroBounds = m_hero->getBounds();
+            
+            // Stomp logic (falling down on top of enemy)
+            bool isFalling = (m_hero->getVelocity().y >= 0.f);
+            float marioCenterY = heroBounds.top + (heroBounds.height * 0.5f);
+            float enemyBottomY = enemyBounds.top + enemyBounds.height;
+
+            if (isFalling && marioCenterY < enemyBottomY) {
+                (*it)->onStomped(nullptr);
+                m_hero->setVelocity(m_hero->getVelocity().x, -600.f);
+                m_hudManager.addScore(200); // Add score for stomping
+            } else {
+                (*it)->onSideCollision(nullptr);
+                if ((*it)->getDamageOnTouch() > 0) {
+                    m_hero->takedamage();
+                }
+            }
         }
 
         if (!(*it)->getIsAlive()) {
@@ -62,9 +88,9 @@ void PlayingState::update(sf::Time dt) {
 
     for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
         (*it)->update(dt.asSeconds());
-        if ((*it)->getIsAlive() && (*it)->getBounds().intersects(m_dummyMario.getGlobalBounds())) {
+        if ((*it)->getIsAlive() && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
             (*it)->die();
-            m_dummyMario.setFillColor(sf::Color::Red); // Visual feedback for hit
+            m_hero->takedamage();
         }
         if (!(*it)->getIsAlive()) {
             it = m_projectiles.erase(it);
@@ -76,7 +102,9 @@ void PlayingState::update(sf::Time dt) {
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_dummyFloor);
-    window.draw(m_dummyMario);
+    if (m_hero) {
+        m_hero->render(window);
+    }
     window.draw(m_dummyWall);
 
     for (auto& enemy : m_enemies) {
@@ -90,4 +118,6 @@ void PlayingState::render(sf::RenderWindow& window) {
             projectile->render(window);
         }
     }
+
+    window.draw(m_hudManager);
 }

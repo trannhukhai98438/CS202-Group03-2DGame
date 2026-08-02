@@ -1,5 +1,5 @@
 #include "Entities/Potion.h"
-#include "Entities/Character.h"
+#include "Entities/BaseEntity.h"
 
 Potion::Potion(float startX, float startY, float velX, float velY)
     : Projectile(startX, startY, velX, velY, 1), animator(sprite), isPuddle(false), puddleTimer(0.0f) {
@@ -21,35 +21,51 @@ Potion::Potion(float startX, float startY, float velX, float velY)
         texture.loadFromImage(img);
         sprite.setTexture(texture);
         
-        int frameWidth = texture.getSize().x / 2;
-        int frameHeight = texture.getSize().y;
-        
         animator.addAnimation("flying", Animation({
-            sf::IntRect(0, 0, frameWidth, frameHeight)
+            sf::IntRect(0, 0, texture.getSize().x, texture.getSize().y)
         }, 1.0f));
+    }
+
+    sf::Image puddleImg;
+    if (puddleImg.loadFromFile("assets/textures/puddle.png")) {
+        for (unsigned int y = 0; y < puddleImg.getSize().y; ++y) {
+            for (unsigned int x = 0; x < puddleImg.getSize().x; ++x) {
+                sf::Color c = puddleImg.getPixel(x, y);
+                if (c.r > 230 && c.g > 230 && c.b > 230) {
+                    puddleImg.setPixel(x, y, sf::Color::Transparent);
+                }
+            }
+        }
+        puddleTexture.loadFromImage(puddleImg);
         
         animator.addAnimation("puddle", Animation({
-            sf::IntRect(frameWidth, 0, frameWidth, frameHeight)
+            sf::IntRect(0, 0, puddleTexture.getSize().x, puddleTexture.getSize().y)
         }, 1.0f));
-
-        float scale = 32.0f / static_cast<float>(frameHeight);
-        sprite.setScale(scale, scale);
-        
-        animator.playAnimation("flying", 0.0f);
     }
+
+    float scale = 32.0f / static_cast<float>(texture.getSize().y > 0 ? texture.getSize().y : 32.0f);
+    sprite.setScale(scale, scale);
+    
+    animator.playAnimation("flying", 0.0f);
 }
 
 void Potion::shatter() {
     isPuddle = true;
     puddleTimer = 1.5f; // Puddle lasts 1.5 seconds
     velocity = sf::Vector2f(0.0f, 0.0f);
-    shape.setSize(sf::Vector2f(64.0f, 16.0f)); // Puddle is wider and flatter
+    shape.setSize(sf::Vector2f(80.0f, 24.0f)); // Puddle is wider and flatter
     
     // Position puddle exactly on ground
     position.y = groundY - shape.getSize().y;
-    position.x -= 16.0f; // Center the wider puddle
+    position.x -= 24.0f; // Center the wider puddle
     shape.setPosition(position);
     
+    // Change texture and scale for puddle
+    sprite.setTexture(puddleTexture);
+    float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80.0f);
+    float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24.0f);
+    sprite.setScale(scaleX, scaleY);
+
     animator.playAnimation("puddle", 0.0f);
 }
 
@@ -72,6 +88,8 @@ void Potion::update(float deltaTime) {
         if (puddleTimer <= 0.0f) {
             die();
         }
+        // Keep shape in sync for collision detection
+        shape.setPosition(position);
         // Update puddle sprite position (bottom-center alignment)
         sprite.setPosition(position.x + shape.getSize().x / 2.0f, position.y + shape.getSize().y);
     }
@@ -88,7 +106,7 @@ void Potion::render(sf::RenderWindow& window) {
     }
 }
 
-void Potion::onHitPlayer(Character* player) {
+void Potion::onHitPlayer(BaseEntity* player) {
     if (player && isAlive) {
         player->takeDamage(damage);
         die();

@@ -7,6 +7,7 @@ class Potion : public Projectile {
 private:
     sf::Sprite sprite;
     sf::Texture texture;
+    sf::Texture puddleTexture;
     Animator animator;
     bool isPuddle;
     float puddleTimer;
@@ -23,5 +24,5 @@ public:
     void render(sf::RenderWindow& window) override;
     
     // Override onHitPlayer to prevent hitting while flying if desired, or keep default
-    void onHitPlayer(Character* player) override;
+    void onHitPlayer(BaseEntity* player) override;
 };

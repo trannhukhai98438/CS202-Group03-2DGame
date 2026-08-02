@@ -25,8 +25,9 @@ public:
 class SquishedState : public EnemyState {
 private:
     float timer;
+    float fadeDuration;
 public:
-    SquishedState(float duration = 0.5f);
+    SquishedState(float duration = 0.6f, float fadeTime = 0.3f);
     void onEnter(Enemy& enemy) override;
     void update(Enemy& enemy, float deltaTime) override;
     std::string getName() const override { return "Squished"; }
@@ -44,6 +45,16 @@ public:
     void onEnter(Enemy& enemy) override;
     void update(Enemy& enemy, float deltaTime) override;
     std::string getName() const override { return "SpinningShell"; }
+};
+
+class FlippingDeathState : public EnemyState {
+private:
+    float velocityY;
+public:
+    FlippingDeathState(float initialVelY = -350.0f);
+    void onEnter(Enemy& enemy) override;
+    void update(Enemy& enemy, float deltaTime) override;
+    std::string getName() const override { return "FlippingDeath"; }
 };
 
 #endif

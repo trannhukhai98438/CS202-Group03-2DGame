@@ -8,7 +8,7 @@ Goomba::Goomba(float startX, float startY, float patrolRange)
     changeState(std::make_unique<PatrolState>());
 
     // Original Goomba uses 64.0f targetSize (which scales frameWidth to 64.0f)
-    sf::Vector2i frameSize = loadSpriteTexture("assets/textures/goomba.png", 6, 64.0f);
+    sf::Vector2i frameSize = loadSpriteTexture("assets/textures/goomba.png", 6, 50.0f);
     if (frameSize.x > 0 && frameSize.y > 0) {
         int frameWidth = frameSize.x;
         int frameHeight = frameSize.y;
@@ -45,21 +45,32 @@ void Goomba::takeDamage(int damage) {
         shape.setSize(sf::Vector2f(64.0f, 32.0f));
         shape.setPosition(sf::Vector2f(position.x, position.y + 32.0f));
         sprite.setPosition(sf::Vector2f(position.x + 32.0f, position.y + 64.0f + m_spriteOffsetY));
-        changeState(std::make_unique<SquishedState>(0.5f));
+        changeState(std::make_unique<SquishedState>(0.6f, 0.3f));
     }
 }
 
 void Goomba::checkObstacles() {
-    if (getIsSquished()) return;
+    if (getIsSquished() || getStateName() == "FlippingDeath") return;
     Enemy::checkObstacles();
 }
 
 void Goomba::move(float deltaTime) {
-    if (getIsSquished()) return;
+    if (getIsSquished() || getStateName() == "FlippingDeath") return;
     Enemy::move(deltaTime);
 }
 
 void Goomba::applyAnimation() {
+    if (getStateName() == "FlippingDeath") return;
+
+    float absScaleX = std::abs(sprite.getScale().x);
+    float absScaleY = std::abs(sprite.getScale().y);
+
+    if (currentDir == MoveDirection::Left) {
+        sprite.setScale(absScaleX, absScaleY);
+    } else {
+        sprite.setScale(-absScaleX, absScaleY);
+    }
+
     if (getIsSquished()) {
         shape.setFillColor(sf::Color(100, 30, 30));
         animator.playAnimation("squished", 0.016f);
