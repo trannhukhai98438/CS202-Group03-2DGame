@@ -22,9 +22,6 @@ public:
 
 class Witch : public Enemy {
 private:
-    sf::Sprite sprite;
-    sf::Texture texture;
-    Animator animator;
     float attackCooldown;
     std::function<void(std::unique_ptr<Projectile>)> spawnProjectileCallback;
 
@@ -33,14 +30,13 @@ public:
     ~Witch() override = default;
 
     int getDamageOnTouch() const override;
-    void onStomped(Character* attacker) override;
+    void onStomped(BaseEntity* attacker) override;
     void takeDamage(int damage) override;
     
     void update(float deltaTime) override;
     void checkObstacles() override;
     void move(float deltaTime) override;
     void applyAnimation() override;
-    void render(sf::RenderWindow& window) override;
 
     void throwPotion();
 };

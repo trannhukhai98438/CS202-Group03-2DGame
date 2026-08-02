@@ -5,24 +5,23 @@
 #include "Core/VictoryState.h"
 #include <iostream>
 
-PlayingState::PlayingState(): m_velocityX(200.f), m_velocityY(0.f){
-        m_hudManager.init("assets/fonts/SuperMario256.ttf");
-
+PlayingState::PlayingState() 
+	: m_velocityX(0.f), m_velocityY(0.f) {
+    m_hudManager.init("assets/fonts/SuperMario256.ttf");
     std::string jsonPath = "assets/maps/levels/1-1.tmj";
     std::string tilesetPath = "assets/maps/resources/tileset.png";
     if (!m_levelManager.loadLevel(jsonPath, tilesetPath)) {
         std::cerr << "[PlayingState] ERROR: Cannot load level!" << std::endl;
     }
-    m_dummyMario.setSize(sf::Vector2f(50.f, 50.f));
-	m_dummyMario.setFillColor(sf::Color::White);
-	m_dummyMario.setPosition(100.f, 550.f);
-    	m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
-	m_dummyFloor.setFillColor(sf::Color::Green);
-	m_dummyFloor.setPosition(0.f, 600.f);
+    m_hero = HeroFactory::createHero(HeroType::Mario, 100.f, 500.f);
 
-	m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
-	m_dummyWall.setFillColor(sf::Color::Yellow);
-	m_dummyWall.setPosition(800.f, 400.f);
+    m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
+    m_dummyFloor.setFillColor(sf::Color::Green);
+    m_dummyFloor.setPosition(0.f, 600.f);
+
+    m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
+    m_dummyWall.setFillColor(sf::Color::Yellow);
+    m_dummyWall.setPosition(800.f, 400.f);
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
         m_projectiles.push_back(std::move(p));
@@ -43,8 +42,8 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
     }
-
-    // Bấm phím C để giả lập ăn 1 xu (+100 điểm)
+    
+    // Simulate getting coins for UI testing
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
         m_hudManager.addCoin(1);
         m_hudManager.addScore(100);
@@ -52,23 +51,45 @@ void PlayingState::processEvents(sf::Event& event) {
 }
 
 void PlayingState::update(sf::Time dt) {
-    float dtSec = dt.asSeconds();
-
-    sf::Vector2f nextPos = m_mario.getPosition();
-    if (!m_levelManager.isSolidAtPixel(nextPos.x + 16.f, nextPos.y + 32.f)) {
-        m_velocity.y += 980.f * dtSec;
-    } else {
-        m_velocity.y = 0.f;
+    m_hudManager.updateTimer(dt.asSeconds());
+    if (m_hudManager.getRemainingTime() <= 0.0f) {
+        // Time out
     }
 
-    m_dummyMario.move(m_velocity * dtSec);
+    if (m_hero) {
+        m_hero->update(dt.asSeconds());
+
+        // Simple floor collision - only if alive and falling
+        if (!m_hero->isDead() && m_hero->getPosition().y >= 600.f && m_hero->getVelocity().y > 0.f) {
+            m_hero->setPosition(m_hero->getPosition().x, 600.f);
+            m_hero->setVelocity(m_hero->getVelocity().x, 0.f);
+            m_hero->setGrounded(true);
+        }
+    }
 
     // Update enemies
     for (auto it = m_enemies.begin(); it != m_enemies.end();) {
         (*it)->update(dt.asSeconds());
         
-        if ((*it)->getIsAlive() && (*it)->getBounds().intersects(m_dummyMario.getGlobalBounds())) {
-            (*it)->interactWith(nullptr);
+        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
+            sf::FloatRect enemyBounds = (*it)->getBounds();
+            sf::FloatRect heroBounds = m_hero->getBounds();
+            
+            // Stomp logic (falling down on top of enemy)
+            bool isFalling = (m_hero->getVelocity().y >= 0.f);
+            float marioCenterY = heroBounds.top + (heroBounds.height * 0.5f);
+            float enemyBottomY = enemyBounds.top + enemyBounds.height;
+
+            if (isFalling && marioCenterY < enemyBottomY) {
+                (*it)->onStomped(nullptr);
+                m_hero->setVelocity(m_hero->getVelocity().x, -600.f);
+                m_hudManager.addScore(200); // Add score for stomping
+            } else {
+                (*it)->onSideCollision(nullptr);
+                if ((*it)->getDamageOnTouch() > 0) {
+                    m_hero->takedamage();
+                }
+            }
         }
 
         if (!(*it)->getIsAlive()) {
@@ -80,9 +101,9 @@ void PlayingState::update(sf::Time dt) {
 
     for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
         (*it)->update(dt.asSeconds());
-        if ((*it)->getIsAlive() && (*it)->getBounds().intersects(m_dummyMario.getGlobalBounds())) {
+        if ((*it)->getIsAlive() && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
             (*it)->die();
-            m_dummyMario.setFillColor(sf::Color::Red); // Visual feedback for hit
+            m_hero->takedamage();
         }
         if (!(*it)->getIsAlive()) {
             it = m_projectiles.erase(it);
@@ -94,6 +115,12 @@ void PlayingState::update(sf::Time dt) {
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_levelManager);
+
+    window.draw(m_dummyFloor);
+    if (m_hero) {
+        m_hero->render(window);
+    }
+    window.draw(m_dummyWall);
 
     for (auto& enemy : m_enemies) {
         if (enemy) {

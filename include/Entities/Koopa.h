@@ -17,6 +17,7 @@ public:
 
     void render(sf::RenderWindow& window) override;
     void takeDamage(int damage) override;
+    void becomeStaticShell();
     void onStomped(BaseEntity* attacker) override;
     void onSideCollision(BaseEntity* attacker) override;
 

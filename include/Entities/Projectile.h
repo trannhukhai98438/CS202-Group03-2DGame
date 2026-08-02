@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-class Character;
+class BaseEntity;
 
 class Projectile {
 protected:
@@ -18,7 +18,7 @@ public:
     virtual void update(float deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) = 0;
     
-    virtual void onHitPlayer(Character* player);
+    virtual void onHitPlayer(BaseEntity* player);
 
     bool getIsAlive() const { return isAlive; }
     void die() { isAlive = false; }
