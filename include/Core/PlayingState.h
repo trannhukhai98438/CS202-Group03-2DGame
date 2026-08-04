@@ -5,11 +5,12 @@
 
 class PlayingState : public State {
 private:
-	sf::RectangleShape m_dummyMario;
-	sf::RectangleShape m_dummyFloor;
-	float m_velocityX;
-	float m_velocityY;
-	sf::RectangleShape m_dummyWall;
+	sf::View m_camera;
+	sf::RectangleShape m_dummyMario; //TODO: Remove this when we have a proper Mario sprite and level assets
+	sf::RectangleShape m_dummyFloor; //TODO: Remove this when we have a proper Mario sprite and level assets
+	float m_velocityX; //TODO: Remove this when we have a proper Mario sprite and level assets
+	float m_velocityY; //TODO: Remove this when we have a proper Mario sprite and level assets
+	sf::RectangleShape m_dummyWall;//TODO: Remove this when we have a proper Mario sprite and level assets
 	PhysicsEngine m_physics;
 public:
 	PlayingState();
