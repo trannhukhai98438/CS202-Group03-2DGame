@@ -34,7 +34,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero
     ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero/HeroForm
     ${CMAKE_SOURCE_DIR}/include/Entities/Character/Hero/HeroState
-    ${CMAKE_SOURCE_DIR}/include/Entities/Items
+    ${CMAKE_SOURCE_DIR}/include/Entities/Item
+    ${CMAKE_SOURCE_DIR}/include/Entities/Block
+    ${CMAKE_SOURCE_DIR}/include/Utilities
 )
 
 # 5. LINK THƯ VIỆN SFML VÀO PROJECT
