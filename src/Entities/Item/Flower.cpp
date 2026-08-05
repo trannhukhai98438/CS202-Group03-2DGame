@@ -13,8 +13,9 @@ Flower::Flower(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y)
     animator.addAnimation("Flower", Animation(flowerFrames, 0.15f));
     animator.playAnimation("Flower", 0.f);
 
-    hitbox.setSize(sf::Vector2f(16.f, 16.f));
+    hitbox.setSize(sf::Vector2f(32.f, 32.f));
     hitbox.setFillColor(sf::Color::Red);
+    sprite.setScale(2.f, 2.f);
     setPosition(x,y);
 }
 
@@ -35,9 +36,9 @@ void Flower::update(float deltatime) {
 
     if (isSpawning) {
         // Position update is handled by PlayingState
-        // Assume block size is 16, stop spawning when moved up by 16 pixels
-        if (spawnStartY - position.y >= 16.f) {
-            position.y = spawnStartY - 16.f;
+        // Assume block size is 32, stop spawning when moved up by 32 pixels
+        if (spawnStartY - position.y >= 32.f) {
+            position.y = spawnStartY - 32.f;
             isSpawning = false;
             velocity.y = 0.f;
         }

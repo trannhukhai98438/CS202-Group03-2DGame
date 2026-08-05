@@ -19,19 +19,19 @@ PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_dummyWall.setPosition(800.f, 400.f);
 
     BlockFactory blockFac;
-    blocks.push_back(blockFac.createBlock(BlockType::Brick, 300, 472));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 400, 472, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 432, 472, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 464, 472, ItemType::Coin));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 496, 472, ItemType::Star));
+    blocks.push_back(blockFac.createBlock(BlockType::Brick, 250, 470));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 300, 470, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 275, 350, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 350, 470, ItemType::Coin));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 350, 350, ItemType::Star));
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
         m_projectiles.push_back(std::move(p));
     };
 
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Goomba, 300.f, 536.f, 150.f, spawnCallback));
-    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 550.f, 200.f, spawnCallback));
-    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 504.f, 150.f, spawnCallback));
+    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 900.f, 550.f, 200.f, spawnCallback));
+    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 700.f, 504.f, 150.f, spawnCallback));
 }
 
 PlayingState::~PlayingState() = default;
@@ -179,7 +179,7 @@ void PlayingState::update(sf::Time dt) {
             // Stomp logic: Mario must be falling from the air and hit the top half of the enemy
             if (isFallingInAir && marioBottomY <= enemyTopY + (enemyBounds.height * 0.6f)) {
                 (*it)->onStomped(nullptr);
-                hero->setVelocity(hero->getVelocity().x, -500.f); // Bounce Mario up!
+                hero->setVelocity(hero->getVelocity().x, -300.f); // Bounce Mario up slightly!
                 m_hudManager.addScore(200);
             } else {
                 (*it)->onSideCollision(nullptr);

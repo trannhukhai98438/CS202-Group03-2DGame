@@ -13,8 +13,9 @@ Mushroom::Mushroom(float x, float y) : Item(x, y), isSpawning(false) {
     animator.addAnimation("Mushroom", Animation(mushFrames, 1.0f));
     animator.playAnimation("Mushroom", 0.f);
 
-    hitbox.setSize(sf::Vector2f(16.f, 16.f));
+    hitbox.setSize(sf::Vector2f(32.f, 32.f));
     hitbox.setFillColor(sf::Color::Blue);
+    sprite.setScale(2.f, 2.f);
     setPosition(x,y);
     isSpawning = false;
     spawnStartY = y;
@@ -37,9 +38,9 @@ void Mushroom::update(float deltatime) {
 
     if (isSpawning) {
         // Position update is now handled by PlayingState, 
-        // we just stop spawning when moved up by 16 pixels
-        if (spawnStartY - position.y >= 16.f) {
-            position.y = spawnStartY - 16.f;
+        // we just stop spawning when moved up by 32 pixels
+        if (spawnStartY - position.y >= 32.f) {
+            position.y = spawnStartY - 32.f;
             isSpawning = false;
             velocity.y = 0.f;
             velocity.x = 100.f; // start moving right

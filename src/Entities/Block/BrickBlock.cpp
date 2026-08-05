@@ -62,11 +62,11 @@ void BrickBlock::update(float deltatime) {
         
         position.y   = originalY - offset;
         hitbox.setPosition(position);
-        sprite.setPosition(position.x + 8.f, position.y + 16.f);
+        sprite.setPosition(position.x + 16.f, position.y + 32.f);
     } else {
         position.y = originalY;
         hitbox.setPosition(position);
-        sprite.setPosition(position.x + 8.f, position.y + 16.f);
+        sprite.setPosition(position.x + 16.f, position.y + 32.f);
     }
 
     animator.playAnimation("Brick", deltatime);
