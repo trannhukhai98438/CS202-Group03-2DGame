@@ -1,5 +1,5 @@
-#include "Entities/Witch.h"
-#include "Entities/Potion.h"
+#include "Entities/Character/Enemy/Witch.h"
+#include "Entities/Character/Enemy/Potion.h"
 #include <iostream>
 
 void ThrowState::onEnter(Enemy& enemy) {

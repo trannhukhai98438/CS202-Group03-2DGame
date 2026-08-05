@@ -1,4 +1,4 @@
-#include "Entities/Potion.h"
+#include "Entities/Character/Enemy/Potion.h"
 #include "Entities/BaseEntity.h"
 
 Potion::Potion(float startX, float startY, float velX, float velY)

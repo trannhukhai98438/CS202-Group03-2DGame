@@ -1,5 +1,5 @@
-#include "Entities/GoombaAnimator.h"
-#include "Entities/Goomba.h"
+#include "Entities/Character/Enemy/GoombaAnimator.h"
+#include "Entities/Character/Enemy/Goomba.h"
 #include <cmath>
 
 void GoombaAnimator::initAnimations(Goomba& goomba) {

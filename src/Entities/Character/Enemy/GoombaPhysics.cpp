@@ -1,6 +1,6 @@
-#include "Entities/GoombaPhysics.h"
-#include "Entities/Goomba.h"
-#include "Entities/EnemyState.h"
+#include "Entities/Character/Enemy/GoombaPhysics.h"
+#include "Entities/Character/Enemy/Goomba.h"
+#include "Entities/Character/Enemy/EnemyState.h"
 
 void GoombaPhysics::checkObstacles(Goomba& goomba) {
     if (goomba.getIsSquished() || goomba.getStateName() == "FlippingDeath") return;

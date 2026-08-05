@@ -1,5 +1,5 @@
-#include "Entities/EnemyFactory.h"
-#include "Entities/Witch.h"
+#include "Entities/Character/Enemy/EnemyFactory.h"
+#include "Entities/Character/Enemy/Witch.h"
 #include <algorithm>
 
 std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, float x, float y, float patrolRange, std::function<void(std::unique_ptr<Projectile>)> spawnCallback) {

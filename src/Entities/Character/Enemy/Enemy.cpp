@@ -1,4 +1,4 @@
-#include "Entities/Enemy.h"
+#include "Entities/Character/Enemy/Enemy.h"
 
 Enemy::Enemy(float startX, float startY, float moveSpeed, float patrolRange)
     : BaseEntity(startX, startY),

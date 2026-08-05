@@ -1,5 +1,5 @@
-#include "Entities/KoopaAnimator.h"
-#include "Entities/Koopa.h"
+#include "Entities/Character/Enemy/KoopaAnimator.h"
+#include "Entities/Character/Enemy/Koopa.h"
 #include <cmath>
 
 void KoopaAnimator::initAnimations(Koopa& koopa) {
