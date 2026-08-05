@@ -218,14 +218,16 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
-        //Clear block and item if they are not active
+    if (m_hero->getPosition().y> 720.f) {
+        m_hero->die();
+    }
+    //Clear block and item if they are not active
     m_blocks.erase(std::remove_if(blocks.begin(), blocks.end(),
         [](const std::unique_ptr<Block>& block) { return !block->getIsActive(); }),
         blocks.end());
     m_items.erase(std::remove_if(items.begin(), items.end(),
         [](const std::unique_ptr<Item>& item) { return item->isCollected(); }),
         items.end());
-}
     float marioX = m_hero->getPosition().x;
     float halfScreenWidth = 640.f;
     float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
