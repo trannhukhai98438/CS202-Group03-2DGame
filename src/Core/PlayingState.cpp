@@ -218,8 +218,7 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
-
-    //Clear block and item if they are not active
+        //Clear block and item if they are not active
     m_blocks.erase(std::remove_if(blocks.begin(), blocks.end(),
         [](const std::unique_ptr<Block>& block) { return !block->getIsActive(); }),
         blocks.end());
@@ -227,7 +226,22 @@ void PlayingState::update(sf::Time dt) {
         [](const std::unique_ptr<Item>& item) { return item->isCollected(); }),
         items.end());
 }
-    
+    float marioX = m_hero->getPosition().x;
+    float halfScreenWidth = 640.f;
+    float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
+    float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
+    m_camera.setCenter(cameraX, 360.f);
+	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
+    // Press 'L' to simulate Mario dying
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+        Game::getInstance().changeState(std::make_unique<GameOverState>());
+    }
+
+    // Press 'W' to simulate touching the flagpole
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+        Game::getInstance().changeState(std::make_unique<VictoryState>());
+    }
+}
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_levelManager);
