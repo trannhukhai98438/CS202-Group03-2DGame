@@ -13,26 +13,28 @@ void IdleState::update(Hero* hero, float deltatime){
     // Ground states only valid when grounded
     if (!hero->getGrounded()){
         hero->setState(std::make_unique<JumpState>());
+        sf::Vector2f vel=hero->getVelocity();
+        vel.y=PhysicsConstants::GRAVITY*deltatime;
+        hero->setVelocity(vel.x,vel.y);
         return;
     }
 
     sf::Vector2f vel = hero->getVelocity();
 
-    // Ground state: vel.y is always 0 (no gravity here, CollisionSystem handles vertical) //temporary
-    vel.y = 0.f;
 
-    // Apply friction to bleed off horizontal velocity //temporary
+    vel.y = PhysicsConstants::GRAVITY*deltatime;
+
+    // Apply friction to bleed off horizontal velocity
     float friction = PhysicsConstants::FRICTION * deltatime;
     if      (vel.x > 0.f) vel.x = std::max(0.f, vel.x - friction);
     else if (vel.x < 0.f) vel.x = std::min(0.f, vel.x + friction);
 
     hero->setVelocity(vel.x, vel.y);
 
-    // Only update X — Y position is fixed to ground //temporary
-    sf::Vector2f pos = hero->getPosition();
-    pos.x += vel.x * deltatime;
-    hero->setPosition(pos.x, pos.y);
-    // TODO: CollisionSystem corrects pos.x and calls setGrounded() //temporary
+    // no update pos here
+    //sf::Vector2f pos = hero->getPosition();
+    //pos.x += vel.x * deltatime;
+    //hero->setPosition(pos.x, pos.y);
 
     // --- Input transitions ---
     bool pressLeft  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);

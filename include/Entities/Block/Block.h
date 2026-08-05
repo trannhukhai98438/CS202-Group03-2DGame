@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include "Item.h"
+#include "Entities/Item/Item.h"
 #include "Animator.h"
 
 class Block {
@@ -18,6 +18,7 @@ public:
 
     void setItemPrototype(std::unique_ptr<Item> itemProto);
     sf::FloatRect getBounds() const;
+    sf::RectangleShape& getHitbox();
 
     // Scene checks this to know when to remove block from the world.
     // Analogous to !isActive in Item. Default: never remove (QuestionBlock stays forever).

@@ -17,7 +17,6 @@ sf::FloatRect Character::getBounds(){
 
 void Character::setSize(float x, float y){
     hitbox.setSize({x, y});
-    hitbox.setOrigin(x / 2.0f, y); // Bottom-Center origin
 }
 
 void Character::setVelocity(float x, float y){
@@ -40,8 +39,9 @@ void Character::setGrounded(bool grounded){
 void Character::setPosition(float x, float y){
     position.x = x;
     position.y = y;
-    sprite.setPosition(position);
+    sf::Vector2f size = hitbox.getSize();
     hitbox.setPosition(position);
+    sprite.setPosition(position.x + size.x / 2.f, position.y + size.y);
 }
 
 sf::Vector2f Character::getPosition(){
@@ -54,4 +54,8 @@ void Character::setFacingRight(bool facing){
 
 bool Character::getFacingRight() const {
     return isFacingRight;
+}
+
+sf::RectangleShape& Character::getHitbox(){
+    return hitbox;
 }

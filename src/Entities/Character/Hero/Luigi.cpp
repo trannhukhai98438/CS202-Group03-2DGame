@@ -36,6 +36,9 @@ Luigi::Luigi(float x, float y): Hero(x,y){
 
     setForm(std::make_unique<SmallForm>());
     setState(std::make_unique<IdleState>());
+    sf::Vector2f size=hitbox.getSize();
+    sprite.setOrigin(size.x/2.0f,size.y);
+    setPosition(x,y);
 }
 
 void Luigi::specialAbility(){

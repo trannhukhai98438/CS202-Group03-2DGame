@@ -15,16 +15,19 @@ void SlideState::update(Hero* hero, float deltatime){
     // Ground states only valid when grounded
     if (!hero->getGrounded()){
         hero->setState(std::make_unique<JumpState>());
+        sf::Vector2f vel=hero->getVelocity();
+        vel.y=PhysicsConstants::GRAVITY*deltatime;
+        hero->setVelocity(vel.x,vel.y);
         return;
     }
 
     sf::Vector2f vel = hero->getVelocity();
 
-    // Ground state: vel.y is always 0 (no gravity here, CollisionSystem handles vertical) //temporary
-    vel.y = 0.f;
+    // Ground state: vel.y is always 0 (no gravity here, CollisionSystem handles vertical) 
+    vel.y = PhysicsConstants::GRAVITY*deltatime;
 
     // SLIDE_FRICTION (250 px/s²) is much lower than normal FRICTION (800 px/s²)
-    // → slide from WALK_SPEED (150 px/s) lasts ~0.6s → animation clearly visible //temporary
+    // → slide from WALK_SPEED (150 px/s) lasts ~0.6s → animation clearly visible 
     // Input is completely ignored during slide — no direction change allowed
     float friction = PhysicsConstants::SLIDE_FRICTION * deltatime;
     if      (vel.x > 0.f) vel.x = std::max(0.f, vel.x - friction);
@@ -32,11 +35,10 @@ void SlideState::update(Hero* hero, float deltatime){
 
     hero->setVelocity(vel.x, vel.y);
 
-    // Only update X — Y position is fixed to ground //temporary
-    sf::Vector2f pos = hero->getPosition();
-    pos.x += vel.x * deltatime;
-    hero->setPosition(pos.x, pos.y);
-    // TODO: CollisionSystem corrects pos.x and calls setGrounded() //temporary
+    // Update pos in Engine;
+    // sf::Vector2f pos = hero->getPosition();
+    //pos.x += vel.x * deltatime;
+    //hero->setPosition(pos.x, pos.y);
 
     // Fully stopped → return to Idle
     if (std::abs(vel.x) < PhysicsConstants::STOP_THRESHOLD){

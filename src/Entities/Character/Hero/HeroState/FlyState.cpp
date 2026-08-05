@@ -8,21 +8,19 @@ void FlyState::enter(Hero* hero){
 }
 
 void FlyState::update(Hero* hero, float deltatime){
-    // Auto-walk right, ignore all player input //temporary
+    // Auto-walk right, ignore all player input
     sf::Vector2f vel = hero->getVelocity();
     vel.x = PhysicsConstants::WALK_SPEED;
+    vel.y=0;
 
-    // Apply gentle gravity //temporary
-    vel.y += PhysicsConstants::GRAVITY * deltatime;
-    if (vel.y > PhysicsConstants::MAX_FALL_SPEED) vel.y = PhysicsConstants::MAX_FALL_SPEED;
+    // no gravity vel.y += PhysicsConstants::GRAVITY * deltatime;
 
     hero->setVelocity(vel.x, vel.y);
 
-    // Integrate position //temporary
-    sf::Vector2f pos = hero->getPosition();
-    pos += vel * deltatime;
-    hero->setPosition(pos.x, pos.y);
-    // TODO: CollisionSystem corrects position //temporary
+    // no position here
+    //sf::Vector2f pos = hero->getPosition();
+    //pos += vel * deltatime;
+    //hero->setPosition(pos.x, pos.y);
 }
 
 std::string FlyState::getState(){

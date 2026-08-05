@@ -1,5 +1,6 @@
 #include "Star.h"
 #include "PhysicsConstants.h"
+#include "Hero.h"
 
 Star::Star(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y) {
     if (texture.loadFromFile("assets/textures/Star.png")) {
@@ -14,7 +15,8 @@ Star::Star(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y) {
     animator.playAnimation("Star", 0.f);
 
     hitbox.setSize(sf::Vector2f(14.f, 16.f));
-    hitbox.setOrigin(7.f, 16.f); // Bottom-Center cho size 14×16
+    hitbox.setFillColor(sf::Color::Yellow);
+    setPosition(x,y);
 }
 
 void Star::spawn() {
@@ -34,7 +36,7 @@ void Star::update(float deltatime) {
 
     if (isSpawning) {
         // Phase 1: moving up
-        position.y += velocity.y * deltatime;
+        // Position update is handled by PlayingState
         if (spawnStartY - position.y >= 16.f) {
             position.y  = spawnStartY - 16.f;
             isSpawning  = false;
@@ -43,19 +45,18 @@ void Star::update(float deltatime) {
         }
     } else {
         // Phase 2: bouncing + moving
-        velocity.y += PhysicsConstants::GRAVITY * deltatime;  //temporary
-        position.x += velocity.x * deltatime;
-        position.y += velocity.y * deltatime;
+        if (!isGrounded){
+            velocity.y += PhysicsConstants::GRAVITY * deltatime;  //temporary
+            if (velocity.y>PhysicsConstants::MAX_FALL_SPEED) velocity.y=PhysicsConstants::MAX_FALL_SPEED;
+        }
 
         // CollisionSystem sets setGrounded=true -> bounce back
         if (isGrounded) {
-            velocity.y = -450.f;
+            velocity.y = PhysicsConstants::JUMP_FORCE;
             isGrounded = false;
         }
     }
 
-    sprite.setPosition(position);
-    hitbox.setPosition(position);
     animator.playAnimation("Star", deltatime);
 }
 
@@ -71,4 +72,8 @@ void Star::getCollected(Hero* hero) {
     if (!isActive || isSpawning) return;
     hero->setInvincible(10.0f, true); // true = starman rainbow effect
     isActive = false;
+}
+
+bool Star::isColliable(){
+    return !isSpawning;
 }

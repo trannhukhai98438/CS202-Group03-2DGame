@@ -1,7 +1,7 @@
 #pragma once
-#include "Character.h"
-#include "HeroForm.h"
-#include "HeroState.h"
+#include "Entities/Character/Character.h"
+#include "Entities/Character/Hero/HeroForm/HeroForm.h"
+#include "Entities/Character/Hero/HeroState/HeroState.h"
 #include <memory>
 
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"

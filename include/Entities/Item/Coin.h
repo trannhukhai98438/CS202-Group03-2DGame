@@ -14,6 +14,8 @@ public:
 
     void getCollected(Hero* hero) override;
 
+    bool isColliable() override;
+
 private:
     float bounceTimer;
     bool  m_alreadyCollected; // true nếu đã được auto-collect qua clone() → tránh double-count

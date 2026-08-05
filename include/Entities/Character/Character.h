@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <Animator.h>
+#include "Utilities/Animator.h"
 
 class Item; // forward declaration — avoids circular include with Item.h
 
@@ -28,6 +28,7 @@ public:
     // getters and setters
     bool isDead();
     sf::FloatRect getBounds();
+    sf::RectangleShape& getHitbox();
     int getHp();
     void setSize(float x, float y);
     void setVelocity(float x, float y);

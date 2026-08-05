@@ -1,4 +1,5 @@
 #include "Coin.h"
+#include "Hero.h"
 
 Coin::Coin(float x, float y) : Item(x, y), bounceTimer(0.f), m_alreadyCollected(false) {
     if (texture.loadFromFile("assets/textures/Coin.png")) {
@@ -13,7 +14,8 @@ Coin::Coin(float x, float y) : Item(x, y), bounceTimer(0.f), m_alreadyCollected(
     animator.playAnimation("Coin", 0.f);
 
     hitbox.setSize(sf::Vector2f(8.f, 14.f));
-    hitbox.setOrigin(4.f, 14.f); // Bottom-Center
+    hitbox.setFillColor(sf::Color::Yellow);
+    setPosition(x,y);
 }
 
 void Coin::spawn(){
@@ -23,7 +25,8 @@ void Coin::spawn(){
 }
 
 std::unique_ptr<Item> Coin::clone(Hero* hero) const {
-    auto newCoin = std::make_unique<Coin>(position.x, position.y);
+    // Center the 8px wide coin horizontally in the 16px wide block (+4 offset)
+    auto newCoin = std::make_unique<Coin>(position.x + 4.f, position.y);
     // Auto-collect: award coin immediately when block is hit
     hero->collectCoin(); // direct call — avoids const violation (clone() is const)
     newCoin->m_alreadyCollected = true; // prevent double-count if CollisionSystem later detects overlap
@@ -41,9 +44,7 @@ void Coin::update(float deltatime){
 
     // Apply gravity on the bounce visual //temporary
     velocity.y += 1000.f * deltatime;
-    position.y += velocity.y * deltatime;
-    sprite.setPosition(position);
-    hitbox.setPosition(position);
+    // position update is handled by PlayingState
     
     animator.playAnimation("Coin", deltatime);
 }
@@ -60,4 +61,8 @@ void Coin::getCollected(Hero* hero){
     }
     hero->collectCoin();
     isActive = false;
+}
+
+bool Coin::isColliable(){
+    return false;
 }
