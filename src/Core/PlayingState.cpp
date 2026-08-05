@@ -213,6 +213,9 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
+    if (hero->getPosition().y> 720.f) {
+        hero->die();
+    }
     float marioX = hero->getPosition().x;
     float halfScreenWidth = 640.f;
     float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
