@@ -35,6 +35,11 @@ void Enemy::setPatrolBounds(float minX, float maxX) {
     patrolRightBound = maxX;
 }
 
+void Enemy::setPosition(const sf::Vector2f& pos) {
+    BaseEntity::setPosition(pos);
+    sprite.setPosition(position.x + shape.getSize().x / 2.0f, position.y + shape.getSize().y + m_spriteOffsetY);
+}
+
 void Enemy::checkObstacles() {
     if (position.x <= patrolLeftBound) {
         setDirection(MoveDirection::Right);
@@ -45,9 +50,7 @@ void Enemy::checkObstacles() {
 
 void Enemy::move(float deltaTime) {
     float moveAmount = static_cast<float>(currentDir) * speed * deltaTime;
-    position.x += moveAmount;
-    shape.setPosition(position);
-    sprite.setPosition(position.x + shape.getSize().x / 2.0f, position.y + shape.getSize().y + m_spriteOffsetY);
+    setPosition(sf::Vector2f(position.x + moveAmount, position.y));
 }
 
 void Enemy::applyAnimation() {

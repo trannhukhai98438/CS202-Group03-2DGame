@@ -21,7 +21,7 @@ PlayingState::PlayingState()
     };
 
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Goomba, 300.f, 536.f, 150.f, spawnCallback));
-    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 504.f, 200.f, spawnCallback));
+    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 550.f, 200.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 504.f, 150.f, spawnCallback));
 }
 
@@ -58,7 +58,7 @@ void PlayingState::update(sf::Time dt) {
     for (auto it = m_enemies.begin(); it != m_enemies.end();) {
         (*it)->update(dt.asSeconds());
         
-        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
+        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
             sf::FloatRect enemyBounds = (*it)->getBounds();
             sf::FloatRect heroBounds = m_hero->getBounds();
             
