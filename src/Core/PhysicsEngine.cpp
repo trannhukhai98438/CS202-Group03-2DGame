@@ -5,29 +5,31 @@ void PhysicsEngine::applyGravity(float& velocityY, float dt) {
 }
 
 void PhysicsEngine::resolveCollisionX(sf::RectangleShape& entity, const sf::RectangleShape& obstacle, float& velocityX) {
-	sf::FloatRect entityBounds = entity.getGlobalBounds();
-	sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-	if (entityBounds.intersects(obsBounds)) {
-		if (velocityX > 0.f) { // Moving right
-			entity.setPosition(obsBounds.left - entityBounds.width, entityBounds.top);
-		}
-		else if (velocityX < 0.f) { // Moving left
-			entity.setPosition(obsBounds.left + obsBounds.width, entityBounds.top);
-		}
+	SideType side = checkCollision(entity, obstacle);
+	if (side == SideType::Left) {
+		sf::FloatRect entityBounds = entity.getGlobalBounds();
+		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
+		entity.setPosition(obsBounds.left - entityBounds.width, entityBounds.top);
+		velocityX = 0.f;
+	} else if (side == SideType::Right) {
+		sf::FloatRect entityBounds = entity.getGlobalBounds();
+		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
+		entity.setPosition(obsBounds.left + obsBounds.width, entityBounds.top);
 		velocityX = 0.f;
 	}
 }
 
 void PhysicsEngine::resolveCollisionY(sf::RectangleShape& entity, const sf::RectangleShape& obstacle, float& velocityY) {
-	sf::FloatRect entityBounds = entity.getGlobalBounds();
-	sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-	if (entityBounds.intersects(obsBounds)) {
-		if (velocityY > 0.f) { // Falling down
-			entity.setPosition(entityBounds.left, obsBounds.top - entityBounds.height);
-		}
-		else if (velocityY < 0.f) { // Jumping up
-			entity.setPosition(entityBounds.left, obsBounds.top + obsBounds.height);
-		}
+	SideType side = checkCollision(entity, obstacle);
+	if (side == SideType::Top) {
+		sf::FloatRect entityBounds = entity.getGlobalBounds();
+		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
+		entity.setPosition(entityBounds.left, obsBounds.top - entityBounds.height);
+		velocityY = 0.f;
+	} else if (side == SideType::Bottom) {
+		sf::FloatRect entityBounds = entity.getGlobalBounds();
+		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
+		entity.setPosition(entityBounds.left, obsBounds.top + obsBounds.height);
 		velocityY = 0.f;
 	}
 }

@@ -23,10 +23,10 @@ PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_dummyWall.setPosition(800.f, 400.f);
 
     BlockFactory blockFac;
-    blocks.push_back(blockFac.createBlock(BlockType::Brick, 250, 470));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 300, 470, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Brick, 250, 475));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 300, 475, ItemType::PowerUpPrototype));
     blocks.push_back(blockFac.createBlock(BlockType::Question, 275, 350, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 350, 470, ItemType::Coin));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 350, 475, ItemType::Coin));
     blocks.push_back(blockFac.createBlock(BlockType::Question, 350, 350, ItemType::Star));
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
@@ -220,7 +220,7 @@ void PlayingState::update(sf::Time dt) {
     m_camera.setCenter(cameraX, 360.f);
 	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
     // Press 'L' to simulate Mario dying
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+    if (hero->isDead()) {
         Game::getInstance().changeState(std::make_unique<GameOverState>());
     }
 

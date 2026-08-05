@@ -12,7 +12,7 @@ TransitionState::TransitionState() : m_elapsedTime(sf::Time::Zero) {
 	m_worldText.setCharacterSize(40);
 	m_worldText.setFillColor(sf::Color::White);
 	m_livesText.setFont(m_font);
-	m_livesText.setString("LIVES: 3");
+	m_livesText.setString("LIVES: 1");
 	m_livesText.setCharacterSize(40);
 	m_livesText.setFillColor(sf::Color::White);
 }
