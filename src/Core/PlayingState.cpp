@@ -246,6 +246,7 @@ void PlayingState::update(sf::Time dt) {
 }
 
 void PlayingState::render(sf::RenderWindow& window) {
+    window.setView(m_camera);
     window.draw(m_levelManager);
 
     window.draw(m_dummyFloor);
@@ -266,6 +267,7 @@ void PlayingState::render(sf::RenderWindow& window) {
             projectile->render(window);
         }
     }
+
     window.draw(m_hudManager);
 	window.setView(window.getDefaultView()); // Reset view to default for UI rendering
 }
