@@ -1,5 +1,5 @@
 #pragma once
-#include "Entities/Projectile.h"
+#include "Projectile.h"
 #include "Utilities/Animator.h"
 #include <SFML/Graphics.hpp>
 

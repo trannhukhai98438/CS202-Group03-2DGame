@@ -4,8 +4,7 @@
 #include "Enemy.h"
 #include "Goomba.h"
 #include "Koopa.h"
-#include "Entities/Enemy.h"
-#include "Entities/Projectile.h"
+#include "Projectile.h"
 #include <memory>
 #include <string>
 #include <functional>

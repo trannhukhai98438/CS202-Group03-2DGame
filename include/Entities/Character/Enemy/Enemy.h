@@ -1,7 +1,7 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include "BaseEntity.h"
+#include "Entities/BaseEntity.h"
 #include "EnemyState.h"
 #include <memory>
 
