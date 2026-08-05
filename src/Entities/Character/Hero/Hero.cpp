@@ -5,11 +5,12 @@
 #include "Item.h"
 
 Hero::Hero(float x, float y)
-    : Character(x, y),
+    : animator(sprite),
       invincibleTimer(0.f),
       overrideTimer(0.f),
       isStarman(false),
-      coin(0)
+      coin(0),
+      position({x, y}), isActive(true), isGrounded(false), isFacingRight(true),hp(1)
 {
     // form and state are initialised in concrete subclasses (Mario/Luigi)
     // because baseTexturePath must be set first.
@@ -37,8 +38,7 @@ void Hero::update(float deltatime){
     }
 
     // Update sprite/hitbox to logical position
-    sprite.setPosition(position);
-    hitbox.setPosition(position);
+    setPosition(position.x,position.y);
 
     // Delegate to form (handles form-specific input: Sit, Fire special)
     if (form) form->update(this, deltatime);
@@ -139,4 +139,61 @@ void Hero::die(){
 
 void Hero::collectItem(Item* item){
     if (item) item->getCollected(this);
+}
+
+bool Hero::isDead(){
+    return !isActive;
+}
+
+int Hero::getHp(){
+    return hp;
+}
+
+sf::FloatRect Hero::getBounds(){
+    return hitbox.getGlobalBounds();
+}
+
+void Hero::setSize(float x, float y){
+    hitbox.setSize({x, y});
+}
+
+void Hero::setVelocity(float x, float y){
+    velocity.x = x;
+    velocity.y = y;
+}
+
+sf::Vector2f Hero::getVelocity(){
+    return velocity;
+}
+
+bool Hero::getGrounded(){
+    return isGrounded;
+}
+
+void Hero::setGrounded(bool grounded){
+    isGrounded = grounded;
+}
+
+void Hero::setPosition(float x, float y){
+    position.x = x;
+    position.y = y;
+    sf::Vector2f size = hitbox.getSize();
+    hitbox.setPosition(position);
+    sprite.setPosition(position.x + size.x / 2.f, position.y + size.y);
+}
+
+sf::Vector2f Hero::getPosition(){
+    return position;
+}
+
+void Hero::setFacingRight(bool facing){
+    isFacingRight = facing;
+}
+
+bool Hero::getFacingRight() const {
+    return isFacingRight;
+}
+
+sf::RectangleShape& Hero::getHitbox(){
+    return hitbox;
 }

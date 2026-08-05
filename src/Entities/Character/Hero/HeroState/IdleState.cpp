@@ -3,42 +3,51 @@
 #include "RunState.h"
 #include "JumpState.h"
 #include "PhysicsConstants.h"
+#include <cmath>
 
 void IdleState::enter(Hero* hero){
-    // Do NOT zero velocity here — allow momentum to bleed off naturally via friction
+    // Do NOT zero velocity — allow remaining momentum to bleed off via friction
 }
 
 void IdleState::update(Hero* hero, float deltatime){
-    // --- Safety: Idle only valid when grounded ---
+    // Ground states only valid when grounded
     if (!hero->getGrounded()){
         hero->setState(std::make_unique<JumpState>());
+        sf::Vector2f vel=hero->getVelocity();
+        vel.y=PhysicsConstants::GRAVITY*deltatime;
+        hero->setVelocity(vel.x,vel.y);
         return;
     }
 
     sf::Vector2f vel = hero->getVelocity();
 
-    // Apply friction to bleed off horizontal velocity //temporary
-    float friction = PhysicsConstants::FRICTION * deltatime;
-    if (vel.x > 0.f) {
-        vel.x = std::max(0.f, vel.x - friction);
-    } else if (vel.x < 0.f) {
-        vel.x = std::min(0.f, vel.x + friction);
-    }
 
-    // Apply gravity //temporary
-    vel.y += PhysicsConstants::GRAVITY * deltatime;
-    if (vel.y > PhysicsConstants::MAX_FALL_SPEED) vel.y = PhysicsConstants::MAX_FALL_SPEED;
+    vel.y = PhysicsConstants::GRAVITY*deltatime;
+
+    // Apply friction to bleed off horizontal velocity
+    float friction = PhysicsConstants::FRICTION * deltatime;
+    if      (vel.x > 0.f) vel.x = std::max(0.f, vel.x - friction);
+    else if (vel.x < 0.f) vel.x = std::min(0.f, vel.x + friction);
 
     hero->setVelocity(vel.x, vel.y);
 
-    // Integrate position //temporary
-    sf::Vector2f pos = hero->getPosition();
-    pos += vel * deltatime;
-    hero->setPosition(pos.x, pos.y);
-    // TODO: CollisionSystem corrects position and calls setGrounded() each frame //temporary
+    // no update pos here
+    //sf::Vector2f pos = hero->getPosition();
+    //pos.x += vel.x * deltatime;
+    //hero->setPosition(pos.x, pos.y);
 
     // --- Input transitions ---
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    bool pressLeft  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+    bool pressRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+
+    // If both Left + Right are pressed simultaneously → ignore both (no movement)
+    if (pressLeft && !pressRight){
+        hero->setFacingRight(false);                          // set direction BEFORE switching state
+        hero->setState(std::make_unique<RunState>());
+        return;
+    }
+    if (pressRight && !pressLeft){
+        hero->setFacingRight(true);                           // set direction BEFORE switching state
         hero->setState(std::make_unique<RunState>());
         return;
     }

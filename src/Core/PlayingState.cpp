@@ -1,12 +1,14 @@
 #include "Core/PlayingState.h"
 #include "Core/Game.h"
 #include "Core/PausedState.h"
+#include "Entities/Character/Hero/HeroFactory.h"
+#include "Entities/Block/BlockFactory.h"
+#include "Entities/Item/ItemFactory.h"
+#include <algorithm>
 
-PlayingState::PlayingState() 
-    : m_velocityX(0.f), m_velocityY(0.f) {
+PlayingState::PlayingState() {
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
-
-    m_hero = HeroFactory::createHero(HeroType::Mario, 100.f, 500.f);
+    hero = HeroFactory().createHero(HeroType::Mario, 100.f, 500.f);
 
     m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
     m_dummyFloor.setFillColor(sf::Color::Green);
@@ -15,6 +17,13 @@ PlayingState::PlayingState()
     m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
     m_dummyWall.setFillColor(sf::Color::Yellow);
     m_dummyWall.setPosition(800.f, 400.f);
+
+    BlockFactory blockFac;
+    blocks.push_back(blockFac.createBlock(BlockType::Brick, 300, 550));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 400, 550, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 420, 550, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 440, 550, ItemType::Coin));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 460, 550, ItemType::Star));
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
         m_projectiles.push_back(std::move(p));
@@ -25,12 +34,13 @@ PlayingState::PlayingState()
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 504.f, 150.f, spawnCallback));
 }
 
+PlayingState::~PlayingState() = default;
+
 void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
     }
-    
-    // Simulate getting coins for UI testing
+
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
         m_hudManager.addCoin(1);
         m_hudManager.addScore(100);
@@ -38,43 +48,133 @@ void PlayingState::processEvents(sf::Event& event) {
 }
 
 void PlayingState::update(sf::Time dt) {
-    m_hudManager.updateTimer(dt.asSeconds());
-    if (m_hudManager.getRemainingTime() <= 0.0f) {
-        // Time out
+    float dtSec = dt.asSeconds();
+    m_hudManager.updateTimer(dtSec);
+
+    // Update hero, blocks, items
+    if (hero) hero->update(dtSec);
+    for (size_t i = 0; i < blocks.size(); ++i) blocks[i]->update(dtSec);
+    for (size_t i = 0; i < items.size(); ++i) items[i]->update(dtSec);
+
+    if (hero && !hero->isDead()) {
+        sf::Vector2f oldpos = hero->getPosition();
+        sf::Vector2f vel = hero->getVelocity();
+
+        hero->setPosition(oldpos.x + vel.x * dtSec, oldpos.y);
+        m_physics.resolveCollisionX(hero->getHitbox(), m_dummyFloor, vel.x);
+        m_physics.resolveCollisionX(hero->getHitbox(), m_dummyWall, vel.x);
+        for (size_t i = 0; i < blocks.size(); ++i) {
+            if (blocks[i]->getIsActive()) {
+                m_physics.resolveCollisionX(hero->getHitbox(), blocks[i]->getHitbox(), vel.x);
+            }
+        }
+
+        hero->setPosition(hero->getHitbox().getPosition().x, oldpos.y + vel.y * dtSec);
+        bool grounded = false;
+        if (m_physics.checkCollision(hero->getHitbox(), m_dummyFloor) == SideType::Top) grounded = true;
+        m_physics.resolveCollisionY(hero->getHitbox(), m_dummyFloor, vel.y);
+        if (m_physics.checkCollision(hero->getHitbox(), m_dummyWall) == SideType::Top) grounded = true;
+        m_physics.resolveCollisionY(hero->getHitbox(), m_dummyWall, vel.y);
+        for (size_t i = 0; i < blocks.size(); ++i) {
+            if (blocks[i]->getIsActive()) {
+                if (m_physics.checkCollision(hero->getHitbox(), blocks[i]->getHitbox()) == SideType::Top) grounded = true;
+
+                float oldVelY = vel.y;
+                m_physics.resolveCollisionY(hero->getHitbox(), blocks[i]->getHitbox(), vel.y);
+
+                if (vel.y == 0.f && oldVelY < 0.f) {
+                    if (auto spawnedItem = blocks[i]->hit(hero.get())) {
+                        items.push_back(std::move(spawnedItem));
+                    }
+                }
+            }
+        }
+
+        hero->setGrounded(grounded);
+        sf::Vector2f pos = hero->getHitbox().getPosition();
+        hero->setPosition(pos.x, pos.y);
+        hero->setVelocity(vel.x, vel.y);
     }
 
-    if (m_hero) {
-        m_hero->update(dt.asSeconds());
+    // Update items
+    for (auto& item : items) {
+        sf::Vector2f oldpos = item->getPosition();
+        sf::Vector2f vel = item->getVelocity();
+        if (item->isColliable()) {
+            float oldVelX = vel.x;
+            item->setPosition(oldpos.x + vel.x * dtSec, oldpos.y);
+            m_physics.resolveCollisionX(item->getHitbox(), m_dummyFloor, vel.x);
+            m_physics.resolveCollisionX(item->getHitbox(), m_dummyWall, vel.x);
+            for (size_t i = 0; i < blocks.size(); ++i) {
+                if (blocks[i]->getIsActive()) {
+                    m_physics.resolveCollisionX(item->getHitbox(), blocks[i]->getHitbox(), vel.x);
+                }
+            }
 
-        // Simple floor collision - only if alive and falling
-        if (!m_hero->isDead() && m_hero->getPosition().y >= 600.f && m_hero->getVelocity().y > 0.f) {
-            m_hero->setPosition(m_hero->getPosition().x, 600.f);
-            m_hero->setVelocity(m_hero->getVelocity().x, 0.f);
-            m_hero->setGrounded(true);
+            if (oldVelX != 0.f && vel.x == 0.f) {
+                item->getCollision();
+                vel = item->getVelocity();
+            }
+
+            item->setPosition(item->getHitbox().getPosition().x, oldpos.y + vel.y * dtSec);
+            bool grounded = false;
+            if (m_physics.checkCollision(item->getHitbox(), m_dummyFloor) == SideType::Top) grounded = true;
+            m_physics.resolveCollisionY(item->getHitbox(), m_dummyFloor, vel.y);
+            if (m_physics.checkCollision(item->getHitbox(), m_dummyWall) == SideType::Top) grounded = true;
+            m_physics.resolveCollisionY(item->getHitbox(), m_dummyWall, vel.y);
+            for (size_t i = 0; i < blocks.size(); ++i) {
+                if (blocks[i]->getIsActive()) {
+                    if (m_physics.checkCollision(item->getHitbox(), blocks[i]->getHitbox()) == SideType::Top) grounded = true;
+                    m_physics.resolveCollisionY(item->getHitbox(), blocks[i]->getHitbox(), vel.y);
+                }
+            }
+
+            item->setGrounded(grounded);
+            sf::Vector2f pos = item->getHitbox().getPosition();
+            item->setPosition(pos.x, pos.y);
+            item->setVelocity(vel.x, vel.y);
+        } else {
+            item->setPosition(oldpos.x + vel.x * dtSec, oldpos.y + vel.y * dtSec);
         }
     }
 
+    // Hero collecting items
+    if (hero && !hero->isDead()) {
+        for (auto& item : items) {
+            if (item->isColliable() && m_physics.checkCollision(hero->getHitbox(), item->getHitbox()) != SideType::None) {
+                hero->collectItem(item.get());
+            }
+        }
+    }
+
+    // Clean up inactive blocks and collected items
+    blocks.erase(std::remove_if(blocks.begin(), blocks.end(),
+        [](const std::unique_ptr<Block>& block) { return !block->getIsActive(); }),
+        blocks.end());
+    items.erase(std::remove_if(items.begin(), items.end(),
+        [](const std::unique_ptr<Item>& item) { return item->isCollected(); }),
+        items.end());
+
     // Update enemies
     for (auto it = m_enemies.begin(); it != m_enemies.end();) {
-        (*it)->update(dt.asSeconds());
-        
-        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
+        (*it)->update(dtSec);
+
+        if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished" && hero && !hero->isDead() && (*it)->getBounds().intersects(hero->getHitbox().getGlobalBounds())) {
             sf::FloatRect enemyBounds = (*it)->getBounds();
-            sf::FloatRect heroBounds = m_hero->getBounds();
-            
-            // Stomp logic (falling down on top of enemy)
-            bool isFalling = (m_hero->getVelocity().y >= 0.f);
+            sf::FloatRect heroBounds = hero->getHitbox().getGlobalBounds();
+
+            bool isFalling = (hero->getVelocity().y >= 0.f);
             float marioCenterY = heroBounds.top + (heroBounds.height * 0.5f);
             float enemyBottomY = enemyBounds.top + enemyBounds.height;
 
             if (isFalling && marioCenterY < enemyBottomY) {
                 (*it)->onStomped(nullptr);
-                m_hero->setVelocity(m_hero->getVelocity().x, -600.f);
-                m_hudManager.addScore(200); // Add score for stomping
+                hero->setVelocity(hero->getVelocity().x, -600.f);
+                m_hudManager.addScore(200);
             } else {
                 (*it)->onSideCollision(nullptr);
                 if ((*it)->getDamageOnTouch() > 0) {
-                    m_hero->takedamage();
+                    hero->takedamage();
                 }
             }
         }
@@ -86,11 +186,12 @@ void PlayingState::update(sf::Time dt) {
         }
     }
 
+    // Update projectiles
     for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
-        (*it)->update(dt.asSeconds());
-        if ((*it)->getIsAlive() && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
+        (*it)->update(dtSec);
+        if ((*it)->getIsAlive() && hero && !hero->isDead() && (*it)->getBounds().intersects(hero->getHitbox().getGlobalBounds())) {
             (*it)->die();
-            m_hero->takedamage();
+            hero->takedamage();
         }
         if (!(*it)->getIsAlive()) {
             it = m_projectiles.erase(it);
@@ -102,21 +203,17 @@ void PlayingState::update(sf::Time dt) {
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_dummyFloor);
-    if (m_hero) {
-        m_hero->render(window);
-    }
     window.draw(m_dummyWall);
+    for (auto& block : blocks) if (block) block->render(window);
+    for (auto& item : items) if (item) item->render(window);
+    if (hero) hero->render(window);
 
     for (auto& enemy : m_enemies) {
-        if (enemy) {
-            enemy->render(window);
-        }
+        if (enemy) enemy->render(window);
     }
 
     for (auto& projectile : m_projectiles) {
-        if (projectile) {
-            projectile->render(window);
-        }
+        if (projectile) projectile->render(window);
     }
 
     window.draw(m_hudManager);
