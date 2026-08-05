@@ -2,8 +2,14 @@
 #define GOOMBA_H
 
 #include "Enemy.h"
+#include "GoombaPhysics.h"
+#include "GoombaAnimator.h"
 
 class Goomba : public Enemy {
+private:
+    GoombaPhysics physics;
+    GoombaAnimator animatorComp;
+
 public:
     Goomba(float startX, float startY, float patrolRange = 100.0f);
 

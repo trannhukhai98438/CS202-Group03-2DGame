@@ -2,30 +2,13 @@
 
 Koopa::Koopa(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 50.0f, patrolRange),
-      shellSpeed(250.0f) {
-    shape.setSize(sf::Vector2f(32.0f, 96.0f));
+      shellSpeed(550.0f) {
+    shape.setSize(sf::Vector2f(32.0f, 50.0f));
     shape.setFillColor(sf::Color(34, 139, 34));
     health = 2;
     changeState(std::make_unique<PatrolState>());
 
-    sf::Vector2i frameSize = loadSpriteTexture("assets/textures/koopa.png", 6, 50.0f);
-    if (frameSize.x > 0 && frameSize.y > 0) {
-        int frameWidth = frameSize.x;
-        int frameHeight = frameSize.y;
-
-        animator.addAnimation("walk", Animation({
-            sf::IntRect(0, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth * 2, 0, frameWidth, frameHeight),
-            sf::IntRect(frameWidth * 3, 0, frameWidth, frameHeight)
-        }, 0.15f));
-        animator.addAnimation("shell", Animation({
-            sf::IntRect(frameWidth * 4, 0, frameWidth, frameHeight)
-        }, 0.2f));
-        animator.addAnimation("spin", Animation({
-            sf::IntRect(frameWidth * 5, 0, frameWidth, frameHeight)
-        }, 0.1f));
-    }
+    animatorComp.initAnimations(*this);
 }
 
 float Koopa::getSpeed() const {
@@ -50,88 +33,35 @@ bool Koopa::getIsShellSpinning() const {
 }
 
 void Koopa::becomeStaticShell() {
-    if (getStateName() == "Patrol") {
-        position.y += 64.0f; 
-        shape.setSize(sf::Vector2f(32.0f, 32.0f));
-        shape.setPosition(position);
-    }
-    changeState(std::make_unique<ShellState>());
+    physics.becomeStaticShell(*this);
 }
 
 void Koopa::onStomped(BaseEntity* attacker) {
-    (void)attacker;
-    if (!isAlive) return;
-
-    std::string state = getStateName();
-    
-    if (state == "Patrol") {
-        becomeStaticShell();
-    } else if (state == "Shell" || state == "SpinningShell") {
-        takeDamage(1); // 2nd stomp kills Koopa cleanly with FlippingDeathState!
-    }
+    physics.onStomped(*this, attacker);
 }
 
 void Koopa::onSideCollision(BaseEntity* attacker) {
-    if (!isAlive) return;
-
-    std::string state = getStateName();
-    
-    if (state == "Shell") {
-        MoveDirection kickDir = (attacker && attacker->getPosition().x < position.x) ? MoveDirection::Right : MoveDirection::Left;
-        kickShell(kickDir);
-    } else {
-        if (attacker) {
-            attacker->takeDamage(getDamageOnTouch());
-        }
-    }
+    physics.onSideCollision(*this, attacker);
 }
 
 void Koopa::takeDamage(int damage) {
-    (void)damage;
-    if (!isAlive) return;
-    changeState(std::make_unique<FlippingDeathState>());
+    physics.takeDamage(*this, damage);
 }
 
 void Koopa::kickShell(MoveDirection dir) {
-    setDirection(dir);
-    changeState(std::make_unique<SpinningShellState>());
+    physics.kickShell(*this, static_cast<int>(dir));
 }
 
 void Koopa::checkObstacles() {
-    if (getStateName() == "Shell") return;
-    Enemy::checkObstacles();
+    physics.checkObstacles(*this);
 }
 
 void Koopa::move(float deltaTime) {
-    if (getStateName() == "Shell") return;
-    Enemy::move(deltaTime);
+    physics.move(*this, deltaTime);
 }
 
 void Koopa::applyAnimation() {
-    if (getStateName() == "FlippingDeath") return;
-
-    std::string sName = getStateName();
-    float absScaleX = std::abs(sprite.getScale().x);
-    float absScaleY = std::abs(sprite.getScale().y);
-
-    if (sName != "Shell" && sName != "SpinningShell") {
-        if (currentDir == MoveDirection::Right) {
-            sprite.setScale(absScaleX, absScaleY);
-        } else {
-            sprite.setScale(-absScaleX, absScaleY);
-        }
-    }
-
-    if (sName == "SpinningShell") {
-        shape.setFillColor(sf::Color(0, 255, 127));
-        animator.playAnimation("spin", 0.016f);
-    } else if (sName == "Shell") {
-        shape.setFillColor(sf::Color(46, 139, 87));
-        animator.playAnimation("shell", 0.016f);
-    } else {
-        shape.setFillColor(sf::Color(34, 139, 34));
-        animator.playAnimation("walk", 0.016f);
-    }
+    animatorComp.applyAnimation(*this);
 }
 
 void Koopa::render(sf::RenderWindow& window) {

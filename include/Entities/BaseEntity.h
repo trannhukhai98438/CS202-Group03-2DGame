@@ -38,11 +38,13 @@ public:
     virtual void onSideCollision(BaseEntity* attacker) { (void)attacker; }
 
     sf::Vector2f getPosition() const;
-    void setPosition(const sf::Vector2f& pos);
+    virtual void setPosition(const sf::Vector2f& pos);
     sf::FloatRect getBounds() const;
     bool getIsAlive() const;
     bool isDead() const;
     sf::Sprite& getSprite() { return sprite; }
+    sf::RectangleShape& getShape() { return shape; }
+    Animator& getAnimator() { return animator; }
 };
 
 #endif

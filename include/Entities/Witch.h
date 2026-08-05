@@ -1,10 +1,14 @@
-#pragma once
+#ifndef WITCH_H
+#define WITCH_H
+
 #include "Entities/Enemy.h"
 #include "Entities/Projectile.h"
 #include "Utilities/Animator.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <memory>
+#include "WitchPhysics.h"
+#include "WitchAnimator.h"
 
 class ThrowState : public EnemyState {
 private:
@@ -24,6 +28,8 @@ class Witch : public Enemy {
 private:
     float attackCooldown;
     std::function<void(std::unique_ptr<Projectile>)> spawnProjectileCallback;
+    WitchPhysics physics;
+    WitchAnimator animatorComp;
 
 public:
     Witch(float startX, float startY, float patrolRange, std::function<void(std::unique_ptr<Projectile>)> spawnCallback);
@@ -39,4 +45,10 @@ public:
     void applyAnimation() override;
 
     void throwPotion();
+    
+    float getAttackCooldown() const { return attackCooldown; }
+    void addAttackCooldown(float amount) { attackCooldown += amount; }
+    void resetAttackCooldown() { attackCooldown = 0.0f; }
 };
+
+#endif

@@ -51,7 +51,7 @@ class FlippingDeathState : public EnemyState {
 private:
     float velocityY;
 public:
-    FlippingDeathState(float initialVelY = -350.0f);
+    FlippingDeathState(float initialVelY = -150.0f);
     void onEnter(Enemy& enemy) override;
     void update(Enemy& enemy, float deltaTime) override;
     std::string getName() const override { return "FlippingDeath"; }

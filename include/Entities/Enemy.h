@@ -48,6 +48,7 @@ public:
 
     float getSpeed() const override { return speed; }
     int getHealth() const override { return health; }
+    void setHealth(int h) { health = h; }
     int getDamageOnTouch() const override { return 1; }
     int getScoreValue() const override { return 100; }
     std::string getCharacterType() const override { return "Enemy"; }
@@ -58,6 +59,7 @@ public:
     void setPatrolBounds(float minX, float maxX);
     float getPatrolLeftBound() const { return patrolLeftBound; }
     float getPatrolRightBound() const { return patrolRightBound; }
+    void setPosition(const sf::Vector2f& pos) override;
 
     void interactWith(BaseEntity* other) override;
     void onStomped(BaseEntity* attacker) override;

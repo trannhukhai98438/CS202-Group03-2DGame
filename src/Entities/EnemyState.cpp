@@ -56,15 +56,10 @@ void FlippingDeathState::onEnter(Enemy& enemy) {
 }
 
 void FlippingDeathState::update(Enemy& enemy, float deltaTime) {
-    velocityY += 980.0f * deltaTime; // Gravity acceleration
+    velocityY += 450.0f * deltaTime; // Soft, smooth gravity acceleration
     sf::Vector2f pos = enemy.getPosition();
     pos.y += velocityY * deltaTime;
     enemy.setPosition(pos);
-    
-    // Keep sprite in sync with falling position dynamically based on enemy bounds
-    sf::Sprite& sp = enemy.getSprite();
-    sf::FloatRect bounds = enemy.getBounds();
-    sp.setPosition(pos.x + bounds.width / 2.0f, pos.y + bounds.height);
 
     // Once fallen off screen, remove cleanly
     if (pos.y > 750.0f) {

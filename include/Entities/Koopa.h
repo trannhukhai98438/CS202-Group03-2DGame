@@ -2,10 +2,14 @@
 #define KOOPA_H
 
 #include "Enemy.h"
+#include "KoopaPhysics.h"
+#include "KoopaAnimator.h"
 
 class Koopa : public Enemy {
 private:
     float shellSpeed;
+    KoopaPhysics physics;
+    KoopaAnimator animatorComp;
 
 public:
     Koopa(float startX, float startY, float patrolRange = 120.0f);
@@ -14,6 +18,7 @@ public:
     int getDamageOnTouch() const override;
     int getScoreValue() const override { return 200; }
     std::string getCharacterType() const override { return "Koopa"; }
+    float getShellSpeed() const { return shellSpeed; }
 
     void render(sf::RenderWindow& window) override;
     void takeDamage(int damage) override;
