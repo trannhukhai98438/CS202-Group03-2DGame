@@ -1,6 +1,7 @@
 #include "PowerUpPrototype.h"
 #include "Mushroom.h"
 #include "Flower.h"
+#include "Hero.h"
 
 PowerUpPrototype::PowerUpPrototype(float x, float y) : Item(x, y) {
 }

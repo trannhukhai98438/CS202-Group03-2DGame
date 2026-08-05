@@ -1,4 +1,5 @@
 #include "Flower.h"
+#include "Hero.h"
 
 Flower::Flower(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y) {
     if (texture.loadFromFile("assets/textures/Flower.png")) {
@@ -13,7 +14,8 @@ Flower::Flower(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y)
     animator.playAnimation("Flower", 0.f);
 
     hitbox.setSize(sf::Vector2f(16.f, 16.f));
-    hitbox.setOrigin(8.f, 16.f); // Bottom-Center
+    hitbox.setFillColor(sf::Color::Red);
+    setPosition(x,y);
 }
 
 void Flower::spawn() {
@@ -32,8 +34,8 @@ void Flower::update(float deltatime) {
     if (!isActive) return;
 
     if (isSpawning) {
-        position.x += velocity.x*deltatime;
-        position.y += velocity.y * deltatime;
+        // Position update is handled by PlayingState
+        // Assume block size is 16, stop spawning when moved up by 16 pixels
         if (spawnStartY - position.y >= 16.f) {
             position.y = spawnStartY - 16.f;
             isSpawning = false;
@@ -41,8 +43,7 @@ void Flower::update(float deltatime) {
         }
     }
 
-    sprite.setPosition(position);
-    hitbox.setPosition(position);
+
     animator.playAnimation("Flower", deltatime);
     // Note: playAnimation() updates sprite texture rect internally via sf::Sprite& reference
 }
@@ -55,4 +56,8 @@ void Flower::getCollected(Hero* hero) {
     if (!isActive || isSpawning) return;
     hero->setForm(std::make_unique<FireForm>());
     isActive = false;
+}
+
+bool Flower::isColliable(){
+    return !isSpawning;
 }

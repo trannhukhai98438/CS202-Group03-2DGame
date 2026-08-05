@@ -5,8 +5,11 @@
 #include "IdleState.h"
 
 void GiantForm::enter(Hero* hero){
+    sf::Vector2f oldsize=hero->getHitbox().getSize();
     hero->setSize(16, 32);
     hero->loadTexture(hero->getBaseTexturePath());
+    sf::Vector2f oldposition=hero->getPosition();
+    hero->setPosition(oldposition.x, oldposition.y + oldsize.y - 32.f);
 }
 
 void GiantForm::update(Hero* hero, float deltatime){

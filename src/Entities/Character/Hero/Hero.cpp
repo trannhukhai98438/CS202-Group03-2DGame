@@ -37,8 +37,7 @@ void Hero::update(float deltatime){
     }
 
     // Update sprite/hitbox to logical position
-    sprite.setPosition(position);
-    hitbox.setPosition(position);
+    setPosition(position.x,position.y);
 
     // Delegate to form (handles form-specific input: Sit, Fire special)
     if (form) form->update(this, deltatime);

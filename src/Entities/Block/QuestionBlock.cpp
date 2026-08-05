@@ -27,14 +27,14 @@ void QuestionBlock::update(float deltatime) {
         bounceTimer -= deltatime;
         float t      = 1.f - (bounceTimer / 0.1f);     // 0→1
         float offset = std::sin(t * 3.14159f) * 6.f;   // 0→6→0 px
+        
         position.y   = originalY - offset;
-        sprite.setPosition(position);
-        hitbox.setPosition(position); // hitbox moves → enemy on top takes damage
-    } else {
-        // Restore to original Y
-        position.y = originalY;
-        sprite.setPosition(position);
         hitbox.setPosition(position);
+        sprite.setPosition(position.x + 8.f, position.y + 16.f);
+    } else {
+        position.y = originalY;
+        hitbox.setPosition(position);
+        sprite.setPosition(position.x + 8.f, position.y + 16.f);
     }
 
     // Animation: shimmer when active, static when spent

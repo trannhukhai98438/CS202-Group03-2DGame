@@ -13,7 +13,7 @@ public:
     std::unique_ptr<Item> clone(Hero* hero) const override;
     void getCollected(Hero* hero) override;
     void getCollision() override;
-
+    bool isColliable() override;
 private:
     bool isSpawning;
     float spawnStartY;

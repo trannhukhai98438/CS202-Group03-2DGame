@@ -12,7 +12,7 @@ public:
     void spawn() override;
     std::unique_ptr<Item> clone(Hero* hero) const override;
     void getCollected(Hero* hero) override;
-
+    bool isColliable() override;
 private:
     bool isSpawning;
     float spawnStartY;

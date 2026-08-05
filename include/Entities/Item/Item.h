@@ -1,5 +1,9 @@
 #pragma once
-#include "Hero.h"
+#include <SFML/Graphics.hpp>
+#include "Utilities/Animator.h"
+#include <memory>
+
+class Hero;
 
 class Item{
 public:
@@ -17,12 +21,15 @@ public:
     virtual void getCollected(Hero* hero)=0;
 
     sf::FloatRect getBounds() const;
+    sf::RectangleShape& getHitbox();
     virtual void getCollision(); //side collision with the brick/ pile -> reverse direction
     bool getIsGrounded() const;
     void setGrounded(bool grounded);
     sf::Vector2f getPosition() const;
     void setPosition(float x, float y);
-
+    void setVelocity(float x, float y);
+    sf::Vector2f getVelocity();
+    virtual bool isColliable(){return false;};
 protected:
     sf::Vector2f position;
     sf::Vector2f velocity;

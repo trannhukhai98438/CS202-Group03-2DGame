@@ -1,9 +1,7 @@
 #pragma once
 
 // ============================================================
-// Physics Constants — TEMPORARY
-// All values here are placeholder approximations.
-// Replace with tuned values once CollisionSystem is integrated.
+// Physics Constant
 // ============================================================
 namespace PhysicsConstants {
 
