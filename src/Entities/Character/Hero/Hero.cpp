@@ -59,11 +59,11 @@ void Hero::update(float deltatime){
 }
 
 void Hero::render(sf::RenderWindow& window){
-    // Flip sprite horizontally when facing left
+    // Flip sprite horizontally when facing left (scaled 2.0x to match enemy dimensions)
     if (isFacingRight) {
-        sprite.setScale(1.f, 1.f);
+        sprite.setScale(2.f, 2.f);
     } else {
-        sprite.setScale(-1.f, 1.f);
+        sprite.setScale(-2.f, 2.f);
     }
 
     // Invincibility visual effects

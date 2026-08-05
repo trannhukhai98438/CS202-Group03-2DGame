@@ -8,11 +8,11 @@ FireForm::FireForm(): cooldown(3.0f), counttime(0.f){
 
 void FireForm::enter(Hero* hero){
     sf::Vector2f oldsize=hero->getHitbox().getSize();
-    hero->setSize(16, 32);
+    hero->setSize(32.f, 64.f);
     hero->loadTexture("assets/textures/FireMario.png");
     counttime = 0.f;
     sf::Vector2f oldposition=hero->getPosition();
-    hero->setPosition(oldposition.x, oldposition.y + oldsize.y - 32.f);
+    hero->setPosition(oldposition.x, oldposition.y + oldsize.y - 64.f);
 }
 
 void FireForm::update(Hero* hero, float deltatime){

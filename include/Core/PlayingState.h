@@ -25,6 +25,7 @@ private:
     std::vector<std::unique_ptr<Enemy>> m_enemies;
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
     HUDManager m_hudManager;
+    int m_lastCoinCount;
 public:
     PlayingState();
     ~PlayingState() override;

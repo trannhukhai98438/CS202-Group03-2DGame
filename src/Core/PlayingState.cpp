@@ -6,7 +6,7 @@
 #include "Entities/Item/ItemFactory.h"
 #include <algorithm>
 
-PlayingState::PlayingState() {
+PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
     hero = HeroFactory().createHero(HeroType::Mario, 100.f, 500.f);
 
@@ -19,11 +19,11 @@ PlayingState::PlayingState() {
     m_dummyWall.setPosition(800.f, 400.f);
 
     BlockFactory blockFac;
-    blocks.push_back(blockFac.createBlock(BlockType::Brick, 300, 550));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 400, 550, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 420, 550, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 440, 550, ItemType::Coin));
-    blocks.push_back(blockFac.createBlock(BlockType::Question, 460, 550, ItemType::Star));
+    blocks.push_back(blockFac.createBlock(BlockType::Brick, 300, 472));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 400, 472, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 432, 472, ItemType::PowerUpPrototype));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 464, 472, ItemType::Coin));
+    blocks.push_back(blockFac.createBlock(BlockType::Question, 496, 472, ItemType::Star));
 
     auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
         m_projectiles.push_back(std::move(p));
@@ -52,7 +52,16 @@ void PlayingState::update(sf::Time dt) {
     m_hudManager.updateTimer(dtSec);
 
     // Update hero, blocks, items
-    if (hero) hero->update(dtSec);
+    if (hero) {
+        hero->update(dtSec);
+        int currentCoins = hero->getCoin();
+        if (currentCoins > m_lastCoinCount) {
+            int diff = currentCoins - m_lastCoinCount;
+            m_hudManager.addCoin(diff);
+            m_hudManager.addScore(100 * diff);
+            m_lastCoinCount = currentCoins;
+        }
+    }
     for (size_t i = 0; i < blocks.size(); ++i) blocks[i]->update(dtSec);
     for (size_t i = 0; i < items.size(); ++i) items[i]->update(dtSec);
 
@@ -163,13 +172,14 @@ void PlayingState::update(sf::Time dt) {
             sf::FloatRect enemyBounds = (*it)->getBounds();
             sf::FloatRect heroBounds = hero->getHitbox().getGlobalBounds();
 
-            bool isFalling = (hero->getVelocity().y >= 0.f);
-            float marioCenterY = heroBounds.top + (heroBounds.height * 0.5f);
-            float enemyBottomY = enemyBounds.top + enemyBounds.height;
+            bool isFallingInAir = (!hero->getGrounded() && hero->getVelocity().y >= 0.f);
+            float marioBottomY = heroBounds.top + heroBounds.height;
+            float enemyTopY = enemyBounds.top;
 
-            if (isFalling && marioCenterY < enemyBottomY) {
+            // Stomp logic: Mario must be falling from the air and hit the top half of the enemy
+            if (isFallingInAir && marioBottomY <= enemyTopY + (enemyBounds.height * 0.6f)) {
                 (*it)->onStomped(nullptr);
-                hero->setVelocity(hero->getVelocity().x, -600.f);
+                hero->setVelocity(hero->getVelocity().x, -500.f); // Bounce Mario up!
                 m_hudManager.addScore(200);
             } else {
                 (*it)->onSideCollision(nullptr);
