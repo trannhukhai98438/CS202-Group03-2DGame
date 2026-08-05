@@ -234,6 +234,7 @@ void PlayingState::update(sf::Time dt) {
 }
 
 void PlayingState::render(sf::RenderWindow& window) {
+    window.setView(m_camera);
     window.draw(m_dummyFloor);
     window.draw(m_dummyWall);
     for (auto& block : blocks) if (block) block->render(window);
@@ -247,9 +248,6 @@ void PlayingState::render(sf::RenderWindow& window) {
     for (auto& projectile : m_projectiles) {
         if (projectile) projectile->render(window);
     }
-
+    window.setView(window.getDefaultView());
     window.draw(m_hudManager);
-
-
-    window.setView(m_camera);
 }
