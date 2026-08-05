@@ -8,17 +8,18 @@
 #include "Entities/Item/ItemFactory.h"
 #include <algorithm>
 #include <iostream>
-PlayingState::PlayingState(): m_velocityX(200.f), m_velocityY(0.f){
+PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
     std::string jsonPath = "assets/maps/levels/1-1.tmj";
     std::string tilesetPath = "assets/maps/resources/tileset.png";
     if (!m_levelManager.loadLevel(jsonPath, tilesetPath)) {
         std::cerr << "[PlayingState] ERROR: Cannot load level!" << std::endl;
     }
+    MapObject spawnPoint;
     if (m_levelManager.getObjectByName("Objects", "SpawnPoint", spawnPoint)) {
-        m_mario=HeroFactory().createHero(HeroType::Luigi,spawnPoint.x,spawnPoint.y);
+        m_hero=HeroFactory().createHero(HeroType::Luigi,spawnPoint.x,spawnPoint.y);
     } else {
-        m_mario=HeroFactory().createHero(HeroType::Luigi,100,0);
+        m_hero=HeroFactory().createHero(HeroType::Luigi,100,0);
     }
     m_dummyFloor.setSize(sf::Vector2f(1280.f, 120.f));
     m_dummyFloor.setFillColor(sf::Color::Green);
@@ -35,19 +36,13 @@ PlayingState::PlayingState(): m_velocityX(200.f), m_velocityY(0.f){
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Goomba, 300.f, 536.f, 150.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 550.f, 200.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 504.f, 150.f, spawnCallback));
-    MapObject spawnPoint;
-    if (m_levelManager.getObjectByName("Objects", "SpawnPoint", spawnPoint)) {
-        m_mario.setPosition(spawnPoint.x, spawnPoint.y);
-    } else {
-        m_mario.setPosition(100.f, 0.f);
-    }
 
     BlockFactory blockFac;
-    blocks.push_back(blockFac.createBlock(BlockType::Brick, 300,550));
-    blocks.push_back(blockFac.createBlock(BlockType::Question,400, 550, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question,420, 550, ItemType::PowerUpPrototype));
-    blocks.push_back(blockFac.createBlock(BlockType::Question,440, 550, ItemType::Coin));
-    blocks.push_back(blockFac.createBlock(BlockType::Question,460, 550, ItemType::Star));
+    m_blocks.push_back(blockFac.createBlock(BlockType::Brick, 300,550));
+    m_blocks.push_back(blockFac.createBlock(BlockType::Question,400, 550, ItemType::PowerUpPrototype));
+    m_blocks.push_back(blockFac.createBlock(BlockType::Question,420, 550, ItemType::PowerUpPrototype));
+    m_blocks.push_back(blockFac.createBlock(BlockType::Question,440, 550, ItemType::Coin));
+    m_blocks.push_back(blockFac.createBlock(BlockType::Question,460, 550, ItemType::Star));
 }
 
 PlayingState::~PlayingState() = default;
@@ -56,25 +51,29 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
     }
-    
-    // Simulate getting coins for UI testing
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
-        m_hudManager.addCoin(1);
-        m_hudManager.addScore(100);
-    }
 }
 
 void PlayingState::update(sf::Time dt) {
     float dtSec = dt.asSeconds();
-    m_hudManager.updateTimer(dt.asSeconds());
+    m_hudManager.updateTimer(dtSec);
     if (m_hudManager.getRemainingTime() <= 0.0f) {
         // Time out
     }
 
-    // 1. Update entities (this handle velocity and gravity)
-    m_hero->update(dtSec);
-    for (size_t i=0;i<m_blocks.size();++i) m_blocks[i]->update(dtSec);
-    for (size_t i=0;i<m_items.size();++i) m_items[i]->update(dtSec);
+
+    // Update hero, blocks, items
+    if (m_hero) {
+       m_hero->update(dtSec);
+        int currentCoins = m_hero->getCoin();
+        if (currentCoins > m_lastCoinCount) {
+            int diff = currentCoins - m_lastCoinCount;
+            m_hudManager.addCoin(diff);
+            m_hudManager.addScore(100 * diff);
+            m_lastCoinCount = currentCoins;
+        }
+    }
+    for (size_t i = 0; i < m_blocks.size(); ++i) m_blocks[i]->update(dtSec);
+    for (size_t i = 0; i < m_items.size(); ++i) m_items[i]->update(dtSec);
 
     if (!m_hero->isDead()){
     // 2. Predict newpos of hero
@@ -182,16 +181,16 @@ void PlayingState::update(sf::Time dt) {
         if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
             sf::FloatRect enemyBounds = (*it)->getBounds();
             sf::FloatRect heroBounds = m_hero->getBounds();
-            
-            // Stomp logic (falling down on top of enemy)
-            bool isFalling = (m_hero->getVelocity().y >= 0.f);
-            float marioCenterY = heroBounds.top + (heroBounds.height * 0.5f);
-            float enemyBottomY = enemyBounds.top + enemyBounds.height;
 
-            if (isFalling && marioCenterY < enemyBottomY) {
+            bool isFallingInAir = (!m_hero->getIsGrounded() && m_hero->getVelocity().y >= 0.f);
+            float marioBottomY = heroBounds.top + heroBounds.height;
+            float enemyTopY = enemyBounds.top;
+
+            // Stomp logic: Mario must be falling from the air and hit the top half of the enemy
+            if (isFallingInAir && marioBottomY <= enemyTopY + (enemyBounds.height * 0.6f)) {
                 (*it)->onStomped(nullptr);
-                m_hero->setVelocity(m_hero->getVelocity().x, -600.f);
-                m_hudManager.addScore(200); // Add score for stomping
+                m_hero->setVelocity(hero->getVelocity().x, -500.f); // Bounce Mario up!
+                m_hudManager.addScore(200);
             } else {
                 (*it)->onSideCollision(nullptr);
                 if ((*it)->getDamageOnTouch() > 0) {
@@ -236,8 +235,8 @@ void PlayingState::render(sf::RenderWindow& window) {
     window.draw(m_dummyFloor);
 
     window.draw(m_dummyWall);
-    for (auto& block : blocks) block->render(window);
-    for (auto& item : items) item->render(window);
+    for (auto& block : m_blocks) block->render(window);
+    for (auto& item : m_items) item->render(window);
     if (m_hero) m_hero->render(window);
 
     for (auto& enemy : m_enemies) {

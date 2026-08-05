@@ -21,7 +21,7 @@ Coin::Coin(float x, float y) : Item(x, y), bounceTimer(0.f), m_alreadyCollected(
 void Coin::spawn(){
     isActive = true;
     velocity.y = -300.f; // bounce up
-    bounceTimer = 0.5f; // time before disappearing
+    bounceTimer = 0.6f; // time before disappearing (matches physical return to y=0)
 }
 
 std::unique_ptr<Item> Coin::clone(Hero* hero) const {

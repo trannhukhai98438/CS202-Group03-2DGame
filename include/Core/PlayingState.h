@@ -21,6 +21,7 @@ private:
     std::vector<std::unique_ptr<Enemy>> m_enemies;
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
     HUDManager m_hudManager;
+    int m_lastCoinCount;
     LevelManager m_levelManager;
     sf::RectangleShape m_dummyWall;
     PhysicsEngine m_physics;
