@@ -6,6 +6,7 @@ void MapData::clear() {
     tileWidth = 0;
     tileHeight = 0;
     tileLayers.clear();
+    objectLayers.clear();
 }
 
 int MapData::getMapWidthPixels() const {
@@ -16,8 +17,17 @@ int MapData::getMapHeightPixels() const {
     return height * tileHeight;
 }
 
-const TileLayer* MapData::getLayer(const std::string& layerName) const {
+const TileLayer* MapData::getTileLayer(const std::string& layerName) const {
     for (const auto& layer : tileLayers) {
+        if (layer.name == layerName) {
+            return &layer;
+        }
+    }
+    return nullptr;
+}
+
+const ObjectLayer* MapData::getObjectLayer(const std::string& layerName) const {
+    for (const auto& layer : objectLayers) {
         if (layer.name == layerName) {
             return &layer;
         }

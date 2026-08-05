@@ -1,27 +1,72 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
+#include <vector>
+#include "MapManager.hpp"
+#include "MapData.hpp"
 
-class LevelManager : public sf::Drawable, public sf::Transformable {
+// Handles level rendering via SFML and provides query APIs for Physics & Game Logic
+class LevelManager : public sf::Drawable {
 private:
-    sf::VertexArray m_vertices;
-    sf::Texture m_tileset;
-    float m_tileSize;
-    int m_width;
-    int m_height;
-    std::vector<std::vector<int>> m_grid;
+    MapManager m_mapManager;
+    MapData m_currentMap;
 
+    sf::Texture m_tilesetTexture;
+    sf::VertexArray m_vertices; // Batch rendering mesh for high performance (1 Draw Call)
+
+    std::string m_collisionLayerName{ "Terrain" };
+    std::string m_interactiveLayerName{ "Interactive" };
+
+private:
+    // Builds SFML Quad Vertices and UV texture coordinates
+    bool buildMapMesh();
+
+    // SFML sf::Drawable interface override for direct window.draw() usage
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 public:
-    LevelManager();
+    LevelManager() = default;
     ~LevelManager() = default;
 
-    bool loadLevel(const std::string& levelPath, const std::string& tilesetPath, float tileSize = 32.0f);
+    // Initializes level by parsing JSON via MapManager and loading tileset texture
+    bool loadLevel(const std::string& jsonPath, const std::string& tilesetTexturePath);
 
-    const std::vector<std::vector<int>>& getGrid() const { return m_grid; }
-    float getTileSize() const { return m_tileSize; }
-    int getWidth() const { return m_width; }
-    int getHeight() const { return m_height; }
+    // --- MAP METRICS GETTERS ---
+    int getMapWidthPixels() const { return m_currentMap.getMapWidthPixels(); }
+    int getMapHeightPixels() const { return m_currentMap.getMapHeightPixels(); }
+    int getTileWidth() const { return m_currentMap.tileWidth; }
+    int getTileHeight() const { return m_currentMap.tileHeight; }
+    int getMapWidthTiles() const { return m_currentMap.width; }
+    int getMapHeightTiles() const { return m_currentMap.height; }
+
+    // --- TILE & COLLISION API ---
+    int getTileID(const std::string& layerName, int tileX, int tileY) const;
+    bool isSolidAtTile(int tileX, int tileY) const;
+    bool isSolidAtPixel(float worldX, float worldY) const;
+    bool isInteractiveTile(int tileX, int tileY) const;
+
+    // Dynamically update or destroy a tile (e.g., breakable brick / question block)
+    bool setTileID(const std::string& layerName, int tileX, int tileY, int newTileID);
+
+    // --- OBJECT QUERY API (Spawners, Triggers, Entities) ---
+    // Get all objects within a specific object layer
+    std::vector<MapObject> getObjectsFromLayer(const std::string& layerName) const;
+
+    // Query a single object by unique Name within a layer
+    bool getObjectByName(const std::string& layerName, const std::string& objectName, MapObject& outObject) const;
+
+    // Query objects by ClassName within a specific layer
+    std::vector<MapObject> getObjectsByClass(const std::string& layerName, const std::string& className) const;
+
+    // Query objects matching BOTH ClassName AND Name within a specific layer
+    std::vector<MapObject> getObjectsByClassAndName(const std::string& layerName, const std::string& className, const std::string& objectName) const;
+
+    // Flexible search across ALL object layers by className, objectName, or both
+    std::vector<MapObject> findObjects(const std::string& className = "", const std::string& objectName = "") const;
+
+    // Layer name setters
+    void setCollisionLayerName(const std::string& name) { m_collisionLayerName = name; }
+    void setInteractiveLayerName(const std::string& name) { m_interactiveLayerName = name; }
+
+    const MapData& getMapData() const { return m_currentMap; }
 };

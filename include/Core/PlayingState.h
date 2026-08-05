@@ -2,19 +2,16 @@
 #include "Core/State.h"
 #include "Core/PhysicsEngine.h"
 #include "Managers/HUDManager.hpp"
+#include "Managers/LevelManager.hpp"
 #include <SFML/Graphics.hpp>
 
 class PlayingState : public State {
 private:
-	sf::View m_camera;
-	sf::RectangleShape m_dummyMario; //TODO: Remove this when we have a proper Mario sprite and level assets
-	sf::RectangleShape m_dummyFloor; //TODO: Remove this when we have a proper Mario sprite and level assets
-	float m_velocityX; //TODO: Remove this when we have a proper Mario sprite and level assets
-	float m_velocityY; //TODO: Remove this when we have a proper Mario sprite and level assets
-	sf::RectangleShape m_dummyWall;//TODO: Remove this when we have a proper Mario sprite and level assets
-	PhysicsEngine m_physics;
+    sf::RectangleShape m_mario;
+    sf::Vector2f m_velocity;
 
 	HUDManager m_hudManager;
+	LevelManager m_levelManager;
 public:
 	PlayingState();
 	void processEvents(sf::Event& event) override;
