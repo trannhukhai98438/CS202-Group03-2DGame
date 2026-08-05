@@ -17,7 +17,6 @@ protected:
     float invincibleTimer;
     bool isStarman;
     int coin;
-private:
     sf::Sprite sprite;
     sf::Texture texture;
     Animator animator;

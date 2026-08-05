@@ -4,13 +4,18 @@
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Entities/Block/BlockFactory.h"
 #include "Entities/Item/ItemFactory.h"
+#include "Core/GameOverState.h"
+#include "Core/VictoryState.h"
+#include "Entities/Character/Hero/HeroState/DeadState.h"
+#include "Entities/Character/Hero/HeroState/FlyState.h"
 #include <algorithm>
 
 
 PlayingState::PlayingState(){
+    m_camera.setSize(1280.f, 720.f);
     hero=HeroFactory().createHero(HeroType::Luigi,600,100);
 
-    m_dummyFloor.setSize(sf::Vector2f(800.f, 50.f));
+    m_dummyFloor.setSize(sf::Vector2f(5000.f, 50.f));
     m_dummyFloor.setFillColor(sf::Color::Green);
     m_dummyFloor.setPosition(240.f, 600.f);
 
@@ -149,13 +154,35 @@ void PlayingState::update(sf::Time dt) {
     items.erase(std::remove_if(items.begin(), items.end(),
         [](const std::unique_ptr<Item>& item) { return item->isCollected(); }),
         items.end());
+    float marioX = hero->getPosition().x;
+    float halfScreenWidth = 640.f;
+    float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
+    float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
+    m_camera.setCenter(cameraX, 360.f);
+
+	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
+    // Press 'L' to simulate Mario dying
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+        hero->setState(std::make_unique<DeadState>());
+        Game::getInstance().changeState(std::make_unique<GameOverState>());
+    }
+
+    // Press 'W' to simulate touching the flagpole
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+        hero->setState(std::make_unique<FlyState>());
+        Game::getInstance().changeState(std::make_unique<VictoryState>());
+    }
 }
     
 
 void PlayingState::render(sf::RenderWindow& window) {
+    window.setView(m_camera);
     window.draw(m_dummyFloor);
     window.draw(m_dummyWall);
+    
     for (auto& block : blocks) block->render(window);
     for (auto& item : items) item->render(window);
     if (hero) hero->render(window);
+    
+    window.setView(window.getDefaultView()); // Reset view to default for UI rendering (Score, Time, etc.)
 }
