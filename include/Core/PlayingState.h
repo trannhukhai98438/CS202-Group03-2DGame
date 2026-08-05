@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/State.h"
 #include "Core/PhysicsEngine.h"
-#include "Entities/EnemyFactory.h"
+#include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Managers/HUDManager.hpp"
 #include <SFML/Graphics.hpp>

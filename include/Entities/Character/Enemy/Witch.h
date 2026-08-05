@@ -1,8 +1,8 @@
 #ifndef WITCH_H
 #define WITCH_H
 
-#include "Entities/Enemy.h"
-#include "Entities/Projectile.h"
+#include "Enemy.h"
+#include "Projectile.h"
 #include "Utilities/Animator.h"
 #include <SFML/Graphics.hpp>
 #include <functional>
