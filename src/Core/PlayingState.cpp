@@ -1,12 +1,16 @@
 #include "Core/PlayingState.h"
 #include "Core/Game.h"
 #include "Core/PausedState.h"
+#include "Core/GameOverState.h"
+#include "Core/VictoryState.h"
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Entities/Block/BlockFactory.h"
 #include "Entities/Item/ItemFactory.h"
 #include <algorithm>
 
+
 PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
+    m_camera.setSize(1280.f, 720.f);
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
     hero = HeroFactory().createHero(HeroType::Mario, 100.f, 500.f);
 
@@ -209,6 +213,21 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
+    float marioX = hero->getPosition().x;
+    float halfScreenWidth = 640.f;
+    float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
+    float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
+    m_camera.setCenter(cameraX, 360.f);
+	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
+    // Press 'L' to simulate Mario dying
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+        Game::getInstance().changeState(std::make_unique<GameOverState>());
+    }
+
+    // Press 'W' to simulate touching the flagpole
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+        Game::getInstance().changeState(std::make_unique<VictoryState>());
+    }
 }
 
 void PlayingState::render(sf::RenderWindow& window) {
@@ -227,4 +246,7 @@ void PlayingState::render(sf::RenderWindow& window) {
     }
 
     window.draw(m_hudManager);
+
+
+    window.setView(m_camera);
 }

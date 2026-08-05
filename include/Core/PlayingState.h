@@ -16,6 +16,7 @@ class Block;
 
 class PlayingState : public State {
 private:
+    sf::View m_camera;    
     std::unique_ptr<Hero> hero;
     std::vector<std::unique_ptr<Item>> items;
     std::vector<std::unique_ptr<Block>> blocks;
