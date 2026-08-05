@@ -37,6 +37,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include/Entities/Item
     ${CMAKE_SOURCE_DIR}/include/Entities/Block
     ${CMAKE_SOURCE_DIR}/include/Utilities
+    ${CMAKE_SOURCE_DIR}/include/Core
+    ${CMAKE_SOURCE_DIR}/include/Managers
 )
 
 # 5. LINK THƯ VIỆN SFML VÀO PROJECT
