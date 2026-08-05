@@ -14,8 +14,9 @@ Star::Star(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y) {
     animator.addAnimation("Star", Animation(starFrames, 0.1f));
     animator.playAnimation("Star", 0.f);
 
-    hitbox.setSize(sf::Vector2f(14.f, 16.f));
+    hitbox.setSize(sf::Vector2f(28.f, 32.f));
     hitbox.setFillColor(sf::Color::Yellow);
+    sprite.setScale(2.f, 2.f);
     setPosition(x,y);
 }
 
@@ -37,8 +38,8 @@ void Star::update(float deltatime) {
     if (isSpawning) {
         // Phase 1: moving up
         // Position update is handled by PlayingState
-        if (spawnStartY - position.y >= 16.f) {
-            position.y  = spawnStartY - 16.f;
+        if (spawnStartY - position.y >= 32.f) {
+            position.y  = spawnStartY - 32.f;
             isSpawning  = false;
             velocity.y  = -450.f;  // bounce with high speed
             velocity.x  = 100.f;   // right moving

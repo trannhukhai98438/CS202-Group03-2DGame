@@ -13,9 +13,12 @@ Coin::Coin(float x, float y) : Item(x, y), bounceTimer(0.f), m_alreadyCollected(
     animator.addAnimation("Coin", Animation(coinFrames, 0.1f));
     animator.playAnimation("Coin", 0.f);
 
-    hitbox.setSize(sf::Vector2f(8.f, 14.f));
+    hitbox.setSize(sf::Vector2f(16.f, 28.f));
     hitbox.setFillColor(sf::Color::Yellow);
-    setPosition(x,y);
+    sprite.setScale(2.f, 2.f);
+    sprite.setOrigin(4.f, 14.f); // Base coin frame is 8x14
+    hitbox.setPosition(position);
+    sprite.setPosition(position.x + 8.f, position.y + 28.f);
 }
 
 void Coin::spawn(){

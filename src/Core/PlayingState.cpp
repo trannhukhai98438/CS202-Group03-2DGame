@@ -189,7 +189,7 @@ void PlayingState::update(sf::Time dt) {
             // Stomp logic: Mario must be falling from the air and hit the top half of the enemy
             if (isFallingInAir && marioBottomY <= enemyTopY + (enemyBounds.height * 0.6f)) {
                 (*it)->onStomped(nullptr);
-                m_hero->setVelocity(hero->getVelocity().x, -500.f); // Bounce Mario up!
+                m_hero->setVelocity(hero->getVelocity().x, -300.f); // Bounce Mario up!
                 m_hudManager.addScore(200);
             } else {
                 (*it)->onSideCollision(nullptr);
