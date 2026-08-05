@@ -1,4 +1,4 @@
-#include "Entities/Goomba.h"
+#include "Entities/Character/Enemy/Goomba.h"
 
 Goomba::Goomba(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 40.0f, patrolRange) {

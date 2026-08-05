@@ -1,4 +1,4 @@
-#include "Entities/Projectile.h"
+#include "Entities/Character/Enemy/Projectile.h"
 #include "Entities/BaseEntity.h"
 
 Projectile::Projectile(float startX, float startY, float velX, float velY, int dmg)

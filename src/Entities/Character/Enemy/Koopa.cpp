@@ -1,4 +1,4 @@
-#include "Entities/Koopa.h"
+#include "Entities/Character/Enemy/Koopa.h"
 
 Koopa::Koopa(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 50.0f, patrolRange),

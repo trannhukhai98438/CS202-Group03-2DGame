@@ -1,5 +1,5 @@
-#include "Entities/WitchAnimator.h"
-#include "Entities/Witch.h"
+#include "Entities/Character/Enemy/WitchAnimator.h"
+#include "Entities/Character/Enemy/Witch.h"
 #include <cmath>
 
 void WitchAnimator::initAnimations(Witch& witch) {

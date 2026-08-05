@@ -1,6 +1,6 @@
-#include "Entities/KoopaPhysics.h"
-#include "Entities/Koopa.h"
-#include "Entities/EnemyState.h"
+#include "Entities/Character/Enemy/KoopaPhysics.h"
+#include "Entities/Character/Enemy/Koopa.h"
+#include "Entities/Character/Enemy/EnemyState.h"
 #include <cmath>
 
 void KoopaPhysics::checkObstacles(Koopa& koopa) {

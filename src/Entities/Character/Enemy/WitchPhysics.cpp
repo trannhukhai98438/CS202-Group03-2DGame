@@ -1,6 +1,6 @@
-#include "Entities/WitchPhysics.h"
-#include "Entities/Witch.h"
-#include "Entities/EnemyState.h"
+#include "Entities/Character/Enemy/WitchPhysics.h"
+#include "Entities/Character/Enemy/Witch.h"
+#include "Entities/Character/Enemy/EnemyState.h"
 
 void WitchPhysics::checkObstacles(Witch& witch) {
     if (witch.getStateName() == "Throw" || witch.getStateName() == "Squished" || witch.getStateName() == "FlippingDeath") return;

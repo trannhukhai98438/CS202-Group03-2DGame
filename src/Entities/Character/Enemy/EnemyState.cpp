@@ -1,5 +1,5 @@
-#include "Entities/EnemyState.h"
-#include "Entities/Enemy.h"
+#include "Entities/Character/Enemy/EnemyState.h"
+#include "Entities/Character/Enemy/Enemy.h"
 
 void PatrolState::update(Enemy& enemy, float deltaTime) {
     enemy.checkObstacles();
