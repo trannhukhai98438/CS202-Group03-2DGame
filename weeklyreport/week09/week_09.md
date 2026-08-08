@@ -1,27 +1,37 @@
 # Weekly Progress Report
 
 **Project:** Custom 2D Platformer - Group 3  
-**Date / Week:** [Start Date] to [End Date] | Week [Number]  
+**Date / Week:** 3/8 to 8/8 | Week 09  
 
 ---
 
 ## 1. Weekly Overview
-* **Primary Goal:** [Briefly describe the main objective for this week]
-* **Completion Rate:** [Percentage]% of the weekly plan completed.
+* **Primary Goal:**
+  * Merge all individual feature branches into the primary `dev` branch to consolidate the codebase.
+  * Conduct system-wide adjustments, code reviews, and bug squashing to ensure stability across the integrated architecture.
+  * Finalize the core implementations for the Hero class, interactive Bricks, classic Items, and Enemy entities (Goombas, Koopas).
+  * Construct a functional demo map layout to actively playtest all integrated features, verify complex entity interactions, and identify runtime bugs.
+* **Completion Rate:** 70% of the weekly plan completed.
 
 ## 2. Individual Task Breakdown
 
 **25125057 - Trần Minh Khoa** is responsible for the **Core Engine & Physics**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:**
+* Adjust camera view- that follows hero
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/Demo
 
 **25125045 - Trần Như Khải** is in charge of the **Hero & Items Logic**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:**
+* Completed implementation for bricks, items
+* Adjusted hero, bricks, items logic with Physical Engine
+* Added temporary logic interactions between entities for demo
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/Demo
 
 **25125024 - Đỗ Viết Hoàng Long** is handling the **Enemies & AI Design**.
-* **Completed Tasks:** [Mô tả chi tiết các công việc đã làm được trong tuần]
-* **Proof:** [Chèn link đến Commit, Pull Request trên GitHub, hoặc link ảnh chụp màn hình]
+* **Completed Tasks:** 
+* Implemented new Enemy: Witch with projective logic
+* Restructed files, which following strictly SOLID principle
+* **Proof:** https://github.com/trannhukhai98438/CS202-Group03-2DGame/tree/Demo
 
 **25125056 - Trần Đăng Khoa** is assigned to the development of the **Tilemap, HUD & Audio**.
 * **Completed Tasks:**
@@ -33,24 +43,16 @@
 
 ## 3. Challenges & Solutions
 
-**Issue 1:** [Describe the problem encountered, e.g., Collision bugs, memory leaks, or Git merge conflicts]
-**Solution 1:** [Describe how the team fixed or plans to fix it]
+**Issue 1:** The fact that **Hero** and **Enemy** using the same interface **Character** has no advantages in design structures. It makes derived classes depend strongly on it
+**Solution 1:** Eliminated interface class **Character**, logic of **Character** class was transfered into **Hero** and **Enemy** class
 
-**Issue 2:** [Describe the problem encountered]
-**Solution 2:** [Describe how the team fixed or plans to fix it]
 
 ## 4. AI Usage Notes
 * Gemini. Gemini 3.1 Pro, Google, gemini.google.com, accessed 23:00 on Aug 4, 2026, prompt: "How do I implement MapManager and integrate it into PlayingState in C++ SFML, and does using vertex arrays with viewport culling optimize tilemap rendering performance?" to finalize the game world map architecture, AI suggested the implementation blueprints for MapManager and tile rendering optimization strategies, Student reviewed the code and integrated the map system into the engine.
 
 
-[Chat history]()
-
-*
-
-
-[Chat history]()
-
 ## 5. Next Week's Action Plan
-* **Core Mechanics:** [Tasks related to engine, physics, state management, or overall architecture]
-* **Gameplay / Graphics:** [Tasks related to UI, level design, new entities, or AI behavior]
-* **Expected Deadline:** [Target date for the next sprint's goals]
+* **Core Mechanics**: Integrate LevelManagement logic into the main project architecture, finalize the OOP design logic for core classes, and engineer a robust system to handle cross-entity interactions (collisions, state triggers).
+
+* **Gameplay / Graphics**: Upgrade the overall user interface (UI) and seamlessly integrate the HUD and tilemap systems into the rendering loop.
+* **Expected Deadline:** 15/8
