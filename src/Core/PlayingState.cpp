@@ -3,12 +3,10 @@
 #include "Core/PausedState.h"
 #include "Core/GameOverState.h"
 #include "Core/VictoryState.h"
-#include "Entities/Character/Hero/HeroFactory.h"
-#include "Entities/Block/BlockFactory.h"
-#include "Entities/Item/ItemFactory.h"
-#include <algorithm>
-#include <iostream>
-PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
+
+
+PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
+    m_camera.setSize(1280.f, 720.f);
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
     std::string jsonPath = "assets/maps/levels/1-1.tmj";
     std::string tilesetPath = "assets/maps/resources/tileset.png";
@@ -44,7 +42,6 @@ PlayingState::PlayingState() : m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_blocks.push_back(blockFac.createBlock(BlockType::Question,440, 550, ItemType::Coin));
     m_blocks.push_back(blockFac.createBlock(BlockType::Question,460, 550, ItemType::Star));
 }
-
 PlayingState::~PlayingState() = default;
 
 void PlayingState::processEvents(sf::Event& event) {
@@ -235,7 +232,7 @@ void PlayingState::update(sf::Time dt) {
     m_camera.setCenter(cameraX, 360.f);
 	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
     // Press 'L' to simulate Mario dying
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+    if (m_hero->isDead()) {
         Game::getInstance().changeState(std::make_unique<GameOverState>());
     }
 

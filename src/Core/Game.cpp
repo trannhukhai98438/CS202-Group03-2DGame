@@ -40,7 +40,7 @@ void Game::update(sf::Time dt) {
 }
 
 void Game::render() {
-	m_window.clear(sf::Color(92, 148, 252)); // Clear with a sky blue color
+	m_window.clear(sf::Color(92, 148, 252));
 	if (!m_states.empty()) {
 		m_states.top()->render(m_window);
 	}
