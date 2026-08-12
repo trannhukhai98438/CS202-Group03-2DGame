@@ -3,7 +3,7 @@
 Koopa::Koopa(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 50.0f, patrolRange),
       shellSpeed(550.0f) {
-    shape.setSize(sf::Vector2f(32.0f, 50.0f));
+    shape.setSize(sf::Vector2f(32.0f, 48.0f));
     shape.setFillColor(sf::Color(34, 139, 34));
     health = 2;
     changeState(std::make_unique<PatrolState>());
@@ -36,11 +36,11 @@ void Koopa::becomeStaticShell() {
     physics.becomeStaticShell(*this);
 }
 
-void Koopa::onStomped(BaseEntity* attacker) {
+void Koopa::onStomped(Character* attacker) {
     physics.onStomped(*this, attacker);
 }
 
-void Koopa::onSideCollision(BaseEntity* attacker) {
+void Koopa::onSideCollision(Character* attacker) {
     physics.onSideCollision(*this, attacker);
 }
 

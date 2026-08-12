@@ -2,7 +2,7 @@
 
 Goomba::Goomba(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 40.0f, patrolRange) {
-    shape.setSize(sf::Vector2f(32.0f, 64.0f));
+    shape.setSize(sf::Vector2f(32.0f, 32.0f));
     shape.setFillColor(sf::Color(165, 42, 42)); // Brown color
     health = 1;
     changeState(std::make_unique<PatrolState>());
@@ -19,7 +19,7 @@ bool Goomba::getIsSquished() const {
     return getStateName() == "Squished";
 }
 
-void Goomba::onStomped(BaseEntity* attacker) {
+void Goomba::onStomped(Character* attacker) {
     physics.onStomped(*this, attacker);
 }
 

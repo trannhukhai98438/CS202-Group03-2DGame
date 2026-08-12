@@ -5,9 +5,10 @@
 #include "Entities/Character/Hero/HeroState/HeroState.h"
 #include <memory>
 
+#include "Entities/Character/Character.h"
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"
 
-class Hero{
+class Hero : public Character {
 protected:
     std::unique_ptr<HeroForm> form;   // Small / Giant / Fire
     std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Fly / Grow / Shrink
@@ -17,27 +18,17 @@ protected:
     float invincibleTimer;
     bool isStarman;
     int coin;
-protected:
-    sf::Sprite sprite;
-    sf::Texture texture;
-    Animator animator;
-    sf::Vector2f velocity;
-    sf::Vector2f position;
-    sf::RectangleShape hitbox;
-    bool isFacingRight;
-    bool isGrounded;    // managed externally by CollisionSystem //TODO
-    bool isActive;      // false when character is dead / removed from scene
     int hp;
 public:
     Hero(float x, float y);
     virtual ~Hero()=default;
     void loadTexture(const std::string& path);
     std::string getBaseTexturePath() const;
-    void update(float deltatime);
-    void render(sf::RenderWindow& window);
+    void update(float deltatime) override;
+    void render(sf::RenderWindow& window) override;
 
     void takedamage();
-    void die();
+    void die() override;
     void setForm(std::unique_ptr<HeroForm> newForm);
     void setState(std::unique_ptr<HeroState> newState);
     std::string getStateName() const;
@@ -45,21 +36,13 @@ public:
     virtual void specialAbility();
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
+    int interactWith(Character* other) override;
     void collectItem(Item* item);
 
     void collectCoin();
     int getCoin() const;
-    bool isDead();
-    sf::FloatRect getBounds();
-    sf::RectangleShape& getHitbox();
+    bool isDead() const;
     int getHp();
     void setSize(float x, float y);
-    void setVelocity(float x, float y);
-    sf::Vector2f getVelocity();
     void setPosition(float x, float y);
-    sf::Vector2f getPosition();
-    bool getGrounded();
-    void setGrounded(bool grounded);
-    void setFacingRight(bool facing);
-    bool getFacingRight() const;
 };

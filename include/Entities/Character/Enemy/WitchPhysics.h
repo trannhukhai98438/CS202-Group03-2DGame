@@ -2,14 +2,14 @@
 #define WITCH_PHYSICS_H
 
 class Witch;
-class BaseEntity;
+class Character;
 
 class WitchPhysics {
 public:
     void checkObstacles(Witch& witch);
     void move(Witch& witch, float deltaTime);
     void takeDamage(Witch& witch, int damage);
-    void onStomped(Witch& witch, BaseEntity* attacker);
+    void onStomped(Witch& witch, Character* attacker);
     void updateCooldown(Witch& witch, float deltaTime);
 };
 

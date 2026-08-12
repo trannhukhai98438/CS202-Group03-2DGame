@@ -5,12 +5,12 @@
 #include "Item.h"
 
 Hero::Hero(float x, float y)
-    : animator(sprite),
+    : Character(x, y),
       invincibleTimer(0.f),
       overrideTimer(0.f),
       isStarman(false),
       coin(0),
-      position({x, y}), isActive(true), isGrounded(false), isFacingRight(true),hp(1)
+      hp(1)
 {
     // form and state are initialised in concrete subclasses (Mario/Luigi)
     // because baseTexturePath must be set first.
@@ -59,8 +59,8 @@ void Hero::update(float deltatime){
 }
 
 void Hero::render(sf::RenderWindow& window){
-    // Flip sprite horizontally when facing left (scaled 2.0x to match enemy dimensions)
-    if (isFacingRight) {
+    // Flip sprite based on facing direction
+    if (facingRight) {
         sprite.setScale(2.f, 2.f);
     } else {
         sprite.setScale(-2.f, 2.f);
@@ -133,7 +133,7 @@ void Hero::takedamage(){
 }
 
 void Hero::die(){
-    isActive = false;
+    Character::die(); // sets isAlive = false
     setState(std::make_unique<DeadState>());
 }
 
@@ -141,59 +141,46 @@ void Hero::collectItem(Item* item){
     if (item) item->getCollected(this);
 }
 
-bool Hero::isDead(){
-    return !isActive;
+bool Hero::isDead() const {
+    return hp <= 0 || !isAlive;
 }
 
 int Hero::getHp(){
     return hp;
 }
 
-sf::FloatRect Hero::getBounds(){
-    return hitbox.getGlobalBounds();
-}
-
 void Hero::setSize(float x, float y){
-    hitbox.setSize({x, y});
-}
-
-void Hero::setVelocity(float x, float y){
-    velocity.x = x;
-    velocity.y = y;
-}
-
-sf::Vector2f Hero::getVelocity(){
-    return velocity;
-}
-
-bool Hero::getGrounded(){
-    return isGrounded;
-}
-
-void Hero::setGrounded(bool grounded){
-    isGrounded = grounded;
+    shape.setSize({x, y});
 }
 
 void Hero::setPosition(float x, float y){
     position.x = x;
     position.y = y;
-    sf::Vector2f size = hitbox.getSize();
-    hitbox.setPosition(position);
+    sf::Vector2f size = shape.getSize();
+    shape.setPosition(position);
     sprite.setPosition(position.x + size.x / 2.f, position.y + size.y);
 }
 
-sf::Vector2f Hero::getPosition(){
-    return position;
-}
+int Hero::interactWith(Character* other) {
+    if (!other || !other->getIsAlive()) return 0;
+    
+    sf::FloatRect enemyBounds = other->getHitbox().getGlobalBounds();
+    sf::FloatRect heroBounds = getBounds();
 
-void Hero::setFacingRight(bool facing){
-    isFacingRight = facing;
-}
+    bool isFallingInAir = (!isGrounded && velocity.y >= 0.f);
+    float marioBottomY = heroBounds.top + heroBounds.height;
+    float enemyTopY = enemyBounds.top;
 
-bool Hero::getFacingRight() const {
-    return isFacingRight;
-}
-
-sf::RectangleShape& Hero::getHitbox(){
-    return hitbox;
+    // Stomp logic: Mario must be falling from the air and hit the top half of the enemy
+    if (isFallingInAir && marioBottomY <= enemyTopY + (enemyBounds.height * 0.6f)) {
+        other->onStomped(this);
+        setVelocity(velocity.x, -300.f); // Bounce Hero up!
+        return other->getScoreValue();   // Return score to be added
+    } else {
+        other->onSideCollision(this);
+        if (other->getDamageOnTouch() > 0) {
+            takedamage();
+        }
+        return 0;
+    }
 }

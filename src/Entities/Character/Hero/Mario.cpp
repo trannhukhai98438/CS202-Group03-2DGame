@@ -35,7 +35,7 @@ Mario::Mario(float x, float y):Hero(x,y){
     animator.addAnimation("GiantShrink", Animation({{56, 72, 16, 32}, {74, 72, 16, 32}, {92, 88, 16, 16}, {110, 88, 16, 16}}, 0.15f));
     setForm(std::make_unique<SmallForm>());
     setState(std::make_unique<IdleState>());
-    sf::Vector2f size=hitbox.getSize();
+    sf::Vector2f size=shape.getSize();
     sprite.setOrigin(size.x/2.0f,size.y);
     setPosition(x,y);
 }

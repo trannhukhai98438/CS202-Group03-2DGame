@@ -19,7 +19,7 @@ public:
 
     void render(sf::RenderWindow& window) override;
     void takeDamage(int damage) override;
-    void onStomped(BaseEntity* attacker) override;
+    void onStomped(Character* attacker) override;
 
     bool getIsSquished() const;
 

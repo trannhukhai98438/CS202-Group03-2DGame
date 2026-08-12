@@ -81,6 +81,7 @@ bool LevelManager::buildMapMesh() {
 }
 
 void LevelManager::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform.translate(0.f, 272.f).scale(2.f, 2.f);
     states.texture = &m_tilesetTexture;
     target.draw(m_vertices, states);
 }

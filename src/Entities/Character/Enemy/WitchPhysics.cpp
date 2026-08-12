@@ -25,7 +25,7 @@ void WitchPhysics::takeDamage(Witch& witch, int damage) {
     }
 }
 
-void WitchPhysics::onStomped(Witch& witch, BaseEntity* attacker) {
+void WitchPhysics::onStomped(Witch& witch, Character* attacker) {
     (void)attacker;
     takeDamage(witch, 1);
 }

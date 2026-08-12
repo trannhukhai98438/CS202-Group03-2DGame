@@ -1,7 +1,7 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include "Entities/BaseEntity.h"
+#include "Entities/Character/Character.h"
 #include "EnemyState.h"
 #include <memory>
 
@@ -10,7 +10,7 @@ enum class MoveDirection {
     Right = 1
 };
 
-class Enemy : public BaseEntity {
+class Enemy : public Character {
 protected:
     float speed;
     int health;
@@ -26,7 +26,7 @@ public:
     virtual ~Enemy() = default;
 
     void setSpriteOffsetY(float offset) { m_spriteOffsetY = offset; }
-    sf::Vector2i loadSpriteTexture(const std::string& texturePath, int numFrames, float targetHeight);
+    sf::Vector2i loadSpriteTexture(const std::string& texturePath, int numCols, float targetHeight, int numRows = 1);
 
     void changeState(std::unique_ptr<EnemyState> newState);
     EnemyState* getCurrentState() const { return currentState.get(); }
@@ -61,9 +61,9 @@ public:
     float getPatrolRightBound() const { return patrolRightBound; }
     void setPosition(const sf::Vector2f& pos) override;
 
-    void interactWith(BaseEntity* other) override;
-    void onStomped(BaseEntity* attacker) override;
-    void onSideCollision(BaseEntity* attacker) override;
+    int interactWith(Character* other) override;
+    void onStomped(Character* attacker) override;
+    void onSideCollision(Character* attacker) override;
 
     virtual void checkObstacles();
     virtual void move(float deltaTime);

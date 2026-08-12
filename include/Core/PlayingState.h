@@ -18,16 +18,15 @@ class Block;
 class PlayingState : public State {
 private:
     sf::View m_camera; 
-        std::unique_ptr<Character> m_hero;    
+    std::unique_ptr<Hero> m_hero;    
     std::vector<std::unique_ptr<Item>> m_items;
 	std::vector<std::unique_ptr<Block>> m_blocks;
     std::vector<std::unique_ptr<Enemy>> m_enemies;
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
     HUDManager m_hudManager;
     LevelManager m_levelManager;
-    sf::RectangleShape m_dummyWall;
+    std::vector<sf::RectangleShape> m_mapColliders;
     PhysicsEngine m_physics;
-    sf::RectangleShape m_dummyFloor;
     int m_lastCoinCount;
 public:
 	PlayingState();

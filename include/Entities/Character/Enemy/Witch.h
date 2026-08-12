@@ -36,7 +36,7 @@ public:
     ~Witch() override = default;
 
     int getDamageOnTouch() const override;
-    void onStomped(BaseEntity* attacker) override;
+    void onStomped(Character* attacker) override;
     void takeDamage(int damage) override;
     
     void update(float deltaTime) override;

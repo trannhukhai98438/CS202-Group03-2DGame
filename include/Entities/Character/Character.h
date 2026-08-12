@@ -33,15 +33,32 @@ public:
     virtual int getScoreValue() const { return 100; }
     virtual std::string getCharacterType() const { return "Character"; }
 
-    virtual void interactWith(Character* other) = 0;
+    virtual int interactWith(Character* other) = 0;
     virtual void onStomped(Character* attacker) { (void)attacker; die(); }
     virtual void onSideCollision(Character* attacker) { (void)attacker; }
 
     sf::Vector2f getPosition() const;
-    void setPosition(const sf::Vector2f& pos);
+    virtual void setPosition(const sf::Vector2f& pos);
+    
+    // Unified Physics & Logic getters/setters
+    sf::Vector2f getVelocity() const { return velocity; }
+    void setVelocity(const sf::Vector2f& vel) { velocity = vel; }
+    void setVelocity(float vx, float vy) { velocity.x = vx; velocity.y = vy; }
+    
+    bool getGrounded() const { return isGrounded; }
+    void setGrounded(bool grounded) { isGrounded = grounded; }
+    
+    bool getFacingRight() const { return facingRight; }
+    void setFacingRight(bool right) { facingRight = right; }
+
     sf::FloatRect getBounds() const;
+    sf::RectangleShape& getHitbox() { return shape; } // For PhysicsEngine compatibility
+
     bool getIsAlive() const;
     bool isDead() const;
+    sf::Sprite& getSprite() { return sprite; }
+    sf::RectangleShape& getShape() { return shape; }
+    Animator& getAnimator() { return animator; }
 };
 
 #endif

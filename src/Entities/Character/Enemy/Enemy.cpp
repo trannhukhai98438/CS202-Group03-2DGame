@@ -1,7 +1,7 @@
 #include "Entities/Character/Enemy/Enemy.h"
 
 Enemy::Enemy(float startX, float startY, float moveSpeed, float patrolRange)
-    : BaseEntity(startX, startY),
+    : Character(startX, startY),
       speed(moveSpeed),
       health(1),
       currentDir(MoveDirection::Left),
@@ -36,7 +36,7 @@ void Enemy::setPatrolBounds(float minX, float maxX) {
 }
 
 void Enemy::setPosition(const sf::Vector2f& pos) {
-    BaseEntity::setPosition(pos);
+    Character::setPosition(pos);
     sprite.setPosition(position.x + shape.getSize().x / 2.0f, position.y + shape.getSize().y + m_spriteOffsetY);
 }
 
@@ -56,8 +56,8 @@ void Enemy::move(float deltaTime) {
 void Enemy::applyAnimation() {
 }
 
-void Enemy::interactWith(BaseEntity* other) {
-    if (!other || !other->getIsAlive()) return;
+int Enemy::interactWith(Character* other) {
+    if (!other || !other->getIsAlive()) return 0;
     sf::FloatRect bounds = getBounds();
     sf::FloatRect otherBounds = other->getBounds();
 
@@ -66,25 +66,27 @@ void Enemy::interactWith(BaseEntity* other) {
     } else {
         onSideCollision(other);
     }
+    return 0;
 }
 
-void Enemy::onStomped(BaseEntity* attacker) {
+void Enemy::onStomped(Character* attacker) {
     (void)attacker;
     die();
 }
 
-void Enemy::onSideCollision(BaseEntity* attacker) {
+void Enemy::onSideCollision(Character* attacker) {
     if (!attacker) return;
     attacker->takeDamage(getDamageOnTouch());
+    flipDirection(); // Turn around when bumping into hero
 }
 
-sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numFrames, float targetHeight) {
+sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numCols, float targetHeight, int numRows) {
     sf::Image img;
     if (img.loadFromFile(texturePath)) {
         for (unsigned int y = 0; y < img.getSize().y; ++y) {
             for (unsigned int x = 0; x < img.getSize().x; ++x) {
                 sf::Color c = img.getPixel(x, y);
-                if (c.r > 230 && c.g > 230 && c.b > 230) {
+                if (c.r > 190 && c.g > 190 && c.b > 190) {
                     img.setPixel(x, y, sf::Color::Transparent);
                 }
             }
@@ -93,14 +95,14 @@ sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numFra
         sprite.setTexture(texture);
         
         sf::Vector2u texSize = texture.getSize();
-        int frameWidth = static_cast<int>(texSize.x / numFrames);
-        int frameHeight = static_cast<int>(texSize.y);
+        int frameWidth = static_cast<int>(texSize.x / numCols);
+        int frameHeight = static_cast<int>(texSize.y / numRows);
         
-        float scale = targetHeight / static_cast<float>(frameWidth);
+        float scale = targetHeight / static_cast<float>(frameHeight);
         sprite.setScale(scale, scale);
 
         int bottomPadding = 0;
-        for (int y = img.getSize().y - 1; y >= 0; --y) {
+        for (int y = frameHeight - 1; y >= 0; --y) {
             bool found = false;
             for (unsigned int x = 0; x < img.getSize().x; ++x) {
                 if (img.getPixel(x, y).a > 0) {
@@ -109,7 +111,7 @@ sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numFra
                 }
             }
             if (found) {
-                bottomPadding = img.getSize().y - 1 - y;
+                bottomPadding = frameHeight - 1 - y;
                 break;
             }
         }

@@ -30,14 +30,14 @@ void KoopaPhysics::takeDamage(Koopa& koopa, int damage) {
 void KoopaPhysics::becomeStaticShell(Koopa& koopa) {
     if (koopa.getStateName() == "Patrol") {
         sf::Vector2f pos = koopa.getPosition();
-        float newY = pos.y + 18.0f; // 50.0f - 32.0f = 18.0f to keep bottom at ground Y=600
-        koopa.getShape().setSize(sf::Vector2f(32.0f, 32.0f));
+        float newY = pos.y + 24.0f; // 48.0f - 24.0f = 24.0f Y translation to align shell bottom to ground
+        koopa.getShape().setSize(sf::Vector2f(38.0f, 24.0f));
         koopa.setPosition(sf::Vector2f(pos.x, newY));
     }
     koopa.changeState(std::make_unique<ShellState>());
 }
 
-void KoopaPhysics::onStomped(Koopa& koopa, BaseEntity* attacker) {
+void KoopaPhysics::onStomped(Koopa& koopa, Character* attacker) {
     (void)attacker;
     if (!koopa.getIsAlive()) return;
 
@@ -50,7 +50,7 @@ void KoopaPhysics::onStomped(Koopa& koopa, BaseEntity* attacker) {
     }
 }
 
-void KoopaPhysics::onSideCollision(Koopa& koopa, BaseEntity* attacker) {
+void KoopaPhysics::onSideCollision(Koopa& koopa, Character* attacker) {
     if (!koopa.getIsAlive()) return;
 
     std::string state = koopa.getStateName();

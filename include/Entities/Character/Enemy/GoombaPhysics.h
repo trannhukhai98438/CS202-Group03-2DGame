@@ -2,14 +2,14 @@
 #define GOOMBA_PHYSICS_H
 
 class Goomba;
-class BaseEntity;
+class Character;
 
 class GoombaPhysics {
 public:
     void checkObstacles(Goomba& goomba);
     void move(Goomba& goomba, float deltaTime);
     void takeDamage(Goomba& goomba, int damage);
-    void onStomped(Goomba& goomba, BaseEntity* attacker);
+    void onStomped(Goomba& goomba, Character* attacker);
 };
 
 #endif

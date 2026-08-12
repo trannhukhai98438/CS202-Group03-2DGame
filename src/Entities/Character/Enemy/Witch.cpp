@@ -34,7 +34,7 @@ void ThrowState::onExit(Enemy& enemy) {
 Witch::Witch(float startX, float startY, float patrolRange, std::function<void(std::unique_ptr<Projectile>)> spawnCallback)
     : Enemy(startX, startY, 50.0f, patrolRange), attackCooldown(0.0f), spawnProjectileCallback(std::move(spawnCallback)) {
     
-    shape.setSize(sf::Vector2f(32.0f, 96.0f));
+    shape.setSize(sf::Vector2f(32.0f, 64.0f));
     shape.setFillColor(sf::Color::Blue);
     health = 1; // Witch dies in 1 stomp hit
     changeState(std::make_unique<PatrolState>());
@@ -47,7 +47,7 @@ int Witch::getDamageOnTouch() const {
     return 1;
 }
 
-void Witch::onStomped(BaseEntity* attacker) {
+void Witch::onStomped(Character* attacker) {
     physics.onStomped(*this, attacker);
 }
 
@@ -88,8 +88,8 @@ void Witch::throwPotion() {
         float throwDir = (currentDir == MoveDirection::Right) ? 1.0f : -1.0f;
         float startX = position.x + (shape.getSize().x / 2.0f);
         float startY = position.y;
-        float velX = throwDir * 300.0f;
-        float velY = -400.0f; // Throw upwards
+        float velX = throwDir * 480.0f; // Throw further across the screen!
+        float velY = -550.0f; // Smooth high arc!
         
         auto potion = std::make_unique<Potion>(startX, startY, velX, velY);
         spawnProjectileCallback(std::move(potion));

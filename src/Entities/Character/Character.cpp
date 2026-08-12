@@ -1,4 +1,4 @@
-#include "Entities/Character.h"
+#include "Entities/Character/Character.h"
 
 Character::Character(float x, float y)
     : position(x, y),
