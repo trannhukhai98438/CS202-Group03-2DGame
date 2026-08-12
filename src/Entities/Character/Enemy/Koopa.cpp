@@ -2,13 +2,20 @@
 
 Koopa::Koopa(float startX, float startY, float patrolRange)
     : Enemy(startX, startY, 50.0f, patrolRange),
-      shellSpeed(550.0f) {
+      shellSpeed(360.0f) {
     shape.setSize(sf::Vector2f(32.0f, 48.0f));
     shape.setFillColor(sf::Color(34, 139, 34));
     health = 2;
     changeState(std::make_unique<PatrolState>());
 
     animatorComp.initAnimations(*this);
+}
+
+void Koopa::update(float deltaTime) {
+    if (kickCooldown > 0.0f) {
+        kickCooldown -= deltaTime;
+    }
+    Enemy::update(deltaTime);
 }
 
 float Koopa::getSpeed() const {
@@ -18,6 +25,7 @@ float Koopa::getSpeed() const {
 }
 
 int Koopa::getDamageOnTouch() const {
+    if (kickCooldown > 0.0f) return 0;
     if (getIsShellSpinning()) return 2;
     if (getIsShell()) return 0;
     return 1;

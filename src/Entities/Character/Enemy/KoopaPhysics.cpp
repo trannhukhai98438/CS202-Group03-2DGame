@@ -4,7 +4,7 @@
 #include <cmath>
 
 void KoopaPhysics::checkObstacles(Koopa& koopa) {
-    if (koopa.getStateName() == "Shell" || koopa.getStateName() == "FlippingDeath") return;
+    if (koopa.getStateName() == "Shell" || koopa.getStateName() == "FlippingDeath" || koopa.getStateName() == "SpinningShell") return;
     koopa.Enemy::checkObstacles();
 }
 
@@ -30,23 +30,27 @@ void KoopaPhysics::takeDamage(Koopa& koopa, int damage) {
 void KoopaPhysics::becomeStaticShell(Koopa& koopa) {
     if (koopa.getStateName() == "Patrol") {
         sf::Vector2f pos = koopa.getPosition();
-        float newY = pos.y + 24.0f; // 48.0f - 24.0f = 24.0f Y translation to align shell bottom to ground
-        koopa.getShape().setSize(sf::Vector2f(38.0f, 24.0f));
+        float newY = pos.y + 20.0f; // 48.0f - 28.0f = 20.0f Y translation to align shell bottom to ground
+        koopa.getShape().setSize(sf::Vector2f(30.0f, 28.0f));
         koopa.setPosition(sf::Vector2f(pos.x, newY));
+    } else if (koopa.getStateName() == "SpinningShell") {
+        koopa.setVelocity(0.0f, koopa.getVelocity().y);
     }
     koopa.changeState(std::make_unique<ShellState>());
 }
 
 void KoopaPhysics::onStomped(Koopa& koopa, Character* attacker) {
-    (void)attacker;
     if (!koopa.getIsAlive()) return;
 
     std::string state = koopa.getStateName();
     
     if (state == "Patrol") {
         becomeStaticShell(koopa);
-    } else if (state == "Shell" || state == "SpinningShell") {
-        takeDamage(koopa, 1);
+    } else if (state == "Shell") {
+        MoveDirection kickDir = (attacker && attacker->getPosition().x < koopa.getPosition().x) ? MoveDirection::Right : MoveDirection::Left;
+        kickShell(koopa, static_cast<int>(kickDir));
+    } else if (state == "SpinningShell") {
+        becomeStaticShell(koopa);
     }
 }
 
@@ -68,4 +72,5 @@ void KoopaPhysics::onSideCollision(Koopa& koopa, Character* attacker) {
 void KoopaPhysics::kickShell(Koopa& koopa, int dir) {
     koopa.setDirection(static_cast<MoveDirection>(dir));
     koopa.changeState(std::make_unique<SpinningShellState>());
+    koopa.setKickCooldown(0.25f); // 0.25s of safety frame to not hurt the player who kicked it
 }

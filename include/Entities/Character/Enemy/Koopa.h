@@ -8,12 +8,16 @@
 class Koopa : public Enemy {
 private:
     float shellSpeed;
+    float kickCooldown = 0.0f;
     KoopaPhysics physics;
     KoopaAnimator animatorComp;
 
 public:
+    float getKickCooldown() const { return kickCooldown; }
+    void setKickCooldown(float val) { kickCooldown = val; }
     Koopa(float startX, float startY, float patrolRange = 120.0f);
 
+    void update(float deltaTime) override;
     float getSpeed() const override;
     int getDamageOnTouch() const override;
     int getScoreValue() const override { return 200; }

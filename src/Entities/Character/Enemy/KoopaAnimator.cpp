@@ -6,37 +6,43 @@ void KoopaAnimator::initAnimations(Koopa& koopa) {
     koopa.loadSpriteTexture("assets/textures/koopa.png", 1, 48.0f, 1);
     
     sf::Sprite& sprite = koopa.getSprite();
-    // 1024 x 558 resolution -> walk frame height is ~133px
-    float scale = 48.0f / 133.0f;
+    // 1024 x 558 resolution -> walk frame height is ~142px
+    float scale = 48.0f / 142.0f;
     sprite.setScale(scale, scale);
 
-    // Exact sub-rectangle frames for new clean Koopa sheet
+    // Color-scanned exact sub-rectangles from new Koopa sheet
+    // Walk: 6 frames (Row 0)
     koopa.getAnimator().addAnimation("walk", Animation({
-        sf::IntRect(61,  47, 89, 133),
-        sf::IntRect(225, 47, 89, 133),
-        sf::IntRect(390, 47, 89, 133),
-        sf::IntRect(550, 47, 89, 133),
-        sf::IntRect(716, 47, 89, 133),
-        sf::IntRect(879, 47, 89, 133)
+        sf::IntRect(40,  19, 97, 139),
+        sf::IntRect(208, 19, 96, 139),
+        sf::IntRect(375, 19, 97, 142),
+        sf::IntRect(547, 19, 98, 139),
+        sf::IntRect(719, 19, 93, 142),
+        sf::IntRect(883, 19, 95, 142)
     }, 0.12f));
 
-    // Shell state: crouched shell
+    // Shell state: static shell (Row 1, Col 2)
     koopa.getAnimator().addAnimation("shell", Animation({
-        sf::IntRect(51, 289, 107, 66)
+        sf::IntRect(385, 249, 87, 82)
     }, 0.2f));
 
-    // Spin animation: fast spinning shell (2 frames)
+    // Spin: 3 frames fast spinning shell with motion blur and sparks (Row 1, Col 3, 4, 5)
     koopa.getAnimator().addAnimation("spin", Animation({
-        sf::IntRect(51,  289, 107, 66),
-        sf::IntRect(213, 289, 108, 66)
-    }, 0.08f));
+        sf::IntRect(551, 236, 96, 93),
+        sf::IntRect(712, 230, 110, 97),
+        sf::IntRect(866, 206, 118, 128)
+    }, 0.05f));
 
-    // Flipping death animation: shell tumbling upside down (3 frames)
+    // FlippingDeath: 7 frames full tumbling sequence (Row 2, Col 0..6)
     koopa.getAnimator().addAnimation("flippingDeath", Animation({
-        sf::IntRect(55,  394, 99, 134),
-        sf::IntRect(222, 396, 94, 132),
-        sf::IntRect(386, 394, 110, 121)
-    }, 0.1f));
+        sf::IntRect(43,  394, 94, 137),
+        sf::IntRect(208, 396, 100, 116),
+        sf::IntRect(350, 379, 88, 110),
+        sf::IntRect(448, 391, 113, 141),
+        sf::IntRect(584, 398, 86, 129),
+        sf::IntRect(716, 401, 100, 115),
+        sf::IntRect(889, 392, 85, 139)
+    }, 0.08f));
 }
 
 void KoopaAnimator::applyAnimation(Koopa& koopa) {

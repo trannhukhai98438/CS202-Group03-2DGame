@@ -4,6 +4,7 @@
 #include "Core/GameOverState.h"
 #include "Core/VictoryState.h"
 #include "Entities/Character/Enemy/Potion.h"
+#include "Entities/Character/Enemy/EnemyState.h"
 #include <iostream>
 
 
@@ -220,6 +221,19 @@ void PlayingState::update(sf::Time dt) {
             
             (*it)->setVelocity(vel.x, vel.y);
             (*it)->setPosition((*it)->getHitbox().getPosition());
+        }
+
+        // Handle spinning shell vs other enemies (swept combo chain)
+        if ((*it)->getIsAlive() && (*it)->getStateName() == "SpinningShell") {
+            for (auto& otherEnemy : m_enemies) {
+                if (otherEnemy->getIsAlive() && otherEnemy.get() != it->get() && 
+                    otherEnemy->getStateName() != "FlippingDeath" && otherEnemy->getStateName() != "Squished") {
+                    if ((*it)->getBounds().intersects(otherEnemy->getBounds())) {
+                        otherEnemy->changeState(std::make_unique<FlippingDeathState>(-300.0f));
+                        m_hudManager.addScore(200);
+                    }
+                }
+            }
         }
 
         if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished" && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
