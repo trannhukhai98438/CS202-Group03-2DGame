@@ -15,7 +15,23 @@ void Koopa::update(float deltaTime) {
     if (kickCooldown > 0.0f) {
         kickCooldown -= deltaTime;
     }
+    if (getStateName() == "Shell") {
+        shellTimer -= deltaTime;
+        if (shellTimer <= 0.0f) {
+            wakeUp();
+        }
+    }
     Enemy::update(deltaTime);
+}
+
+void Koopa::wakeUp() {
+    if (getStateName() == "Shell") {
+        sf::Vector2f pos = position;
+        // Move Y back up to align feet to floor: 48.0f - 28.0f = 20.0f Y translation
+        setPosition(sf::Vector2f(pos.x, pos.y - 20.0f));
+        shape.setSize(sf::Vector2f(32.0f, 48.0f));
+        changeState(std::make_unique<PatrolState>());
+    }
 }
 
 float Koopa::getSpeed() const {

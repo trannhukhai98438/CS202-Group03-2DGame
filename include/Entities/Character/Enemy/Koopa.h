@@ -9,12 +9,16 @@ class Koopa : public Enemy {
 private:
     float shellSpeed;
     float kickCooldown = 0.0f;
+    float shellTimer = 0.0f;
     KoopaPhysics physics;
     KoopaAnimator animatorComp;
 
 public:
     float getKickCooldown() const { return kickCooldown; }
     void setKickCooldown(float val) { kickCooldown = val; }
+    float getShellTimer() const { return shellTimer; }
+    void setShellTimer(float val) { shellTimer = val; }
+    void wakeUp();
     Koopa(float startX, float startY, float patrolRange = 120.0f);
 
     void update(float deltaTime) override;

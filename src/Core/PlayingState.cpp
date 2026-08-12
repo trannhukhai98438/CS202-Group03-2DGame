@@ -192,6 +192,11 @@ void PlayingState::update(sf::Time dt) {
     // Update enemies
     for (auto it = m_enemies.begin(); it != m_enemies.end();) {
         (*it)->update(dt.asSeconds());
+
+        // Clean up enemies that fall off cliffs/into pits below the screen
+        if ((*it)->getPosition().y > 800.0f) {
+            (*it)->die();
+        }
         
         // Apply gravity and Y-collision
         if ((*it)->getIsAlive() && (*it)->getStateName() != "FlippingDeath" && (*it)->getStateName() != "Squished") {
@@ -293,7 +298,7 @@ void PlayingState::update(sf::Time dt) {
         m_items.end());
     float marioX = m_hero->getPosition().x;
     float halfScreenWidth = 640.f;
-    float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
+    float levelEnd = m_levelManager.getMapWidthTiles() * 32.f;
     float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
     m_camera.setCenter(cameraX, 360.f);
 	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)

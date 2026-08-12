@@ -36,21 +36,20 @@ void KoopaPhysics::becomeStaticShell(Koopa& koopa) {
     } else if (koopa.getStateName() == "SpinningShell") {
         koopa.setVelocity(0.0f, koopa.getVelocity().y);
     }
+    koopa.setShellTimer(5.0f); // Set 5 seconds timer to wake up!
     koopa.changeState(std::make_unique<ShellState>());
 }
 
 void KoopaPhysics::onStomped(Koopa& koopa, Character* attacker) {
+    (void)attacker;
     if (!koopa.getIsAlive()) return;
 
     std::string state = koopa.getStateName();
     
     if (state == "Patrol") {
         becomeStaticShell(koopa);
-    } else if (state == "Shell") {
-        MoveDirection kickDir = (attacker && attacker->getPosition().x < koopa.getPosition().x) ? MoveDirection::Right : MoveDirection::Left;
-        kickShell(koopa, static_cast<int>(kickDir));
-    } else if (state == "SpinningShell") {
-        becomeStaticShell(koopa);
+    } else if (state == "Shell" || state == "SpinningShell") {
+        takeDamage(koopa, 1); // Stomp on shell -> dies!
     }
 }
 
