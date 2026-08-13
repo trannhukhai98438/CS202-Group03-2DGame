@@ -24,7 +24,18 @@ Coin::Coin(float x, float y) : Item(x, y), bounceTimer(0.f), m_alreadyCollected(
 void Coin::spawn(){
     isActive = true;
     velocity.y = -300.f; // bounce up
-    bounceTimer = 0.6f; // time before disappearing (matches physical return to y=0)
+    bounceTimer = 0.6f;  // time before disappearing
+}
+
+// Activates the coin in-place without a bounce animation.
+// Used for coins placed directly on the map (floating/ground coins).
+// bounceTimer = -1 is a sentinel: update() skips the auto-deactivate timer.
+void Coin::spawnAsGroundCoin() {
+    isActive    = true;
+    velocity    = { 0.f, 0.f };
+    bounceTimer = -1.f; // sentinel: never auto-deactivate
+    // Sync sprite to current position (Item::setPosition handles hitbox + sprite)
+    setPosition(position.x, position.y);
 }
 
 std::unique_ptr<Item> Coin::clone(Hero* hero) const {
@@ -39,16 +50,22 @@ std::unique_ptr<Item> Coin::clone(Hero* hero) const {
 void Coin::update(float deltatime){
     if (!isActive) return;
 
+    // Ground coins (sentinel bounceTimer < 0): only animate, never auto-deactivate
+    if (bounceTimer < 0.f) {
+        animator.playAnimation("Coin", deltatime);
+        return;
+    }
+
     bounceTimer -= deltatime;
     if (bounceTimer <= 0.f){
         isActive = false;
         return;
     }
 
-    // Apply gravity on the bounce visual //temporary
+    // Apply gravity on the bounce visual (temporary)
     velocity.y += 1000.f * deltatime;
     // position update is handled by PlayingState
-    
+
     animator.playAnimation("Coin", deltatime);
 }
 

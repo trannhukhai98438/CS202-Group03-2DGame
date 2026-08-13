@@ -123,7 +123,7 @@ void Hero::collectCoin(){
     ++coin;
 }
 
-void Hero::takedamage(){
+void Hero::takeDamage(int damage){
     if (invincibleTimer > 0.f) {
         return; // Ignore damage during I-frames
     }
@@ -179,8 +179,15 @@ int Hero::interactWith(Character* other) {
     } else {
         other->onSideCollision(this);
         if (other->getDamageOnTouch() > 0) {
-            takedamage();
+            takeDamage(1);
         }
         return 0;
     }
+}
+
+void Hero::onStomped(Character* attacker){
+    takeDamage(1);
+}
+void Hero::onSideCollision(Character* attacker){
+    takeDamage(1);
 }

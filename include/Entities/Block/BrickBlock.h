@@ -20,10 +20,6 @@ public:
 private:
     bool  isDestroyed;   // true when Giant/Fire has destroyed the brick
 
-    // --- Bounce effect (SmallForm hit) ---
-    float bounceTimer;   // 0.1s countdown
-    float originalY;     // restore Y after bounce
-
     // --- Particles (Giant/Fire destruction) ---
     std::array<BrickParticle, 4> particles;
     bool  hasParticles;  // true while particles are alive

@@ -27,7 +27,7 @@ public:
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
-    void takedamage();
+    void takeDamage(int damage) override;
     void die() override;
     void setForm(std::unique_ptr<HeroForm> newForm);
     void setState(std::unique_ptr<HeroState> newState);
@@ -37,6 +37,8 @@ public:
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
     int interactWith(Character* other) override;
+    void onStomped(Character* attacker) override;
+    void onSideCollision(Character* attacker) override;
     void collectItem(Item* item);
 
     void collectCoin();

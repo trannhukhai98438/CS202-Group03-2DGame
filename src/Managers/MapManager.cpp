@@ -52,16 +52,39 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
                 if (layerJson.contains("objects") && layerJson["objects"].is_array()) {
                     for (const auto& objJson : layerJson["objects"]) {
                         MapObject obj;
-                        obj.id = objJson.value("id", 0);
+                        obj.id   = objJson.value("id", 0);
                         obj.name = objJson.value("name", "");
-                        
-                        // Strictly parse Tiled "class"
-                        obj.className = objJson.value("class", "");
 
-                        obj.x = objJson.value("x", 0.0f);
-                        obj.y = objJson.value("y", 0.0f);
-                        obj.width = objJson.value("width", 0.0f);
+                        // Tiled legacy: object type is stored in "type" field.
+                        // Newer Tiled uses "class"; fall back to it if "type" is absent.
+                        if (objJson.contains("type") && objJson["type"].is_string()
+                            && !objJson["type"].get<std::string>().empty()) {
+                            obj.className = objJson["type"].get<std::string>();
+                        } else {
+                            obj.className = objJson.value("class", "");
+                        }
+
+                        // gid present => tile object; y is bottom-left (Tiled convention)
+                        obj.gid    = objJson.value("gid",    0);
+                        obj.x      = objJson.value("x",      0.0f);
+                        obj.y      = objJson.value("y",      0.0f);
+                        obj.width  = objJson.value("width",  0.0f);
                         obj.height = objJson.value("height", 0.0f);
+
+                        // Parse custom properties array:
+                        // [{"name":"item","type":"string","value":"mushroom"}, ...]
+                        if (objJson.contains("properties") && objJson["properties"].is_array()) {
+                            for (const auto& prop : objJson["properties"]) {
+                                if (!prop.contains("name")) continue;
+                                std::string key = prop["name"].get<std::string>();
+                                if (!prop.contains("value")) continue;
+                                const auto& val = prop["value"];
+                                if      (val.is_string())          obj.properties[key] = val.get<std::string>();
+                                else if (val.is_number_integer())  obj.properties[key] = std::to_string(val.get<int>());
+                                else if (val.is_number_float())    obj.properties[key] = std::to_string(val.get<float>());
+                                else if (val.is_boolean())         obj.properties[key] = val.get<bool>() ? "true" : "false";
+                            }
+                        }
 
                         objLayer.objects.push_back(obj);
                     }

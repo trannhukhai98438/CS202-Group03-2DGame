@@ -1,11 +1,9 @@
 #include "Entities/Block/BrickBlock.h"
 #include "Entities/Character/Hero/Hero.h"
-#include <cmath>
 
 BrickBlock::BrickBlock(float x, float y)
     : Block(x, y),
       isDestroyed(false),
-      bounceTimer(0.f), originalY(y),
       hasParticles(false)
 {
     if (texture.loadFromFile("assets/textures/Brick.png")) {
@@ -53,37 +51,24 @@ void BrickBlock::update(float deltatime) {
 
     if (isDestroyed) return;
 
-    // --- Bounce effect (SmallForm hit) ---
-    if (bounceTimer > 0.f) {
-        bounceTimer -= deltatime;
-        // sin curve: 0 → peak → 0 over 0.1s, max 6px upward
-        float t      = 1.f - (bounceTimer / 0.1f);           // 0→1
-        float offset = std::sin(t * 3.14159f) * 6.f;         // 0→6→0 px
-        
-        position.y   = originalY - offset;
-        hitbox.setPosition(position);
-        sprite.setPosition(position.x + 16.f, position.y + 32.f);
-    } else {
-        position.y = originalY;
-        hitbox.setPosition(position);
-        sprite.setPosition(position.x + 16.f, position.y + 32.f);
-    }
-
     animator.playAnimation("Brick", deltatime);
 }
 
 // ---------------------------------------------------------------
 void BrickBlock::render(sf::RenderWindow& window) {
     if (isDestroyed) {
-        // Draw each living particle at its own physics position.
-        // The animator already set the shared 8x8 texture rect via playAnimation.
         if (hasParticles) {
+            // Particle frames are 8x8 native; set origin to their centre (4,4)
+            // so setPosition(p.pos) places the sprite correctly.
+            sprite.setOrigin(4.f, 4.f);
             for (const auto& p : particles) {
                 if (p.lifetime > 0.f) {
                     sprite.setPosition(p.pos);
                     window.draw(sprite);
                 }
             }
+            // Restore normal block origin for next frame (if block survives somehow)
+            sprite.setOrigin(8.f, 16.f);
         }
         return;
     }
@@ -100,21 +85,20 @@ std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
         isDestroyed = true;
         hasParticles = true;
 
-        float cx = position.x;
-        float cy = position.y;
+        // Block hitbox is 32x32; position = top-left corner.
+        // Use centre of hitbox so the explosion is symmetric.
+        float cx = position.x + 16.f;
+        float cy = position.y + 16.f;
 
-        // Each particle: position offset from center, unique direction
-        // TL = top-left piece, TR = top-right, BL = bottom-left, BR = bottom-right
-        // Frame driven by animator — no IntRect per particle
-        particles[0] = {{ cx - 4.f, cy - 8.f }, { -80.f, -200.f }, 0.6f }; // TL
-        particles[1] = {{ cx + 4.f, cy - 8.f }, {  80.f, -200.f }, 0.6f }; // TR
-        particles[2] = {{ cx - 4.f, cy       }, { -80.f, -120.f }, 0.6f }; // BL
-        particles[3] = {{ cx + 4.f, cy       }, {  80.f, -120.f }, 0.6f }; // BR
+        // Particle frames are 8x8 native (16x16 at scale 2).
+        // Spawn them offset by half their rendered size (8px) from centre.
+        particles[0] = {{ cx - 8.f, cy - 8.f }, { -80.f, -220.f }, 0.6f }; // TL
+        particles[1] = {{ cx,       cy - 8.f }, {  80.f, -220.f }, 0.6f }; // TR
+        particles[2] = {{ cx - 8.f, cy       }, { -80.f, -100.f }, 0.6f }; // BL
+        particles[3] = {{ cx,       cy       }, {  80.f, -100.f }, 0.6f }; // BR
 
     } else {
-        // --- SmallForm: visual bounce only, no break ---
-        bounceTimer = 0.1f;
-        originalY   = position.y;
+        // SmallForm: brick is indestructible, do nothing
     }
 
     return nullptr; // BrickBlock never spawns items

@@ -47,7 +47,7 @@ void FireForm::takedamage(Hero* hero) {
     // Giant::takedamage → setState(ShrinkState) → plays "GiantShrink" → SmallForm
     // No invincible set here — ShrinkState::enter() handles it
     hero->setForm(std::make_unique<GiantForm>());
-    hero->takedamage();
+    hero->takeDamage(1);
 }
 
 void FireForm::specialAbility(Hero* hero){

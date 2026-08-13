@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 // Represents a single tile layer parsed from Tiled JSON
 struct TileLayer {
@@ -15,11 +16,22 @@ struct TileLayer {
 struct MapObject {
     int id{ 0 };
     std::string name;
-    std::string className; // Strictly uses Tiled "class"
-    float x{ 0.0f };       // World X position in pixels
-    float y{ 0.0f };       // World Y position in pixels
+    std::string className; // Tiled "type" field (brick/question/coin/flag/invisible)
+    int gid{ 0 };          // Tile GID >0 means this is a tile object (y = bottom-left in Tiled)
+    float x{ 0.0f };       // World X in pixels (Tiled native, 16px grid)
+    float y{ 0.0f };       // World Y in pixels (top for rects, bottom for tile objects)
     float width{ 0.0f };   // Object bounding width
     float height{ 0.0f };  // Object bounding height
+
+    // Custom Tiled properties, e.g. {"item": "mushroom"}
+    std::unordered_map<std::string, std::string> properties;
+
+    // Returns property value for key, or def if not found
+    std::string getProperty(const std::string& key,
+                            const std::string& def = "") const {
+        auto it = properties.find(key);
+        return it != properties.end() ? it->second : def;
+    }
 };
 
 // Represents an object layer group from Tiled

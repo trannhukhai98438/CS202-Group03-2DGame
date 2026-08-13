@@ -5,6 +5,7 @@
 #include "Core/VictoryState.h"
 #include "Entities/Character/Enemy/Potion.h"
 #include "Entities/Character/Enemy/EnemyState.h"
+#include "Entities/Item/Coin.h"
 #include <iostream>
 
 
@@ -45,7 +46,50 @@ PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 608.f, 200.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 560.f, 150.f, spawnCallback));
     
-    // We can disable hardcoded blocks or move them to match the new grid (e.g. y = 464.f)
+    // ---- Spawn Interactive blocks & ground coins from map ObjectLayer ----
+    // Coordinate mapping:
+    //   world X = obj.x * 2          (Tiled 16px grid -> 32px world)
+    //   world Y = obj.y * 2 + 272    (same scale, plus 272px draw offset)
+    //   If tile object (gid>0): obj.y is BOTTOM of object in Tiled coords.
+    {
+        BlockFactory blockFac;
+        auto objs = m_levelManager.getObjectsFromLayer("Interactive");
+        for (const auto& obj : objs) {
+            float wx = obj.x * 2.f;
+            float wy = (obj.gid > 0)
+                       ? (obj.y - obj.height) * 2.f + 272.f // tile obj: y=bottom
+                       :  obj.y * 2.f + 272.f;              // rect obj: y=top
+
+            const std::string& type = obj.className;
+
+            if (type == "brick") {
+                m_blocks.push_back(blockFac.createBlock(BlockType::Brick, wx, wy));
+
+            } else if (type == "question") {
+                ItemType itype = ItemType::Coin;
+                std::string item = obj.getProperty("item", "coin");
+                if (item == "mushroom" || item == "flower")
+                    itype = ItemType::PowerUpPrototype;
+                else if (item == "star")
+                    itype = ItemType::Star;
+                m_blocks.push_back(blockFac.createBlock(BlockType::Question, wx, wy, itype));
+
+            } else if (type == "invisible") {
+                // Invisible blocks always contain mushroom/powerup
+                m_blocks.push_back(blockFac.createBlock(BlockType::Question, wx, wy,
+                                                         ItemType::PowerUpPrototype));
+
+            } else if (type == "coin") {
+                // Floating ground coin — spawned as an Item directly
+                auto coin = std::make_unique<Coin>(wx, wy);
+                coin->spawnAsGroundCoin();
+                m_items.push_back(std::move(coin));
+            }
+            // "flag" and other triggers: handled later
+        }
+    }
+
+    // ---- Hardcoded blocks (kept as reference, disabled) ----
     // BlockFactory blockFac;
     // m_blocks.push_back(blockFac.createBlock(BlockType::Brick, 300, 464.f));
 }
@@ -74,15 +118,6 @@ void PlayingState::update(sf::Time dt) {
             m_hudManager.addCoin(diff);
             m_hudManager.addScore(100 * diff);
             m_lastCoinCount = currentCoins;
-        }
-        static float timer = 0.0f;
-        timer += dtSec;
-        if (timer >= 1.0f) {
-            timer = 0.0f;
-            std::cout << "Hero Y: " << m_hero->getPosition().y << std::endl;
-            for (auto& enemy : m_enemies) {
-                std::cout << "Enemy type " << (int)enemy->getBounds().height << " Y: " << enemy->getPosition().y << std::endl;
-            }
         }
     }
     for (size_t i = 0; i < m_blocks.size(); ++i) m_blocks[i]->update(dtSec);
@@ -184,8 +219,16 @@ void PlayingState::update(sf::Time dt) {
 
     // Interact with items
     for (auto& item : m_items) {
-        if (item->isColliable() && m_physics.checkCollision(m_hero->getHitbox(), item->getHitbox()) != SideType::None) {
-            m_hero->collectItem(item.get());
+        if (item->isColliable()) {
+            // Collidable items (mushroom, star): use hitbox collision
+            if (m_physics.checkCollision(m_hero->getHitbox(), item->getHitbox()) != SideType::None) {
+                m_hero->collectItem(item.get());
+            }
+        } else {
+            // Non-collidable items (coins): simple bounds overlap
+            if (m_hero->getBounds().intersects(item->getBounds())) {
+                m_hero->collectItem(item.get());
+            }
         }
     }
 
@@ -254,7 +297,6 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
-
     for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
         (*it)->update(dt.asSeconds());
         
@@ -263,8 +305,6 @@ void PlayingState::update(sf::Time dt) {
             if ((*it)->getBounds().intersects(collider.getGlobalBounds())) {
                 if (auto potion = dynamic_cast<Potion*>(it->get())) {
                     if (!potion->getIsPuddle()) {
-                        std::cout << "[Debug] Potion shattered by collider at X=" << collider.getPosition().x 
-                                  << ", Y=" << collider.getPosition().y << std::endl;
                         potion->shatterOnTile(collider.getPosition().y);
                     } else {
                         float velY = potion->getVelocity().y;
@@ -278,7 +318,7 @@ void PlayingState::update(sf::Time dt) {
 
         if ((*it)->getIsAlive() && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
             (*it)->die();
-            m_hero->takedamage();
+            m_hero->takeDamage(1);
         }
         if (!(*it)->getIsAlive()) {
             it = m_projectiles.erase(it);
@@ -287,7 +327,7 @@ void PlayingState::update(sf::Time dt) {
         }
     }
     if (m_hero->getPosition().y> 720.f) {
-        m_hero->die();
+        m_hero->takeDamage(1);
     }
     //Clear block and item if they are not active
     m_blocks.erase(std::remove_if(m_blocks.begin(), m_blocks.end(),
@@ -298,7 +338,8 @@ void PlayingState::update(sf::Time dt) {
         m_items.end());
     float marioX = m_hero->getPosition().x;
     float halfScreenWidth = 640.f;
-    float levelEnd = m_levelManager.getMapWidthTiles() * 32.f;
+    // Map world width = tile count * tile size (16px) * 2 (render scale)
+    float levelEnd = static_cast<float>(m_levelManager.getMapWidthPixels()) * 2.f;
     float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
     m_camera.setCenter(cameraX, 360.f);
 	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
