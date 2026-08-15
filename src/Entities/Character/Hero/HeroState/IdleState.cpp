@@ -12,10 +12,7 @@ void IdleState::enter(Hero* hero){
 void IdleState::update(Hero* hero, float deltatime){
     // Ground states only valid when grounded
     if (!hero->getGrounded()){
-        hero->setState(std::make_unique<JumpState>());
-        sf::Vector2f vel=hero->getVelocity();
-        vel.y=PhysicsConstants::GRAVITY*deltatime;
-        hero->setVelocity(vel.x,vel.y);
+        hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
         return;
     }
 
@@ -52,7 +49,7 @@ void IdleState::update(Hero* hero, float deltatime){
         return;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-        hero->setState(std::make_unique<JumpState>());
+        hero->setState(std::make_unique<JumpState>(AirEntry::Jumped));
         return;
     }
 }

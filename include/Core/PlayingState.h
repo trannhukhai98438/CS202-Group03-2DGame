@@ -28,6 +28,10 @@ private:
     std::vector<sf::RectangleShape> m_mapColliders;
     PhysicsEngine m_physics;
     int m_lastCoinCount;
+
+    void updateProjectiles(float deltaTime);
+    void simulateProjectile(Projectile& projectile, float deltaTime);
+    void resolveProjectileTargets(Projectile& projectile);
 public:
 	PlayingState();
 	~PlayingState() override;

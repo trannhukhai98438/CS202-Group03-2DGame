@@ -5,9 +5,14 @@
 #include "PhysicsConstants.h"
 #include <cmath>
 
+JumpState::JumpState(AirEntry entry) : entry(entry) {}
+
 void JumpState::enter(Hero* hero){
-    // Apply initial jump velocity 
-    hero->setVelocity(hero->getVelocity().x, PhysicsConstants::JUMP_FORCE);
+    // Only a player-initiated jump applies an upward impulse. Walking off a
+    // ledge keeps the vertical velocity produced by the physics step.
+    if (entry == AirEntry::Jumped) {
+        hero->setVelocity(hero->getVelocity().x, PhysicsConstants::JUMP_FORCE);
+    }
     hero->setGrounded(false); // CollisionSystem will set true on landing
 }
 

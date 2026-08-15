@@ -3,10 +3,10 @@
 #include "Core/PausedState.h"
 #include "Core/GameOverState.h"
 #include "Core/VictoryState.h"
-#include "Entities/Character/Enemy/Potion.h"
 #include "Entities/Character/Enemy/EnemyState.h"
 #include "Entities/Item/Coin.h"
 #include <iostream>
+#include <unordered_set>
 
 
 PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
@@ -17,11 +17,17 @@ PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
     if (!m_levelManager.loadLevel(jsonPath, tilesetPath)) {
         std::cerr << "[PlayingState] ERROR: Cannot load level!" << std::endl;
     }
+    auto spawnCallback = [this](std::unique_ptr<Projectile> projectile) {
+        if (projectile) m_projectiles.push_back(std::move(projectile));
+    };
+    constexpr HeroType selectedHero = HeroType::Mario; // Change here to test Mario.
     MapObject spawnPoint;
     if (m_levelManager.getObjectByName("Objects", "SpawnPoint", spawnPoint)) {
-        m_hero = HeroFactory().createHero(HeroType::Luigi, spawnPoint.x * 2.f, spawnPoint.y * 2.f + 272.f);
+        m_hero = HeroFactory().createHero(selectedHero,
+            spawnPoint.x * 2.f, spawnPoint.y * 2.f + 272.f, spawnCallback);
     } else {
-        m_hero = HeroFactory().createHero(HeroType::Luigi, 100.f, 500.f);
+        m_hero = HeroFactory().createHero(selectedHero, 100.f, 500.f,
+                                          spawnCallback);
     }
 
     // Build map colliders from Terrain layer
@@ -37,10 +43,6 @@ PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
             }
         }
     }
-
-    auto spawnCallback = [this](std::unique_ptr<Projectile> p) {
-        m_projectiles.push_back(std::move(p));
-    };
 
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Goomba, 300.f, 624.f, 150.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 608.f, 200.f, spawnCallback));
@@ -297,35 +299,7 @@ void PlayingState::update(sf::Time dt) {
             ++it;
         }
     }
-    for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
-        (*it)->update(dt.asSeconds());
-        
-        // Potion shatter or puddle Y-collision on collision with map tiles
-        for (auto& collider : m_mapColliders) {
-            if ((*it)->getBounds().intersects(collider.getGlobalBounds())) {
-                if (auto potion = dynamic_cast<Potion*>(it->get())) {
-                    if (!potion->getIsPuddle()) {
-                        potion->shatterOnTile(collider.getPosition().y);
-                    } else {
-                        float velY = potion->getVelocity().y;
-                        m_physics.resolveCollisionY(potion->getHitbox(), collider, velY);
-                        potion->setPosition(potion->getHitbox().getPosition());
-                        potion->setVelocity(potion->getVelocity().x, velY);
-                    }
-                }
-            }
-        }
-
-        if ((*it)->getIsAlive() && m_hero && !m_hero->isDead() && (*it)->getBounds().intersects(m_hero->getBounds())) {
-            (*it)->die();
-            m_hero->takeDamage(1);
-        }
-        if (!(*it)->getIsAlive()) {
-            it = m_projectiles.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    updateProjectiles(dtSec);
     if (m_hero->getPosition().y> 720.f) {
         m_hero->takeDamage(1);
     }
@@ -351,6 +325,127 @@ void PlayingState::update(sf::Time dt) {
     // Press 'W' to simulate touching the flagpole
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         Game::getInstance().changeState(std::make_unique<VictoryState>());
+    }
+}
+
+void PlayingState::simulateProjectile(Projectile& projectile, float deltaTime) {
+    if (!projectile.getIsAlive() || !projectile.usesWorldPhysics()) return;
+
+    sf::Vector2f velocity = projectile.getVelocity();
+    m_physics.applyGravity(velocity.y, deltaTime,
+                           projectile.getGravityAcceleration());
+    projectile.setVelocity(velocity);
+
+    auto forEachSolid = [this](auto&& visitor) {
+        for (const auto& collider : m_mapColliders) {
+            if (!visitor(collider.getGlobalBounds())) return;
+        }
+        for (const auto& block : m_blocks) {
+            if (block->getIsActive()
+                && !visitor(block->getHitbox().getGlobalBounds())) return;
+        }
+    };
+
+    sf::Vector2f oldPosition = projectile.getPosition();
+    projectile.setPosition({oldPosition.x + velocity.x * deltaTime,
+                            oldPosition.y});
+
+    forEachSolid([&](const sf::FloatRect& solidBounds) {
+        SideType side = m_physics.checkCollision(projectile.getBounds(),
+                                                  solidBounds);
+        if (side != SideType::Left && side != SideType::Right) return true;
+
+        m_physics.resolveCollisionX(projectile.getHitbox(), solidBounds,
+                                    velocity.x);
+        projectile.setPosition(projectile.getHitbox().getPosition());
+        projectile.setVelocity(velocity);
+        projectile.onSolidCollision(side, solidBounds);
+        velocity = projectile.getVelocity();
+        return projectile.getIsAlive() && projectile.usesWorldPhysics();
+    });
+
+    if (!projectile.getIsAlive() || !projectile.usesWorldPhysics()) return;
+
+    oldPosition = projectile.getPosition();
+    projectile.setPosition({oldPosition.x,
+                            oldPosition.y + velocity.y * deltaTime});
+
+    forEachSolid([&](const sf::FloatRect& solidBounds) {
+        SideType side = m_physics.checkCollision(projectile.getBounds(),
+                                                  solidBounds);
+        if (side == SideType::None) return true;
+
+        if (side == SideType::Top || side == SideType::Bottom) {
+            m_physics.resolveCollisionY(projectile.getHitbox(), solidBounds,
+                                        velocity.y);
+        } else {
+            m_physics.resolveCollisionX(projectile.getHitbox(), solidBounds,
+                                        velocity.x);
+        }
+        projectile.setPosition(projectile.getHitbox().getPosition());
+        projectile.setVelocity(velocity);
+        projectile.onSolidCollision(side, solidBounds);
+        velocity = projectile.getVelocity();
+        return projectile.getIsAlive() && projectile.usesWorldPhysics();
+    });
+
+    projectile.setVelocity(velocity);
+}
+
+void PlayingState::resolveProjectileTargets(Projectile& projectile) {
+    if (!projectile.getIsAlive()) return;
+
+    if (projectile.getFaction() == ProjectileFaction::Enemy) {
+        if (m_hero && !m_hero->isDead()
+            && projectile.getBounds().intersects(m_hero->getBounds())) {
+            projectile.onHitTarget(*m_hero);
+        }
+        projectile.onTargetResolutionComplete();
+        return;
+    }
+
+    // A projectile may expand its target bounds on impact. The second pass
+    // catches targets that appeared earlier in the list; the set guarantees
+    // one resolution per target in this frame.
+    std::unordered_set<Enemy*> resolvedTargets;
+    for (int pass = 0; pass < 2 && projectile.getIsAlive(); ++pass) {
+        for (auto& enemy : m_enemies) {
+            if (!projectile.getIsAlive()) break;
+            if (!enemy->getIsAlive()
+                || enemy->getStateName() == "FlippingDeath"
+                || enemy->getStateName() == "Squished"
+                || resolvedTargets.find(enemy.get()) != resolvedTargets.end()) {
+                continue;
+            }
+            if (!projectile.getBounds().intersects(enemy->getBounds())) continue;
+
+            resolvedTargets.insert(enemy.get());
+            if (projectile.onHitTarget(*enemy)) {
+                m_hudManager.addScore(enemy->getScoreValue());
+            }
+        }
+    }
+    projectile.onTargetResolutionComplete();
+}
+
+void PlayingState::updateProjectiles(float deltaTime) {
+    const float worldWidth = m_levelManager.getMapWidthPixels() * 2.0f;
+
+    for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
+        Projectile& projectile = **it;
+        projectile.update(deltaTime);
+        simulateProjectile(projectile, deltaTime);
+        resolveProjectileTargets(projectile);
+
+        sf::FloatRect bounds = projectile.getBounds();
+        if (bounds.left + bounds.width < 0.0f
+            || bounds.left > worldWidth
+            || bounds.top > 900.0f) {
+            projectile.die();
+        }
+
+        if (!projectile.getIsAlive()) it = m_projectiles.erase(it);
+        else ++it;
     }
 }
 

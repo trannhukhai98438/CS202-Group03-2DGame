@@ -4,13 +4,14 @@
 #include "DeadState.h"
 #include "Item.h"
 
-Hero::Hero(float x, float y)
+Hero::Hero(float x, float y, ProjectileSpawnCallback spawnCallback)
     : Character(x, y),
       invincibleTimer(0.f),
       overrideTimer(0.f),
       isStarman(false),
       coin(0),
-      hp(1)
+      hp(1),
+      spawnProjectileCallback(std::move(spawnCallback))
 {
     // form and state are initialised in concrete subclasses (Mario/Luigi)
     // because baseTexturePath must be set first.
@@ -96,8 +97,12 @@ void Hero::setState(std::unique_ptr<HeroState> newState){
     if (state) state->enter(this);
 }
 
-void Hero::specialAbility(){
-    if (form) form->specialAbility(this);
+bool Hero::specialAbility(){
+    if (!spawnProjectileCallback) return false;
+    std::unique_ptr<Projectile> projectile = createSpecialProjectile();
+    if (!projectile) return false;
+    spawnProjectileCallback(std::move(projectile));
+    return true;
 }
 
 std::string Hero::getStateName() const {
@@ -177,10 +182,10 @@ int Hero::interactWith(Character* other) {
         setVelocity(velocity.x, -300.f); // Bounce Hero up!
         return other->getScoreValue();   // Return score to be added
     } else {
+        // The collided enemy owns the side-collision response. Its implementation
+        // decides whether this contact damages the hero, kicks a shell, etc.
+        // Calling takeDamage() here as well would apply the same hit twice.
         other->onSideCollision(this);
-        if (other->getDamageOnTouch() > 0) {
-            takeDamage(1);
-        }
         return 0;
     }
 }

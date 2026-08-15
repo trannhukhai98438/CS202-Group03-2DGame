@@ -13,10 +13,7 @@ void RunState::enter(Hero* hero){
 void RunState::update(Hero* hero, float deltatime){
     // Ground states only valid when grounded
     if (!hero->getGrounded()){
-        hero->setState(std::make_unique<JumpState>());
-        sf::Vector2f vel=hero->getVelocity();
-        vel.y=PhysicsConstants::GRAVITY*deltatime;
-        hero->setVelocity(vel.x,vel.y);
+        hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
         return;
     }
 
@@ -64,7 +61,7 @@ void RunState::update(Hero* hero, float deltatime){
 
     // Jump (not when both keys conflict)
     if (!bothPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-        hero->setState(std::make_unique<JumpState>());
+        hero->setState(std::make_unique<JumpState>(AirEntry::Jumped));
         return;
     }
 

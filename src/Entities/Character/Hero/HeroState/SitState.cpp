@@ -21,9 +21,8 @@ void SitState::exit(Hero* hero){
 
 void SitState::update(Hero* hero, float deltatime){
     if (!hero->getGrounded()){
-        sf::Vector2f vel=hero->getVelocity();
-        hero->setState(std::make_unique<JumpState>());
-        hero->setVelocity(vel.x,PhysicsConstants::GRAVITY*deltatime);
+        hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
+        return;
     }
 
     hero->setVelocity(0.f, PhysicsConstants::GRAVITY*deltatime);  

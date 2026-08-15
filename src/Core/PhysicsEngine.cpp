@@ -1,7 +1,11 @@
 ﻿#include "Core/PhysicsEngine.h"
 
 void PhysicsEngine::applyGravity(float& velocityY, float dt) {
-	velocityY += GRAVITY * dt;
+	applyGravity(velocityY, dt, GRAVITY);
+}
+
+void PhysicsEngine::applyGravity(float& velocityY, float dt, float acceleration) {
+	velocityY += acceleration * dt;
 }
 
 // ============================================================

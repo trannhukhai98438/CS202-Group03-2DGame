@@ -1,13 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-
-enum class SideType{
-	None,
-	Top,
-	Bottom,
-	Left,
-	Right
-};
+#include "Core/CollisionTypes.h"
 
 class PhysicsEngine {
 private:
@@ -16,6 +9,7 @@ public:
 	PhysicsEngine() = default;
 
 	void applyGravity(float& velocityY, float dt);
+	void applyGravity(float& velocityY, float dt, float acceleration);
 
 	// --- RectangleShape overloads (Block/mapColliders vs Entity) ---
 	SideType checkCollision(sf::RectangleShape& entity, const sf::RectangleShape& obstacle);

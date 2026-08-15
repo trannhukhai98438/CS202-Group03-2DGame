@@ -1,7 +1,13 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Core/CollisionTypes.h"
 
 class Character;
+
+enum class ProjectileFaction {
+    Hero,
+    Enemy
+};
 
 class Projectile {
 protected:
@@ -10,24 +16,37 @@ protected:
     sf::RectangleShape shape;
     bool isAlive;
     int damage;
+    ProjectileFaction faction;
 
 public:
-    Projectile(float startX, float startY, float velX, float velY, int dmg = 1);
+    Projectile(float startX, float startY, float velX, float velY,
+               ProjectileFaction owner, int dmg = 1);
     virtual ~Projectile() = default;
 
+    // Updates projectile-owned state only (animation, lifetime, phase timers).
+    // PlayingState is the single owner of gravity, movement and world collision.
     virtual void update(float deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) = 0;
-    
-    virtual void onHitPlayer(Character* player);
+
+    virtual float getGravityAcceleration() const { return 0.0f; }
+    virtual bool usesWorldPhysics() const { return true; }
+    virtual void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) = 0;
+
+    // Returns true only when this contact actually applies damage. The scene
+    // uses the result to award score without knowing the concrete projectile.
+    virtual bool onHitTarget(Character& target);
+    virtual void onTargetResolutionComplete() {}
 
     bool getIsAlive() const { return isAlive; }
     void die() { isAlive = false; }
     sf::FloatRect getBounds() const { return shape.getGlobalBounds(); }
     int getDamage() const { return damage; }
+    ProjectileFaction getFaction() const { return faction; }
 
     sf::Vector2f getPosition() const { return position; }
-    void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }
+    virtual void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }
     sf::Vector2f getVelocity() const { return velocity; }
+    void setVelocity(const sf::Vector2f& vel) { velocity = vel; }
     void setVelocity(float vx, float vy) { velocity.x = vx; velocity.y = vy; }
     sf::RectangleShape& getHitbox() { return shape; }
 };

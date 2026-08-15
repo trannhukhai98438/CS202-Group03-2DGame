@@ -3,10 +3,14 @@
 #include "Utilities/Animator.h"
 #include "Entities/Character/Hero/HeroForm/HeroForm.h"
 #include "Entities/Character/Hero/HeroState/HeroState.h"
+#include "Entities/Character/Enemy/Projectile.h"
+#include <functional>
 #include <memory>
 
 #include "Entities/Character/Character.h"
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"
+
+using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>;
 
 class Hero : public Character {
 protected:
@@ -19,8 +23,10 @@ protected:
     bool isStarman;
     int coin;
     int hp;
+    ProjectileSpawnCallback spawnProjectileCallback;
+    virtual std::unique_ptr<Projectile> createSpecialProjectile() const = 0;
 public:
-    Hero(float x, float y);
+    Hero(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
     virtual ~Hero()=default;
     void loadTexture(const std::string& path);
     std::string getBaseTexturePath() const;
@@ -33,7 +39,8 @@ public:
     void setState(std::unique_ptr<HeroState> newState);
     std::string getStateName() const;
     std::string getFormName() const;
-    virtual void specialAbility();
+    bool specialAbility();
+    virtual float getSpecialCooldown() const = 0;
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
     int interactWith(Character* other) override;
