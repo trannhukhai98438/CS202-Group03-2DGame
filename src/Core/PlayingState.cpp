@@ -4,10 +4,15 @@
 #include "Core/GameOverState.h"
 #include "Core/VictoryState.h"
 #include "Entities/Character/Enemy/EnemyState.h"
+#include "Entities/Character/Hero/HeroState/FlyState.h"
+#include "Entities/Goal/Flag.h"
 #include "Entities/Item/Coin.h"
 #include <iostream>
 #include <unordered_set>
 
+namespace {
+constexpr float VICTORY_DELAY_SECONDS = 0.75f;
+}
 
 PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_camera.setSize(1280.f, 720.f);
@@ -86,8 +91,16 @@ PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
                 auto coin = std::make_unique<Coin>(wx, wy);
                 coin->spawnAsGroundCoin();
                 m_items.push_back(std::move(coin));
+
+            } else if (type == "flag") {
+                sf::FloatRect triggerBounds(
+                    wx,
+                    wy,
+                    obj.width * 2.f,
+                    obj.height * 2.f);
+                m_levelGoals.push_back(
+                    std::make_unique<Flag>(triggerBounds));
             }
-            // "flag" and other triggers: handled later
         }
     }
 
@@ -316,15 +329,29 @@ void PlayingState::update(sf::Time dt) {
     float levelEnd = static_cast<float>(m_levelManager.getMapWidthPixels()) * 2.f;
     float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
     m_camera.setCenter(cameraX, 360.f);
-	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
-    // Press 'L' to simulate Mario dying
-    if (m_hero->isDead()) {
-        Game::getInstance().changeState(std::make_unique<GameOverState>());
+    if (!m_victoryPending && m_hero && !m_hero->isDead()) {
+        for (auto& goal : m_levelGoals) {
+            GoalResult result = goal->tryActivate(*m_hero);
+            if (!result.activated) continue;
+            m_hero->setState(std::make_unique<FlyState>());
+            m_hudManager.addScore(result.scoreAwarded);
+            m_victoryPending = true;
+            m_victoryDelayRemaining = VICTORY_DELAY_SECONDS;
+            break;
+        }
+    } else if (m_victoryPending) {
+        m_victoryDelayRemaining -= dtSec;
+        if (m_victoryDelayRemaining <= 0.0f) {
+            Game::getInstance().changeState(std::make_unique<VictoryState>());
+            return;
+        }
     }
 
-    // Press 'W' to simulate touching the flagpole
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-        Game::getInstance().changeState(std::make_unique<VictoryState>());
+    // Victory remains locked even if the continuing simulation kills the
+    // hero during the short transition delay.
+    if (!m_victoryPending && m_hero->isDead()) {
+        Game::getInstance().changeState(std::make_unique<GameOverState>());
+        return;
     }
 }
 

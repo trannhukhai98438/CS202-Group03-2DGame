@@ -1110,17 +1110,16 @@
                  "y":144
                 }, 
                 {
-                 "gid":1005,
-                 "height":16,
+                 "height":176,
                  "id":145,
                  "name":"",
                  "opacity":1,
                  "rotation":0,
                  "type":"flag",
                  "visible":true,
-                 "width":16,
+                 "width":32,
                  "x":3160,
-                 "y":64.6667
+                 "y":32
                 }],
          "opacity":1,
          "type":"objectgroup",
