@@ -1,5 +1,6 @@
 #include "Entities/Block/BlockFactory.h"
 #include "Entities/Block/BrickBlock.h"
+#include "Entities/Block/InvisibleBlock.h"
 #include "Entities/Block/QuestionBlock.h"
 
 std::unique_ptr<Block> BlockFactory::createBlock(BlockType type, float x, float y, ItemType hiddenItem) {
@@ -14,6 +15,15 @@ std::unique_ptr<Block> BlockFactory::createBlock(BlockType type, float x, float 
                 qBlock->setItemPrototype(ItemFactory::createItem(hiddenItem, x, y));
             }
             return qBlock;
+        }
+
+        case BlockType::Invisible: {
+            auto invisibleBlock = std::make_unique<InvisibleBlock>(x, y);
+            if (hiddenItem != ItemType::None) {
+                invisibleBlock->setItemPrototype(
+                    ItemFactory::createItem(hiddenItem, x, y));
+            }
+            return invisibleBlock;
         }
             
         case BlockType::None:

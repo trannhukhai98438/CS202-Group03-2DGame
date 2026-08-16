@@ -26,6 +26,7 @@ MarioFireball::MarioFireball(float startX, float startY, float velocityX)
 
 void MarioFireball::update(float deltaTime) {
     if (!isAlive) return;
+    velocity.y += getGravityAcceleration() * deltaTime;
     lifetime -= deltaTime;
     if (lifetime <= 0.0f) {
         die();

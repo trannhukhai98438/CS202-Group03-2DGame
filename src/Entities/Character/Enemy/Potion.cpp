@@ -98,6 +98,8 @@ void Potion::onSolidCollision(SideType side, const sf::FloatRect& solidBounds) {
 void Potion::update(float deltaTime) {
     if (!isAlive) return;
 
+    velocity.y += getGravityAcceleration() * deltaTime;
+
     if (isPuddle) {
         puddleTimer -= deltaTime;
         if (puddleTimer <= 0.0f) {

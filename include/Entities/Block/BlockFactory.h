@@ -6,6 +6,7 @@
 enum class BlockType {
     Brick,
     Question,
+    Invisible,
     None
 };
 

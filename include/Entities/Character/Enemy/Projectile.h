@@ -23,8 +23,8 @@ public:
                ProjectileFaction owner, int dmg = 1);
     virtual ~Projectile() = default;
 
-    // Updates projectile-owned state only (animation, lifetime, phase timers).
-    // PlayingState is the single owner of gravity, movement and world collision.
+    // Updates projectile-owned state, including acceleration and phase timers.
+    // The world physics system owns position integration and solid collision.
     virtual void update(float deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) = 0;
 

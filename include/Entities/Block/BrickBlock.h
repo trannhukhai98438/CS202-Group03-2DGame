@@ -16,6 +16,7 @@ public:
     // Returns false while block is alive or particles are still showing.
     // Scene removes block from world once this returns false (isActive=false in base).
     bool getIsActive() const override { return isActive; }
+    bool isSolid() const override { return !isDestroyed; }
 
 private:
     bool  isDestroyed;   // true when Giant/Fire has destroyed the brick

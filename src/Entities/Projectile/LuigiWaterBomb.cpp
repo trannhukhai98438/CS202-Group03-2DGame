@@ -37,6 +37,8 @@ void LuigiWaterBomb::configureSprite(sf::Sprite& target,
 void LuigiWaterBomb::update(float deltaTime) {
     if (!isAlive) return;
 
+    velocity.y += getGravityAcceleration() * deltaTime;
+
     if (phase == Phase::Flying) {
         lifetime -= deltaTime;
         if (lifetime <= 0.0f) die();

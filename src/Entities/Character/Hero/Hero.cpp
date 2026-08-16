@@ -138,6 +138,7 @@ void Hero::takeDamage(int damage){
 }
 
 void Hero::die(){
+    if (!getIsAlive()) return;
     Character::die(); // sets isAlive = false
     setState(std::make_unique<DeadState>());
 }
