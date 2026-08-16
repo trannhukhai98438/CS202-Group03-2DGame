@@ -3,6 +3,7 @@
 #include "Core/PhysicsEngine.h"
 #include "Managers/HUDManager.hpp"
 #include "Managers/LevelManager.hpp"
+#include "Managers/SoundManager.hpp"
 #include <SFML/Graphics.hpp>
 
 class PlayingState : public State {
@@ -12,6 +13,7 @@ private:
 
 	HUDManager m_hudManager;
 	LevelManager m_levelManager;
+	SoundManager m_soundManager;
 public:
 	PlayingState();
 	void processEvents(sf::Event& event) override;

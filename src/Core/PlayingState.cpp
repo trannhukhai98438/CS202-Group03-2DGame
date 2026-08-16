@@ -14,6 +14,9 @@ PlayingState::PlayingState() {
         std::cerr << "[PlayingState] ERROR: Cannot load level!" << std::endl;
     }
 
+    m_soundManager.loadAllSFX();
+    m_soundManager.playBGM("underground");
+
     // Initilize
     m_mario.setSize(sf::Vector2f(32.f, 32.f));
     m_mario.setFillColor(sf::Color::Red);
@@ -35,6 +38,7 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
         m_hudManager.addCoin(1);
         m_hudManager.addScore(100);
+        m_soundManager.playSFX("coin");
     }
 }
 
