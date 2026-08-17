@@ -3,6 +3,7 @@
 #include "Core/Game.h"
 #include "Core/GameOverState.h"
 #include "Core/PausedState.h"
+#include "Core/TransitionState.h"
 #include "Core/VictoryState.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/FlyState.h"
@@ -21,6 +22,7 @@ PlayingState::PlayingState()
 	                     Game::getInstance().getSelectedHero()) {
     m_camera.setSize(1280.0f, 720.0f);
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
+	m_hudManager.setLives(Game::getInstance().getLives());
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
@@ -57,7 +59,11 @@ void PlayingState::update(sf::Time dt) {
     const int currentCoins = hero->getCoin();
     if (currentCoins > m_lastCoinCount) {
         const int difference = currentCoins - m_lastCoinCount;
+		const int livesBeforeCoins = m_hudManager.getLives();
         m_hudManager.addCoin(difference);
+		if (m_hudManager.getLives() > livesBeforeCoins) {
+			Game::getInstance().addLife();
+		}
         m_hudManager.addScore(100 * difference);
         m_lastCoinCount = currentCoins;
     }
@@ -88,12 +94,20 @@ void PlayingState::update(sf::Time dt) {
     if (m_victoryPending) return;
 
     if (!m_defeatPending && hero->isDead()) {
+		Game::getInstance().loseLife();
+		m_hudManager.setLives(Game::getInstance().getLives());
         m_defeatPending = true;
         m_defeatDelayRemaining = DEFEAT_DELAY_SECONDS;
     } else if (m_defeatPending) {
         m_defeatDelayRemaining -= deltaTime;
         if (m_defeatDelayRemaining <= 0.0f) {
-            Game::getInstance().changeState(std::make_unique<GameOverState>());
+			if (Game::getInstance().getLives() > 0) {
+				Game::getInstance().changeState(
+					std::make_unique<TransitionState>());
+			} else {
+				Game::getInstance().changeState(
+					std::make_unique<GameOverState>());
+			}
             return;
         }
     }

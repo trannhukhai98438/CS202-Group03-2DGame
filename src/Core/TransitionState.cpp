@@ -2,6 +2,7 @@
 #include "Core/PlayingState.h"
 #include "Core/Game.h"
 #include <iostream>
+#include <string>
 
 TransitionState::TransitionState() : m_elapsedTime(sf::Time::Zero) {
 	if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
@@ -12,7 +13,8 @@ TransitionState::TransitionState() : m_elapsedTime(sf::Time::Zero) {
 	m_worldText.setCharacterSize(40);
 	m_worldText.setFillColor(sf::Color::White);
 	m_livesText.setFont(m_font);
-	m_livesText.setString("LIVES: 1");
+	m_livesText.setString("LIVES: "
+		+ std::to_string(Game::getInstance().getLives()));
 	m_livesText.setCharacterSize(40);
 	m_livesText.setFillColor(sf::Color::White);
 }

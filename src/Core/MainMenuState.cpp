@@ -70,6 +70,7 @@ void MainMenuState::processEvents(sf::Event& event) {
 		const int clicked = buttonAt({static_cast<float>(event.mouseButton.x),
 		                              static_cast<float>(event.mouseButton.y)});
 		if (clicked == 0) {
+			Game::getInstance().startNewGame();
 			Game::getInstance().changeState(std::make_unique<TransitionState>());
 			return;
 		}
@@ -86,6 +87,7 @@ void MainMenuState::processEvents(sf::Event& event) {
 	}
 
 	if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+		Game::getInstance().startNewGame();
 		Game::getInstance().changeState(std::make_unique<TransitionState>());
 	}
 }
