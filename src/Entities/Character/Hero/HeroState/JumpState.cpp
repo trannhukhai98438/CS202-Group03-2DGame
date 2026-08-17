@@ -20,12 +20,12 @@ void JumpState::update(Hero* hero, float deltatime){
     sf::Vector2f vel = hero->getVelocity();
 
     // --- Horizontal air control (reduced compared to ground)
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
         hero->setFacingRight(false);
         vel.x -= PhysicsConstants::ACCELERATION * PhysicsConstants::AIR_CONTROL * deltatime;
         if (vel.x < -PhysicsConstants::WALK_SPEED) vel.x = -PhysicsConstants::WALK_SPEED;
     }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
         hero->setFacingRight(true);
         vel.x += PhysicsConstants::ACCELERATION * PhysicsConstants::AIR_CONTROL * deltatime;
         if (vel.x > PhysicsConstants::WALK_SPEED) vel.x = PhysicsConstants::WALK_SPEED;

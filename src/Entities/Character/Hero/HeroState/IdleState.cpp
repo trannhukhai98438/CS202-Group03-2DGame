@@ -34,8 +34,8 @@ void IdleState::update(Hero* hero, float deltatime){
     //hero->setPosition(pos.x, pos.y);
 
     // --- Input transitions ---
-    bool pressLeft  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-    bool pressRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+    bool pressLeft  = sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    bool pressRight = sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D);
 
     // If both Left + Right are pressed simultaneously → ignore both (no movement)
     if (pressLeft && !pressRight){
@@ -48,7 +48,7 @@ void IdleState::update(Hero* hero, float deltatime){
         hero->setState(std::make_unique<RunState>());
         return;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W)){
         hero->setState(std::make_unique<JumpState>(AirEntry::Jumped));
         return;
     }
