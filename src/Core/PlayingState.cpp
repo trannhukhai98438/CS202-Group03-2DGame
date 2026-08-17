@@ -16,9 +16,9 @@ constexpr float VICTORY_DELAY_SECONDS = 0.75f;
 }
 
 PlayingState::PlayingState()
-    : m_levelRuntime("assets/maps/levels/1-1.tmj",
-                     "assets/maps/resources/tileset.png",
-                     HeroType::Mario) {
+	: m_levelRuntime("assets/maps/levels/1-1.tmj",
+	                     "assets/maps/resources/tileset.png",
+	                     Game::getInstance().getSelectedHero()) {
     m_camera.setSize(1280.0f, 720.0f);
     m_hudManager.init("assets/fonts/SuperMario256.ttf");
 
