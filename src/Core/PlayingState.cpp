@@ -84,7 +84,21 @@ void PlayingState::update(sf::Time dt) {
     } else if (m_victoryPending) {
         m_victoryDelayRemaining -= deltaTime;
         if (m_victoryDelayRemaining <= 0.0f) {
-            Game::getInstance().changeState(std::make_unique<VictoryState>());
+            const sf::FloatRect heroBounds = hero->getBounds();
+            const sf::Vector2f cameraTopLeft = {
+                m_camera.getCenter().x - m_camera.getSize().x / 2.f,
+                m_camera.getCenter().y - m_camera.getSize().y / 2.f
+            };
+            sf::Vector2f heroScreenPosition = {
+                heroBounds.left + heroBounds.width / 2.f - cameraTopLeft.x,
+                heroBounds.top + heroBounds.height / 2.f - cameraTopLeft.y
+            };
+            heroScreenPosition.x = std::clamp(
+                heroScreenPosition.x, 48.f, 1232.f);
+            heroScreenPosition.y = std::clamp(
+                heroScreenPosition.y, 48.f, 672.f);
+            Game::getInstance().pushState(
+                std::make_unique<VictoryState>(heroScreenPosition));
             return;
         }
     }
