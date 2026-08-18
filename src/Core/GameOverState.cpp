@@ -20,20 +20,27 @@ GameOverState::GameOverState() {
 		                            720.f / backgroundSize.y);
 	}
 
-	const bool isLuigi = Game::getInstance().getSelectedHero()
-		== HeroType::Luigi;
-	const char* heroTexturePath = isLuigi
+	const HeroType selectedHero = Game::getInstance().getSelectedHero();
+	const char* heroTexturePath = selectedHero == HeroType::Luigi
 		? "assets/textures/Luigi.png"
-		: "assets/textures/Mario.png";
+		: selectedHero == HeroType::Flash
+			? "assets/textures/Flash.png"
+			: "assets/textures/Mario.png";
 	if (!m_heroTexture.loadFromFile(heroTexturePath)) {
 		std::cerr << "Error loading game-over hero texture\n";
 	}
 	m_heroTexture.setSmooth(false);
 	m_heroSprite.setTexture(m_heroTexture);
 	// Dedicated small-character death/falling frame in both sprite sheets.
-	m_heroSprite.setTextureRect({116, 8, 16, 16});
-	m_heroSprite.setOrigin(8.f, 16.f);
-	m_heroSprite.setScale(6.f, 6.f);
+	if (selectedHero == HeroType::Flash) {
+		m_heroSprite.setTextureRect({723, 51, 127, 111});
+		m_heroSprite.setOrigin(63.5f, 111.f);
+		m_heroSprite.setScale(0.85f, 0.85f);
+	} else {
+		m_heroSprite.setTextureRect({116, 8, 16, 16});
+		m_heroSprite.setOrigin(8.f, 16.f);
+		m_heroSprite.setScale(6.f, 6.f);
+	}
 	m_heroSprite.setPosition(640.f, -20.f);
 
 	m_gameOverText.setFont(m_font);

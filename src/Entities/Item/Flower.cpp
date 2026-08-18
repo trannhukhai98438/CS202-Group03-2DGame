@@ -55,7 +55,21 @@ void Flower::render(sf::RenderWindow& window) {
 
 void Flower::getCollected(Hero* hero) {
     if (!isActive || isSpawning) return;
-    hero->setForm(std::make_unique<FireForm>());
+
+    // The special form requires the Mushroom upgrade first. In particular,
+    // Flash must never enter the glitch-only Small Thunder row.
+    const std::string form = hero->getFormName();
+    if (form == "Small" || form.empty()) return;
+
+    if (form == "Giant") {
+        // Do not replace a transformation animation with coordinates from a
+        // different sheet. The flower remains available after it finishes.
+        if (hero->getStateName() == "Shrink"
+            || hero->getStateName() == "Grow") {
+            return;
+        }
+        hero->setForm(std::make_unique<FireForm>());
+    }
     isActive = false;
 }
 

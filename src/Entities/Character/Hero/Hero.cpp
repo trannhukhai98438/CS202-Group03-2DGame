@@ -27,6 +27,10 @@ std::string Hero::getBaseTexturePath() const {
     return baseTexturePath;
 }
 
+std::string Hero::getSpecialTexturePath() const {
+	return specialTexturePath.empty() ? baseTexturePath : specialTexturePath;
+}
+
 void Hero::playOverrideAnimation(const std::string& animName, float duration) {
     overrideAnim = animName;
     overrideTimer = duration;
@@ -60,11 +64,17 @@ void Hero::update(float deltatime){
 }
 
 void Hero::render(sf::RenderWindow& window){
+    float renderScale = spriteRenderScale;
+    if (specialSpriteRenderScale > 0.f && form
+        && form->getForm() == "Fire") {
+        renderScale = specialSpriteRenderScale;
+    }
+
     // Flip sprite based on facing direction
     if (facingRight) {
-        sprite.setScale(2.f, 2.f);
+		sprite.setScale(renderScale, renderScale);
     } else {
-        sprite.setScale(-2.f, 2.f);
+		sprite.setScale(-renderScale, renderScale);
     }
 
     // Invincibility visual effects
@@ -87,14 +97,24 @@ void Hero::render(sf::RenderWindow& window){
 }
 
 void Hero::setForm(std::unique_ptr<HeroForm> newForm){
+    // An override belongs to the old form's texture coordinates and must not
+    // survive a texture/form swap.
+    overrideTimer = 0.f;
+    overrideAnim.clear();
     form = std::move(newForm);
     if (form) form->enter(this);
+    if (form && state) {
+        animator.playAnimation(form->getForm() + state->getState(), 0.f);
+    }
 }
 
 void Hero::setState(std::unique_ptr<HeroState> newState){
     if (state) state->exit(this);
     state = std::move(newState);
     if (state) state->enter(this);
+    if (form && state && overrideTimer <= 0.f) {
+        animator.playAnimation(form->getForm() + state->getState(), 0.f);
+    }
 }
 
 bool Hero::specialAbility(){

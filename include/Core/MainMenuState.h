@@ -22,7 +22,7 @@ private:
 	sf::RectangleShape m_overlay;
 	sf::Text m_titleText;
 	sf::Text m_statusText;
-	std::array<MenuButton, 3> m_buttons;
+	std::array<MenuButton, 5> m_buttons;
 	int m_hoveredButton = -1;
 public:
 	MainMenuState();

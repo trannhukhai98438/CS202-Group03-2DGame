@@ -31,9 +31,10 @@ private:
     sf::RectangleShape m_overlay;
     sf::Texture m_marioTexture;
     sf::Texture m_luigiTexture;
+	sf::Texture m_flashTexture;
     sf::Text m_title;
     sf::Text m_hint;
-    std::array<CharacterCard, 2> m_cards;
+	std::array<CharacterCard, 3> m_cards;
     sf::RectangleShape m_confirmButton;
     sf::Text m_confirmText;
     sf::RectangleShape m_backButton;

@@ -25,7 +25,78 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
     sf::Vector2f oldPosition = hero->getPosition();
     sf::Vector2f velocity = hero->getVelocity();
 
+    const sf::FloatRect previousXBounds = hero->getBounds();
     hero->setPosition(oldPosition.x + velocity.x * deltaTime, oldPosition.y);
+    const sf::FloatRect proposedXBounds = hero->getBounds();
+
+    // A horizontal pass must resolve a wall from horizontal movement, even
+    // when the Hero only clips the wall near its top corner. Using the final
+    // overlap depth to choose an axis can call that contact Top and skip it,
+    // allowing the next Y pass to place the Hero inside a pipe.
+    bool hasHorizontalTarget = false;
+    float horizontalCollisionEdge = 0.0f;
+
+    if (velocity.x != 0.0f) {
+        constexpr float comparisonEpsilon = 0.001f;
+        const float previousRight =
+            previousXBounds.left + previousXBounds.width;
+        const float proposedRight =
+            proposedXBounds.left + proposedXBounds.width;
+
+        auto considerWall = [&](const sf::FloatRect& wallBounds) {
+            const float verticalOverlap =
+                std::min(proposedXBounds.top + proposedXBounds.height,
+                         wallBounds.top + wallBounds.height)
+                - std::max(proposedXBounds.top, wallBounds.top);
+            if (verticalOverlap <= comparisonEpsilon) return;
+
+            if (velocity.x > 0.0f) {
+                const bool crossedWallLeft =
+                    previousRight <= wallBounds.left + comparisonEpsilon
+                    && proposedRight >= wallBounds.left - comparisonEpsilon;
+                const bool isCloser = !hasHorizontalTarget
+                    || wallBounds.left
+                        < horizontalCollisionEdge - comparisonEpsilon;
+                if (crossedWallLeft && isCloser) {
+                    hasHorizontalTarget = true;
+                    horizontalCollisionEdge = wallBounds.left;
+                }
+                return;
+            }
+
+            const float wallRight = wallBounds.left + wallBounds.width;
+            const bool crossedWallRight =
+                previousXBounds.left >= wallRight - comparisonEpsilon
+                && proposedXBounds.left <= wallRight + comparisonEpsilon;
+            const bool isCloser = !hasHorizontalTarget
+                || wallRight > horizontalCollisionEdge + comparisonEpsilon;
+            if (crossedWallRight && isCloser) {
+                hasHorizontalTarget = true;
+                horizontalCollisionEdge = wallRight;
+            }
+        };
+
+        for (const auto& collider : world.mapColliders()) {
+            considerWall(collider.getGlobalBounds());
+        }
+        for (const auto& block : world.blocks()) {
+            if (block->getIsActive() && block->isSolid()) {
+                considerWall(block->getBounds());
+            }
+        }
+
+        if (hasHorizontalTarget) {
+            const float resolvedLeft = velocity.x > 0.0f
+                ? horizontalCollisionEdge - proposedXBounds.width
+                : horizontalCollisionEdge;
+            hero->getHitbox().setPosition(resolvedLeft,
+                                          proposedXBounds.top);
+            velocity.x = 0.0f;
+        }
+    }
+
+    // Retain overlap-based recovery for entities that begin a frame already
+    // intersecting a solid (for example, after an external position change).
     for (auto& collider : world.mapColliders()) {
         m_physics.resolveCollisionX(hero->getHitbox(), collider, velocity.x);
     }
@@ -53,6 +124,81 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
     const sf::FloatRect proposedBounds = hero->getBounds();
     sf::FloatRect previousBounds = proposedBounds;
     previousBounds.top = oldPosition.y;
+
+    // Resolve landings from the Hero's movement direction, rather than from
+    // the smallest final-frame overlap. Near a platform corner, horizontal
+    // overlap can be smaller than vertical penetration; the generic AABB side
+    // test then reports Left/Right during the Y pass and lets the Hero sink
+    // into the surface. Sweeping the feet from their previous to proposed
+    // position makes the result deterministic and also prevents tunnelling.
+    bool hasDownwardTarget = false;
+    float downwardCollisionTop = 0.0f;
+    float downwardHorizontalOverlap = 0.0f;
+    float downwardCenterDistance = 0.0f;
+
+    if (velocity.y >= 0.0f) {
+        constexpr float comparisonEpsilon = 0.001f;
+        const float previousBottom =
+            previousBounds.top + previousBounds.height;
+        const float proposedBottom =
+            proposedBounds.top + proposedBounds.height;
+        const float heroCenterX =
+            proposedBounds.left + proposedBounds.width * 0.5f;
+
+        auto considerLandingSurface = [&](const sf::FloatRect& surfaceBounds) {
+            const float horizontalOverlap =
+                std::min(proposedBounds.left + proposedBounds.width,
+                         surfaceBounds.left + surfaceBounds.width)
+                - std::max(proposedBounds.left, surfaceBounds.left);
+            const bool crossedSurfaceTop =
+                previousBottom <= surfaceBounds.top + comparisonEpsilon
+                && proposedBottom >= surfaceBounds.top - comparisonEpsilon;
+            if (!crossedSurfaceTop
+                || horizontalOverlap <= comparisonEpsilon) {
+                return;
+            }
+
+            const float centerDistance = std::abs(
+                heroCenterX
+                - (surfaceBounds.left + surfaceBounds.width * 0.5f));
+            const bool isCloserInFallDirection =
+                !hasDownwardTarget
+                || surfaceBounds.top
+                    < downwardCollisionTop - comparisonEpsilon;
+            const bool isSameHeight = hasDownwardTarget
+                && std::abs(surfaceBounds.top - downwardCollisionTop)
+                    <= comparisonEpsilon;
+            const bool hasBetterHorizontalMatch = isSameHeight
+                && (horizontalOverlap
+                        > downwardHorizontalOverlap + comparisonEpsilon
+                    || (std::abs(horizontalOverlap
+                                 - downwardHorizontalOverlap)
+                            <= comparisonEpsilon
+                        && centerDistance < downwardCenterDistance));
+
+            if (isCloserInFallDirection || hasBetterHorizontalMatch) {
+                hasDownwardTarget = true;
+                downwardCollisionTop = surfaceBounds.top;
+                downwardHorizontalOverlap = horizontalOverlap;
+                downwardCenterDistance = centerDistance;
+            }
+        };
+
+        for (const auto& collider : world.mapColliders()) {
+            considerLandingSurface(collider.getGlobalBounds());
+        }
+        for (const auto& block : world.blocks()) {
+            if (block->getIsActive() && block->isSolid()) {
+                considerLandingSurface(block->getBounds());
+            }
+        }
+
+        if (hasDownwardTarget) {
+            hero->getHitbox().setPosition(
+                resolvedX, downwardCollisionTop - proposedBounds.height);
+            velocity.y = 0.0f;
+        }
+    }
 
     if (velocity.y < 0.0f) {
         constexpr float comparisonEpsilon = 0.001f;
@@ -159,7 +305,7 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
         }
     }
 
-    bool grounded = false;
+    bool grounded = hasDownwardTarget;
     for (auto& collider : world.mapColliders()) {
         if (m_physics.checkCollision(hero->getHitbox(), collider)
             == SideType::Top) {

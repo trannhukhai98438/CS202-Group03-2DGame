@@ -28,6 +28,9 @@ CharacterSelectState::CharacterSelectState() {
     if (!m_luigiTexture.loadFromFile("assets/textures/Luigi.png")) {
         std::cerr << "Error loading Luigi texture\n";
     }
+	if (!m_flashTexture.loadFromFile("assets/textures/Flash.png")) {
+		std::cerr << "Error loading Flash texture\n";
+	}
 
     m_backgroundSprite.setTexture(m_backgroundTexture);
     const sf::Vector2u backgroundSize = m_backgroundTexture.getSize();
@@ -46,12 +49,12 @@ CharacterSelectState::CharacterSelectState() {
     m_title.setOutlineThickness(4.f);
     centerText(m_title, {640.f, 85.f});
 
-    const std::array<const char*, 2> names = {"MARIO", "LUIGI"};
-    const std::array<float, 2> xPositions = {430.f, 850.f};
+	const std::array<const char*, 3> names = {"MARIO", "LUIGI", "FLASH"};
+	const std::array<float, 3> xPositions = {280.f, 640.f, 1000.f};
     for (std::size_t i = 0; i < m_cards.size(); ++i) {
         auto& card = m_cards[i];
-        card.panel.setSize({300.f, 330.f});
-        card.panel.setOrigin(150.f, 165.f);
+		card.panel.setSize({270.f, 330.f});
+		card.panel.setOrigin(135.f, 165.f);
         card.panel.setPosition(xPositions[i], 325.f);
         card.panel.setOutlineThickness(5.f);
 
@@ -63,13 +66,18 @@ CharacterSelectState::CharacterSelectState() {
 
     m_cards[0].sprite.setTexture(m_marioTexture);
     m_cards[1].sprite.setTexture(m_luigiTexture);
-    for (std::size_t i = 0; i < m_cards.size(); ++i) {
+	m_cards[2].sprite.setTexture(m_flashTexture);
+	for (std::size_t i = 0; i < 2; ++i) {
         auto& sprite = m_cards[i].sprite;
         sprite.setTextureRect({0, 8, 16, 16});
         sprite.setOrigin(8.f, 8.f);
         sprite.setScale(9.f, 9.f);
         sprite.setPosition(xPositions[i], 295.f);
     }
+	m_cards[2].sprite.setTextureRect({15, 52, 104, 113});
+	m_cards[2].sprite.setOrigin(52.f, 56.5f);
+	m_cards[2].sprite.setScale(0.95f, 0.95f);
+	m_cards[2].sprite.setPosition(xPositions[2], 295.f);
 
     m_confirmButton.setSize({270.f, 62.f});
     m_confirmButton.setOrigin(135.f, 31.f);
@@ -95,8 +103,11 @@ CharacterSelectState::CharacterSelectState() {
     m_hint.setFillColor(sf::Color(235, 235, 235));
     centerText(m_hint, {640.f, 665.f});
 
-    m_selectedIndex = Game::getInstance().getSelectedHero() == HeroType::Luigi
-        ? 1 : 0;
+	switch (Game::getInstance().getSelectedHero()) {
+	case HeroType::Luigi: m_selectedIndex = 1; break;
+	case HeroType::Flash: m_selectedIndex = 2; break;
+	default: m_selectedIndex = 0; break;
+	}
     refreshAppearance();
 }
 
@@ -130,11 +141,11 @@ void CharacterSelectState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         if (event.key.code == sf::Keyboard::Left
             || event.key.code == sf::Keyboard::A) {
-            m_selectedIndex = 0;
+			m_selectedIndex = (m_selectedIndex + 2) % 3;
             refreshAppearance();
         } else if (event.key.code == sf::Keyboard::Right
                    || event.key.code == sf::Keyboard::D) {
-            m_selectedIndex = 1;
+			m_selectedIndex = (m_selectedIndex + 1) % 3;
             refreshAppearance();
         } else if (event.key.code == sf::Keyboard::Enter) {
             confirmSelection();
@@ -202,7 +213,9 @@ void CharacterSelectState::refreshAppearance() {
 }
 
 void CharacterSelectState::confirmSelection() {
-    Game::getInstance().setSelectedHero(
-        m_selectedIndex == 0 ? HeroType::Mario : HeroType::Luigi);
+	const std::array<HeroType, 3> heroTypes = {
+		HeroType::Mario, HeroType::Luigi, HeroType::Flash
+	};
+	Game::getInstance().setSelectedHero(heroTypes[m_selectedIndex]);
     Game::getInstance().changeState(std::make_unique<MainMenuState>());
 }

@@ -17,6 +17,9 @@ protected:
     std::unique_ptr<HeroForm> form;   // Small / Giant / Fire
     std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Fly / Grow / Shrink
     std::string baseTexturePath;
+	std::string specialTexturePath;
+	float spriteRenderScale{2.f};
+	float specialSpriteRenderScale{0.f};
     std::string overrideAnim;
     float overrideTimer;
     float invincibleTimer;
@@ -28,8 +31,9 @@ protected:
 public:
     Hero(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
     virtual ~Hero()=default;
-    void loadTexture(const std::string& path);
+    virtual void loadTexture(const std::string& path);
     std::string getBaseTexturePath() const;
+	std::string getSpecialTexturePath() const;
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
@@ -47,7 +51,7 @@ public:
     void onStomped(Character* attacker) override;
     void onSideCollision(Character* attacker) override;
     void collectItem(Item* item);
-
+    
     void collectCoin();
     int getCoin() const;
     bool isDead() const;

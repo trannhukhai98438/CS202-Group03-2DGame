@@ -6,6 +6,7 @@
 Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     : Hero(x, y, std::move(spawnCallback)) {
     baseTexturePath = "assets/textures/luigi.png";
+	specialTexturePath = "assets/textures/FireMario.png";
     
     // Small Form
     animator.addAnimation("SmallIdle", Animation({{0, 8, 16, 16}}, 0.15f));

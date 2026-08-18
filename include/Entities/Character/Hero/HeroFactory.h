@@ -4,7 +4,8 @@
 
 enum class HeroType {
     Mario,
-    Luigi
+	Luigi,
+	Flash
 };
 
 class HeroFactory {

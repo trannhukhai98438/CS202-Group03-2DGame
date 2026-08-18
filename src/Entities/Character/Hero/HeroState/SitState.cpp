@@ -29,7 +29,9 @@ void SitState::update(Hero* hero, float deltatime){
     // Y position unchanged — already on the ground
 
     // Transition: release Down → stand up
-    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+    const bool pressDown = sf::Keyboard::isKeyPressed(sf::Keyboard::Down)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::S);
+    if (!pressDown){
         hero->setState(std::make_unique<IdleState>());
     }
 }

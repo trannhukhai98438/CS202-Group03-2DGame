@@ -3,6 +3,7 @@
 #include "Core/PlayingState.h"
 #include "Core/TransitionState.h"
 #include "Core/CharacterSelectState.h"
+#include "Core/GuideState.h"
 #include <array>
 #include <iostream>
 
@@ -34,17 +35,19 @@ MainMenuState::MainMenuState() {
 	                      titleBounds.top + titleBounds.height / 2.f);
 	m_titleText.setPosition(640.f, 135.f);
 
-	const std::array<std::string, 3> labels = {"PLAY", "CHARACTER", "SETTING"};
+	const std::array<std::string, 5> labels = {
+		"PLAY", "CHARACTER", "LEVEL", "GUIDE", "SETTINGS"
+	};
 	for (std::size_t i = 0; i < m_buttons.size(); ++i) {
 		auto& button = m_buttons[i];
-		button.shape.setSize({330.f, 68.f});
-		button.shape.setOrigin(165.f, 34.f);
-		button.shape.setPosition(640.f, 295.f + static_cast<float>(i) * 92.f);
+		button.shape.setSize({330.f, 54.f});
+		button.shape.setOrigin(165.f, 27.f);
+		button.shape.setPosition(640.f, 245.f + static_cast<float>(i) * 68.f);
 		button.shape.setOutlineThickness(3.f);
 
 		button.label.setFont(m_font);
 		button.label.setString(labels[i]);
-		button.label.setCharacterSize(28);
+		button.label.setCharacterSize(24);
 		const sf::FloatRect bounds = button.label.getLocalBounds();
 		button.label.setOrigin(bounds.left + bounds.width / 2.f,
 		                       bounds.top + bounds.height / 2.f);
@@ -55,7 +58,7 @@ MainMenuState::MainMenuState() {
 	m_statusText.setFont(m_font);
 	m_statusText.setCharacterSize(18);
 	m_statusText.setFillColor(sf::Color::White);
-	m_statusText.setPosition(640.f, 595.f);
+	m_statusText.setPosition(640.f, 605.f);
 }
 
 void MainMenuState::processEvents(sf::Event& event) {
@@ -78,8 +81,14 @@ void MainMenuState::processEvents(sf::Event& event) {
 			Game::getInstance().changeState(std::make_unique<CharacterSelectState>());
 			return;
 		}
-		if (clicked == 2) {
-			m_statusText.setString("SETTINGS - COMING SOON");
+		if (clicked == 3) {
+			Game::getInstance().changeState(std::make_unique<GuideState>());
+			return;
+		}
+		if (clicked == 2 || clicked == 4) {
+			m_statusText.setString(clicked == 2
+				? "LEVELS - COMING SOON"
+				: "SETTINGS - COMING SOON");
 			const sf::FloatRect bounds = m_statusText.getLocalBounds();
 			m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
 			                       bounds.top + bounds.height / 2.f);
