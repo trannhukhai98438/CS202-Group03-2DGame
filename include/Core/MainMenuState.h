@@ -13,6 +13,8 @@ private:
 		sf::Text label;
 	};
 
+	void selectButton(int index);
+	void activateButton(int index);
 	void updateButtonAppearance();
 	int buttonAt(sf::Vector2f point) const;
 
@@ -23,7 +25,8 @@ private:
 	sf::Text m_titleText;
 	sf::Text m_statusText;
 	std::array<MenuButton, 5> m_buttons;
-	int m_hoveredButton = -1;
+	int m_selectedButton{0};
+	int m_hoveredButton{-1};
 public:
 	MainMenuState();
 	void processEvents(sf::Event& event) override;

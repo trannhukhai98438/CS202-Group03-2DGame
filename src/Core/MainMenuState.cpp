@@ -63,41 +63,53 @@ MainMenuState::MainMenuState() {
 
 void MainMenuState::processEvents(sf::Event& event) {
 	if (event.type == sf::Event::MouseMoved) {
-		m_hoveredButton = buttonAt({static_cast<float>(event.mouseMove.x),
-		                            static_cast<float>(event.mouseMove.y)});
-		updateButtonAppearance();
+		const int hovered = buttonAt({
+			static_cast<float>(event.mouseMove.x),
+			static_cast<float>(event.mouseMove.y)
+		});
+		if (hovered != m_hoveredButton) {
+			m_hoveredButton = hovered;
+			if (hovered >= 0) {
+				if (hovered != m_selectedButton) {
+					m_statusText.setString("");
+				}
+				m_selectedButton = hovered;
+			}
+			updateButtonAppearance();
+		}
+		return;
 	}
 
 	if (event.type == sf::Event::MouseButtonPressed
 		&& event.mouseButton.button == sf::Mouse::Left) {
 		const int clicked = buttonAt({static_cast<float>(event.mouseButton.x),
 		                              static_cast<float>(event.mouseButton.y)});
-		if (clicked == 0) {
-			Game::getInstance().startNewGame();
-			Game::getInstance().changeState(std::make_unique<TransitionState>());
-			return;
+		if (clicked >= 0) {
+			m_selectedButton = clicked;
+			m_hoveredButton = clicked;
+			m_statusText.setString("");
+			updateButtonAppearance();
+			activateButton(clicked);
 		}
-		if (clicked == 1) {
-			Game::getInstance().changeState(std::make_unique<CharacterSelectState>());
-			return;
-		}
-		if (clicked == 3) {
-			Game::getInstance().changeState(std::make_unique<GuideState>());
-			return;
-		}
-		if (clicked == 2 || clicked == 4) {
-			m_statusText.setString(clicked == 2
-				? "LEVELS - COMING SOON"
-				: "SETTINGS - COMING SOON");
-			const sf::FloatRect bounds = m_statusText.getLocalBounds();
-			m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
-			                       bounds.top + bounds.height / 2.f);
-		}
+		return;
 	}
 
-	if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
-		Game::getInstance().startNewGame();
-		Game::getInstance().changeState(std::make_unique<TransitionState>());
+	if (event.type != sf::Event::KeyPressed) return;
+
+	const int buttonCount = static_cast<int>(m_buttons.size());
+	const int activeButton = m_hoveredButton >= 0
+		? m_hoveredButton : m_selectedButton;
+	if (event.key.code == sf::Keyboard::Up) {
+		selectButton((activeButton + buttonCount - 1) % buttonCount);
+		return;
+	}
+	if (event.key.code == sf::Keyboard::Down) {
+		selectButton((activeButton + 1) % buttonCount);
+		return;
+	}
+	if (event.key.code == sf::Keyboard::Enter) {
+		selectButton(activeButton);
+		activateButton(activeButton);
 	}
 }
 
@@ -125,17 +137,54 @@ int MainMenuState::buttonAt(sf::Vector2f point) const {
 	return -1;
 }
 
+void MainMenuState::selectButton(int index) {
+	if (index < 0 || index >= static_cast<int>(m_buttons.size())) return;
+	const bool appearanceChanged = index != m_selectedButton
+		|| m_hoveredButton >= 0;
+	m_selectedButton = index;
+	m_hoveredButton = -1;
+	m_statusText.setString("");
+	if (appearanceChanged) updateButtonAppearance();
+}
+
+void MainMenuState::activateButton(int index) {
+	if (index == 0) {
+		Game::getInstance().startNewGame();
+		Game::getInstance().changeState(std::make_unique<TransitionState>());
+		return;
+	}
+	if (index == 1) {
+		Game::getInstance().changeState(
+			std::make_unique<CharacterSelectState>());
+		return;
+	}
+	if (index == 3) {
+		Game::getInstance().changeState(std::make_unique<GuideState>());
+		return;
+	}
+	if (index == 2 || index == 4) {
+		m_statusText.setString(index == 2
+			? "LEVELS - COMING SOON"
+			: "SETTINGS - COMING SOON");
+		const sf::FloatRect bounds = m_statusText.getLocalBounds();
+		m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
+		                       bounds.top + bounds.height / 2.f);
+	}
+}
+
 void MainMenuState::updateButtonAppearance() {
+	const int activeButton = m_hoveredButton >= 0
+		? m_hoveredButton : m_selectedButton;
 	for (std::size_t i = 0; i < m_buttons.size(); ++i) {
-		const bool hovered = static_cast<int>(i) == m_hoveredButton;
+		const bool selected = static_cast<int>(i) == activeButton;
 		auto& button = m_buttons[i];
-		button.shape.setFillColor(hovered
+		button.shape.setFillColor(selected
 			? sf::Color(245, 195, 45, 235)
 			: sf::Color(20, 35, 65, 210));
-		button.shape.setOutlineColor(hovered
+		button.shape.setOutlineColor(selected
 			? sf::Color::White
 			: sf::Color(230, 230, 230, 220));
-		button.label.setFillColor(hovered
+		button.label.setFillColor(selected
 			? sf::Color(125, 25, 20)
 			: sf::Color::White);
 	}

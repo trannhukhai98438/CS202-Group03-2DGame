@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <stack>
+#include <vector>
 #include <memory>
 #include "Core/State.h"
 #include "Entities/Character/Hero/HeroFactory.h"
@@ -11,18 +11,21 @@ private:
 		None,
 		Push,
 		Pop,
-		Replace
+		Replace,
+		ClearAndPush
 	};
 
 	Game();
 	sf::RenderWindow m_window;
 
 	const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
-	std::stack<std::unique_ptr<State>> m_states; // State stack
+	std::vector<std::unique_ptr<State>> m_states; // State stack
 	PendingStateAction m_pendingStateAction{PendingStateAction::None};
 	std::unique_ptr<State> m_pendingState;
 	HeroType m_selectedHero{HeroType::Mario};
 	int m_lives{3};
+	bool m_tabKeyDown{false};
+	bool m_enterKeyDown{false};
 	void applyPendingStateAction();
 	void processEvents();
 	void update(sf::Time dt);
@@ -41,6 +44,7 @@ public:
 	void pushState(std::unique_ptr<State> state);
 	void popState();
 	void changeState(std::unique_ptr<State> state);
+	void clearStatesAndChange(std::unique_ptr<State> state);
 	void setSelectedHero(HeroType heroType) { m_selectedHero = heroType; }
 	HeroType getSelectedHero() const { return m_selectedHero; }
 	void startNewGame() { m_lives = 3; }
