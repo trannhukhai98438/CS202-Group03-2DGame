@@ -1,7 +1,49 @@
 #include "Managers/MapManager.hpp"
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+
+void MapManager::parseCustomProperties(const nlohmann::json& objJson, MapObject& outObj) {
+    if (!objJson.contains("properties")
+        || !objJson["properties"].is_array()) return;
+
+    for (const auto& prop : objJson["properties"]) {
+        const std::string propName = prop.value("name", "");
+        if (propName.empty() || !prop.contains("value")) continue;
+
+        const auto& value = prop["value"];
+        std::string textValue;
+        if (value.is_string()) {
+            textValue = value.get<std::string>();
+        } else if (value.is_number_integer()) {
+            textValue = std::to_string(value.get<int>());
+        } else if (value.is_number_float()) {
+            textValue = std::to_string(value.get<float>());
+        } else if (value.is_boolean()) {
+            textValue = value.get<bool>() ? "true" : "false";
+        } else {
+            continue;
+        }
+        outObj.properties[propName] = textValue;
+
+        if (propName == "targetMap") {
+            outObj.targetMap = textValue;
+        } else if (propName == "direction") {
+            outObj.direction = textValue;
+        } else if (propName == "contain") {
+            outObj.contain = textValue;
+        } else if (propName == "count"
+                   || propName == "number"
+                   || propName == "quantity") {
+            try {
+                outObj.count = std::stoi(textValue);
+            } catch (const std::exception&) {
+                outObj.count = 1;
+            }
+        }
+    }
+}
 
 bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
     std::ifstream file(filePath);
@@ -22,8 +64,8 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
 
     outMapData.width = mapJson.value("width", 0);
     outMapData.height = mapJson.value("height", 0);
-    outMapData.tileWidth = mapJson.value("tilewidth", 16);
-    outMapData.tileHeight = mapJson.value("tileheight", 16);
+    outMapData.tileWidth = mapJson.value("tilewidth", 32);
+    outMapData.tileHeight = mapJson.value("tileheight", 32);
 
     if (mapJson.contains("layers") && mapJson["layers"].is_array()) {
         for (const auto& layerJson : mapJson["layers"]) {
@@ -43,7 +85,7 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
 
                 outMapData.tileLayers.push_back(layer);
             }
-            // Parse Object Layers
+            // Parse Object Layers (Triggers, Spawner, Interactive, etc.)
             else if (layerType == "objectgroup") {
                 ObjectLayer objLayer;
                 objLayer.name = layerJson.value("name", "Unnamed_ObjectLayer");
@@ -55,13 +97,10 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
                         obj.id   = objJson.value("id", 0);
                         obj.name = objJson.value("name", "");
 
-                        // Tiled legacy: object type is stored in "type" field.
-                        // Newer Tiled uses "class"; fall back to it if "type" is absent.
-                        if (objJson.contains("type") && objJson["type"].is_string()
-                            && !objJson["type"].get<std::string>().empty()) {
-                            obj.className = objJson["type"].get<std::string>();
-                        } else {
-                            obj.className = objJson.value("class", "");
+                        // Prefer modern Tiled "class", then legacy "type".
+                        obj.className = objJson.value("class", "");
+                        if (obj.className.empty()) {
+                            obj.className = objJson.value("type", "");
                         }
 
                         // gid present => tile object; y is bottom-left (Tiled convention)
@@ -71,20 +110,8 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
                         obj.width  = objJson.value("width",  0.0f);
                         obj.height = objJson.value("height", 0.0f);
 
-                        // Parse custom properties array:
-                        // [{"name":"item","type":"string","value":"mushroom"}, ...]
-                        if (objJson.contains("properties") && objJson["properties"].is_array()) {
-                            for (const auto& prop : objJson["properties"]) {
-                                if (!prop.contains("name")) continue;
-                                std::string key = prop["name"].get<std::string>();
-                                if (!prop.contains("value")) continue;
-                                const auto& val = prop["value"];
-                                if      (val.is_string())          obj.properties[key] = val.get<std::string>();
-                                else if (val.is_number_integer())  obj.properties[key] = std::to_string(val.get<int>());
-                                else if (val.is_number_float())    obj.properties[key] = std::to_string(val.get<float>());
-                                else if (val.is_boolean())         obj.properties[key] = val.get<bool>() ? "true" : "false";
-                            }
-                        }
+                        // Retain every scalar property and populate typed aliases.
+                        parseCustomProperties(objJson, obj);
 
                         objLayer.objects.push_back(obj);
                     }

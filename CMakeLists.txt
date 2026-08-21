@@ -49,3 +49,19 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
+
+# SFML audio is linked statically, but its OpenAL backend remains a runtime
+# DLL on Windows. Keep it beside the executable for both Debug and Release.
+if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SFML_OPENAL_ARCH x64)
+    else()
+        set(SFML_OPENAL_ARCH x86)
+    endif()
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${SFML_SOURCE_DIR}/extlibs/bin/${SFML_OPENAL_ARCH}/openal32.dll
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/openal32.dll
+    )
+endif()

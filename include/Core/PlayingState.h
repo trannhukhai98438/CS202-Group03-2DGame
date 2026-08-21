@@ -3,7 +3,7 @@
 #include "Core/State.h"
 #include "Gameplay/LevelRuntime.h"
 #include "Managers/HUDManager.hpp"
-
+#include "Managers/SoundManager.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
@@ -22,6 +22,7 @@ private:
     sf::View m_camera;
     std::shared_ptr<HUDManager> m_hudManager;
     LevelRuntime m_levelRuntime;
+    SoundManager m_soundManager;
     int m_lastCoinCount{0};
 
     bool m_victoryPending{false};

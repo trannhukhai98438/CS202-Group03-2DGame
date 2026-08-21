@@ -89,7 +89,7 @@ const Hero* LevelRuntime::getHero() const {
 }
 
 float LevelRuntime::getWorldWidth() const {
-    return static_cast<float>(m_world.levelManager().getMapWidthPixels()) * 2.0f;
+    return static_cast<float>(m_world.levelManager().getMapWidthPixels());
 }
 
 bool LevelRuntime::hasActivatedGoal() const {

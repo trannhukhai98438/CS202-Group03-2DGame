@@ -1,5 +1,6 @@
 #include "Managers/LevelManager.hpp"
 #include <iostream>
+#include <cmath>
 
 bool LevelManager::loadLevel(const std::string& jsonPath, const std::string& tilesetTexturePath) {
     // 1. Delegate map parsing to MapManager
@@ -32,7 +33,19 @@ bool LevelManager::buildMapMesh() {
 
     int tilesetColumns = m_tilesetTexture.getSize().x / m_currentMap.tileWidth;
 
-    // Traverse all tile layers and populate quad vertices
+    // 1. Đếm trước số lượng tile hợp lệ để resize trước (Tránh reallocate bộ nhớ liên tục)
+    size_t totalQuads = 0;
+    for (const auto& layer : m_currentMap.tileLayers) {
+        if (!layer.visible) continue;
+        for (int id : layer.data) {
+            if (id > 0) totalQuads++;
+        }
+    }
+
+    m_vertices.resize(totalQuads * 4);
+    size_t vertexIndex = 0;
+
+    // 2. Populate quad vertices trực tiếp vào m_vertices
     for (const auto& layer : m_currentMap.tileLayers) {
         if (!layer.visible) continue;
 
@@ -40,40 +53,30 @@ bool LevelManager::buildMapMesh() {
             for (int x = 0; x < layer.width; ++x) {
                 int tileID = layer.data[y * layer.width + x];
 
-                // Skip empty tiles (Tile ID 0)
                 if (tileID == 0) continue;
 
-                // Convert Tiled 1-based GID to 0-based index
-                int tileIndex = tileID - 1;
+                int tileIndex_UV = tileID - 1;
+                int tu = tileIndex_UV % tilesetColumns;
+                int tv = tileIndex_UV / tilesetColumns;
 
-                // Calculate UV coordinates on Tileset texture
-                int tu = tileIndex % tilesetColumns;
-                int tv = tileIndex / tilesetColumns;
-
-                // World coordinates
                 float posX = static_cast<float>(x * m_currentMap.tileWidth);
                 float posY = static_cast<float>(y * m_currentMap.tileHeight);
 
-                // Texture coordinates
                 float texX = static_cast<float>(tu * m_currentMap.tileWidth);
                 float texY = static_cast<float>(tv * m_currentMap.tileHeight);
 
-                // Define Quad corners
-                sf::Vertex quad[4];
+                // Gán trực tiếp vào m_vertices thông qua vertexIndex
+                m_vertices[vertexIndex + 0].position = sf::Vector2f(posX, posY);
+                m_vertices[vertexIndex + 1].position = sf::Vector2f(posX + m_currentMap.tileWidth, posY);
+                m_vertices[vertexIndex + 2].position = sf::Vector2f(posX + m_currentMap.tileWidth, posY + m_currentMap.tileHeight);
+                m_vertices[vertexIndex + 3].position = sf::Vector2f(posX, posY + m_currentMap.tileHeight);
 
-                quad[0].position = sf::Vector2f(posX, posY);
-                quad[1].position = sf::Vector2f(posX + m_currentMap.tileWidth, posY);
-                quad[2].position = sf::Vector2f(posX + m_currentMap.tileWidth, posY + m_currentMap.tileHeight);
-                quad[3].position = sf::Vector2f(posX, posY + m_currentMap.tileHeight);
+                m_vertices[vertexIndex + 0].texCoords = sf::Vector2f(texX, texY);
+                m_vertices[vertexIndex + 1].texCoords = sf::Vector2f(texX + m_currentMap.tileWidth, texY);
+                m_vertices[vertexIndex + 2].texCoords = sf::Vector2f(texX + m_currentMap.tileWidth, texY + m_currentMap.tileHeight);
+                m_vertices[vertexIndex + 3].texCoords = sf::Vector2f(texX, texY + m_currentMap.tileHeight);
 
-                quad[0].texCoords = sf::Vector2f(texX, texY);
-                quad[1].texCoords = sf::Vector2f(texX + m_currentMap.tileWidth, texY);
-                quad[2].texCoords = sf::Vector2f(texX + m_currentMap.tileWidth, texY + m_currentMap.tileHeight);
-                quad[3].texCoords = sf::Vector2f(texX, texY + m_currentMap.tileHeight);
-
-                for (int i = 0; i < 4; ++i) {
-                    m_vertices.append(quad[i]);
-                }
+                vertexIndex += 4;
             }
         }
     }
@@ -81,7 +84,6 @@ bool LevelManager::buildMapMesh() {
 }
 
 void LevelManager::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    states.transform.translate(0.f, 272.f).scale(2.f, 2.f);
     states.texture = &m_tilesetTexture;
     target.draw(m_vertices, states);
 }
@@ -110,8 +112,9 @@ bool LevelManager::isSolidAtTile(int tileX, int tileY) const {
 bool LevelManager::isSolidAtPixel(float worldX, float worldY) const {
     if (m_currentMap.tileWidth == 0 || m_currentMap.tileHeight == 0) return false;
 
-    int tileX = static_cast<int>(worldX) / m_currentMap.tileWidth;
-    int tileY = static_cast<int>(worldY) / m_currentMap.tileHeight;
+    // Sử dụng std::floor để tính đúng tọa độ Tile ngay cả khi Pixel âm (< 0)
+    int tileX = static_cast<int>(std::floor(worldX / m_currentMap.tileWidth));
+    int tileY = static_cast<int>(std::floor(worldY / m_currentMap.tileHeight));
 
     return isSolidAtTile(tileX, tileY);
 }
@@ -141,7 +144,7 @@ bool LevelManager::setTileID(const std::string& layerName, int tileX, int tileY,
 
 std::vector<MapObject> LevelManager::getObjectsFromLayer(const std::string& layerName) const {
     const ObjectLayer* layer = m_currentMap.getObjectLayer(layerName);
-    if (layer && layer->visible) {
+    if (layer) {
         return layer->objects;
     }
     return {};
@@ -149,7 +152,7 @@ std::vector<MapObject> LevelManager::getObjectsFromLayer(const std::string& laye
 
 bool LevelManager::getObjectByName(const std::string& layerName, const std::string& objectName, MapObject& outObject) const {
     const ObjectLayer* layer = m_currentMap.getObjectLayer(layerName);
-    if (layer && layer->visible) {
+    if (layer) {
         for (const auto& obj : layer->objects) {
             if (obj.name == objectName) {
                 outObject = obj;
@@ -163,7 +166,7 @@ bool LevelManager::getObjectByName(const std::string& layerName, const std::stri
 std::vector<MapObject> LevelManager::getObjectsByClass(const std::string& layerName, const std::string& className) const {
     std::vector<MapObject> result;
     const ObjectLayer* layer = m_currentMap.getObjectLayer(layerName);
-    if (layer && layer->visible) {
+    if (layer) {
         for (const auto& obj : layer->objects) {
             if (obj.className == className) {
                 result.push_back(obj);
@@ -176,7 +179,7 @@ std::vector<MapObject> LevelManager::getObjectsByClass(const std::string& layerN
 std::vector<MapObject> LevelManager::getObjectsByClassAndName(const std::string& layerName, const std::string& className, const std::string& objectName) const {
     std::vector<MapObject> result;
     const ObjectLayer* layer = m_currentMap.getObjectLayer(layerName);
-    if (layer && layer->visible) {
+    if (layer) {
         for (const auto& obj : layer->objects) {
             if (obj.className == className && obj.name == objectName) {
                 result.push_back(obj);
@@ -190,8 +193,6 @@ std::vector<MapObject> LevelManager::findObjects(const std::string& className, c
     std::vector<MapObject> result;
 
     for (const auto& layer : m_currentMap.objectLayers) {
-        if (!layer.visible) continue;
-
         for (const auto& obj : layer.objects) {
             bool matchesClass = className.empty() || (obj.className == className);
             bool matchesName = objectName.empty() || (obj.name == objectName);

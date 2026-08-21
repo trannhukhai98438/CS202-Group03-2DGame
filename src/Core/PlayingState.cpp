@@ -33,6 +33,9 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
         std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
                   << std::endl;
     }
+
+    m_soundManager.loadAllSFX();
+    m_soundManager.playBGM("underground");
 }
 
 PlayingState::~PlayingState() = default;
@@ -41,6 +44,14 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed
         && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
+		return;
+	}
+
+    // Bấm phím C để giả lập ăn 1 xu (+100 điểm)
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
+        m_hudManager->addCoin(1);
+        m_hudManager->addScore(100);
+        m_soundManager.playSFX("coin");
     }
 }
 
@@ -66,6 +77,7 @@ void PlayingState::update(sf::Time dt) {
         const int difference = currentCoins - m_lastCoinCount;
         m_hudManager->addCoin(difference);
         m_hudManager->addScore(100 * difference);
+        m_soundManager.playSFX("coin");
         m_lastCoinCount = currentCoins;
     }
 

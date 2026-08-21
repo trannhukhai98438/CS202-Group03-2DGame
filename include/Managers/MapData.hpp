@@ -12,21 +12,26 @@ struct TileLayer {
     std::vector<int> data; // 1D grid array storing Tile IDs
 };
 
-// Represents a single object parsed from Tiled Object Group (Spawners, Entities, Triggers)
+// Represents a single object parsed from Tiled Object Group (Interactive, Spawner, Trigger)
 struct MapObject {
     int id{ 0 };
-    std::string name;
-    std::string className; // Tiled "type" field (brick/question/coin/flag/invisible)
-    int gid{ 0 };          // Tile GID >0 means this is a tile object (y = bottom-left in Tiled)
-    float x{ 0.0f };       // World X in pixels (Tiled native, 16px grid)
-    float y{ 0.0f };       // World Y in pixels (top for rects, bottom for tile objects)
-    float width{ 0.0f };   // Object bounding width
-    float height{ 0.0f };  // Object bounding height
+    std::string name;       // Object identifier (for example, paired pipe names)
+    std::string className;  // Tiled class/type (question, pipe_in, goomba, etc.)
+    int gid{ 0 };           // GID > 0 means Tiled stores Y at the tile's bottom edge
+    float x{ 0.0f };
+    float y{ 0.0f };
+    float width{ 0.0f };
+    float height{ 0.0f };
 
-    // Custom Tiled properties, e.g. {"item": "mushroom"}
+    // Generic properties keep every scalar value available to gameplay code.
     std::unordered_map<std::string, std::string> properties;
 
-    // Returns property value for key, or def if not found
+    // Typed aliases from the incoming map schema.
+    std::string targetMap;
+    std::string direction{ "down" };
+    std::string contain{ "none" };
+    int count{ 1 };
+
     std::string getProperty(const std::string& key,
                             const std::string& def = "") const {
         auto it = properties.find(key);
@@ -45,8 +50,8 @@ struct ObjectLayer {
 struct MapData {
     int width{ 0 };      // Map width in tiles
     int height{ 0 };     // Map height in tiles
-    int tileWidth{ 0 };  // Single tile width in pixels (e.g., 16)
-    int tileHeight{ 0 }; // Single tile height in pixels (e.g., 16)
+    int tileWidth{ 0 };  // Single tile width in pixels (e.g., 32)
+    int tileHeight{ 0 }; // Single tile height in pixels (e.g., 32)
 
     std::vector<TileLayer> tileLayers;
     std::vector<ObjectLayer> objectLayers;
@@ -54,11 +59,15 @@ struct MapData {
     // Resets all map variables and clears layers
     void clear();
 
-    // Helper functions for map bounds calculations
+    // Helper functions for map bounds calculations in total pixels
     int getMapWidthPixels() const;
     int getMapHeightPixels() const;
 
     // Fast pointer lookup for layers by name
     const TileLayer* getTileLayer(const std::string& layerName) const;
     const ObjectLayer* getObjectLayer(const std::string& layerName) const;
+
+    // Fast object query helpers
+    std::vector<MapObject> getObjectsByClass(const std::string& className) const;
+    const MapObject* findPipeExit(const std::string& pipeName) const;
 };
