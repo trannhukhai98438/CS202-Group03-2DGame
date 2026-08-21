@@ -5,10 +5,11 @@
 #include "Managers/HUDManager.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <memory>
 
 class PlayingState : public State {
 public:
-    PlayingState();
+    explicit PlayingState(std::shared_ptr<HUDManager> hudManager);
     ~PlayingState() override;
 
     void processEvents(sf::Event& event) override;
@@ -19,8 +20,8 @@ private:
     static constexpr float DEFEAT_DELAY_SECONDS = 2.0f;
 
     sf::View m_camera;
+    std::shared_ptr<HUDManager> m_hudManager;
     LevelRuntime m_levelRuntime;
-    HUDManager m_hudManager;
     int m_lastCoinCount{0};
 
     bool m_victoryPending{false};

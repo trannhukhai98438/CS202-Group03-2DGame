@@ -1,10 +1,23 @@
 #include "Core/TransitionState.h"
-#include "Core/PlayingState.h"
 #include "Core/Game.h"
-#include <iostream>
-#include <string>
+#include "Core/PlayingState.h"
+#include "Managers/HUDManager.hpp"
 
-TransitionState::TransitionState() : m_elapsedTime(sf::Time::Zero) {
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+
+TransitionState::TransitionState()
+	: TransitionState(std::make_shared<HUDManager>()) {
+}
+
+TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager)
+	: m_hudManager(std::move(hudManager)),
+	  m_elapsedTime(sf::Time::Zero) {
+	if (!m_hudManager) {
+		m_hudManager = std::make_shared<HUDManager>();
+	}
 	if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
 		std::cerr << "ERROR: Failed to load font!\n";
 	}
@@ -14,7 +27,7 @@ TransitionState::TransitionState() : m_elapsedTime(sf::Time::Zero) {
 	m_worldText.setFillColor(sf::Color::White);
 	m_livesText.setFont(m_font);
 	m_livesText.setString("LIVES: "
-		+ std::to_string(Game::getInstance().getLives()));
+		+ std::to_string(m_hudManager->getLives()));
 	m_livesText.setCharacterSize(40);
 	m_livesText.setFillColor(sf::Color::White);
 }
@@ -26,7 +39,8 @@ void TransitionState::processEvents(sf::Event& event) {
 void TransitionState::update(sf::Time dt) {
 	m_elapsedTime += dt;
 	if (m_elapsedTime.asSeconds() > 2.5f) { // After 2.5 seconds, transition to the PlayingState
-		Game::getInstance().changeState(std::make_unique<PlayingState>());
+		Game::getInstance().changeState(
+			std::make_unique<PlayingState>(m_hudManager));
 	}
 }
 

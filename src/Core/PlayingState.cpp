@@ -11,18 +11,23 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 namespace {
 constexpr float VICTORY_DELAY_SECONDS = 0.75f;
 }
 
-PlayingState::PlayingState()
-	: m_levelRuntime("assets/maps/levels/1-1.tmj",
+PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
+	: m_hudManager(std::move(hudManager)),
+	  m_levelRuntime("assets/maps/levels/1-1.tmj",
 	                     "assets/maps/resources/tileset.png",
 	                     Game::getInstance().getSelectedHero()) {
+    if (!m_hudManager) {
+        m_hudManager = std::make_shared<HUDManager>();
+    }
     m_camera.setSize(1280.0f, 720.0f);
-    m_hudManager.init("assets/fonts/SuperMario256.ttf");
-	m_hudManager.setLives(Game::getInstance().getLives());
+    m_hudManager->init("assets/fonts/SuperMario256.ttf");
+    m_hudManager->resetTimer();
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
@@ -43,14 +48,14 @@ void PlayingState::update(sf::Time dt) {
     const float deltaTime = dt.asSeconds();
 
     // The timer intentionally continues through victory and defeat delays.
-    m_hudManager.updateTimer(deltaTime);
-    if (m_hudManager.getRemainingTime() <= 0.0f) {
+    m_hudManager->updateTimer(deltaTime);
+    if (m_hudManager->getRemainingTime() <= 0.0f) {
         // Time-out behavior remains deferred until the lives/session phase.
     }
 
     const int scoreDelta = m_levelRuntime.update(deltaTime);
     if (scoreDelta > 0) {
-        m_hudManager.addScore(scoreDelta);
+        m_hudManager->addScore(scoreDelta);
     }
 
     Hero* hero = m_levelRuntime.getHero();
@@ -59,12 +64,8 @@ void PlayingState::update(sf::Time dt) {
     const int currentCoins = hero->getCoin();
     if (currentCoins > m_lastCoinCount) {
         const int difference = currentCoins - m_lastCoinCount;
-		const int livesBeforeCoins = m_hudManager.getLives();
-        m_hudManager.addCoin(difference);
-		if (m_hudManager.getLives() > livesBeforeCoins) {
-			Game::getInstance().addLife();
-		}
-        m_hudManager.addScore(100 * difference);
+        m_hudManager->addCoin(difference);
+        m_hudManager->addScore(100 * difference);
         m_lastCoinCount = currentCoins;
     }
 
@@ -108,16 +109,15 @@ void PlayingState::update(sf::Time dt) {
     if (m_victoryPending) return;
 
     if (!m_defeatPending && hero->isDead()) {
-		Game::getInstance().loseLife();
-		m_hudManager.setLives(Game::getInstance().getLives());
+        m_hudManager->loseLife();
         m_defeatPending = true;
         m_defeatDelayRemaining = DEFEAT_DELAY_SECONDS;
     } else if (m_defeatPending) {
         m_defeatDelayRemaining -= deltaTime;
         if (m_defeatDelayRemaining <= 0.0f) {
-			if (Game::getInstance().getLives() > 0) {
+			if (m_hudManager->getLives() > 0) {
 				Game::getInstance().changeState(
-					std::make_unique<TransitionState>());
+					std::make_unique<TransitionState>(m_hudManager));
 			} else {
 				Game::getInstance().changeState(
 					std::make_unique<GameOverState>());
@@ -130,6 +130,6 @@ void PlayingState::update(sf::Time dt) {
 void PlayingState::render(sf::RenderWindow& window) {
     window.setView(m_camera);
     m_levelRuntime.renderWorld(window);
-    window.draw(m_hudManager);
+    window.draw(*m_hudManager);
     window.setView(window.getDefaultView());
 }

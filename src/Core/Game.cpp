@@ -108,13 +108,6 @@ void Game::clearStatesAndChange(std::unique_ptr<State> state) {
 	m_pendingStateAction = PendingStateAction::ClearAndPush;
 }
 
-int Game::loseLife() {
-	if (m_lives > 0) {
-		--m_lives;
-	}
-	return m_lives;
-}
-
 void Game::applyPendingStateAction() {
 	const PendingStateAction action = m_pendingStateAction;
 	m_pendingStateAction = PendingStateAction::None;

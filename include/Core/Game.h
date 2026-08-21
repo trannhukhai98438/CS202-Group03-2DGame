@@ -23,7 +23,6 @@ private:
 	PendingStateAction m_pendingStateAction{PendingStateAction::None};
 	std::unique_ptr<State> m_pendingState;
 	HeroType m_selectedHero{HeroType::Mario};
-	int m_lives{3};
 	bool m_tabKeyDown{false};
 	bool m_enterKeyDown{false};
 	void applyPendingStateAction();
@@ -47,8 +46,4 @@ public:
 	void clearStatesAndChange(std::unique_ptr<State> state);
 	void setSelectedHero(HeroType heroType) { m_selectedHero = heroType; }
 	HeroType getSelectedHero() const { return m_selectedHero; }
-	void startNewGame() { m_lives = 3; }
-	int loseLife();
-	void addLife() { ++m_lives; }
-	int getLives() const { return m_lives; }
 };

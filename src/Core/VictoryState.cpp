@@ -220,7 +220,6 @@ void VictoryState::selectButton(int index) {
 
 void VictoryState::activateButton(int index) {
 	if (index == 0) {
-		Game::getInstance().startNewGame();
 		Game::getInstance().clearStatesAndChange(
 			std::make_unique<TransitionState>());
 		return;

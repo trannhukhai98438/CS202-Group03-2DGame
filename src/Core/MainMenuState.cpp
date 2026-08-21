@@ -149,7 +149,6 @@ void MainMenuState::selectButton(int index) {
 
 void MainMenuState::activateButton(int index) {
 	if (index == 0) {
-		Game::getInstance().startNewGame();
 		Game::getInstance().changeState(std::make_unique<TransitionState>());
 		return;
 	}
