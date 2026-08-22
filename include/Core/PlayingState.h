@@ -24,6 +24,7 @@ private:
     LevelRuntime m_levelRuntime;
     SoundManager m_soundManager;
     int m_lastCoinCount{0};
+    PipeDirection m_latchedPipeDirection{PipeDirection::None};
 
     bool m_victoryPending{false};
     float m_victoryDelayRemaining{0.0f};

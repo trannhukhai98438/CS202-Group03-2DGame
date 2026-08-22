@@ -9,12 +9,60 @@
 #include "Entities/Character/Hero/HeroState/FlyState.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <utility>
 
 namespace {
 constexpr float VICTORY_DELAY_SECONDS = 0.75f;
+constexpr float CAMERA_WIDTH = 1280.0f;
+constexpr float CAMERA_HEIGHT = 720.0f;
+constexpr float UNDERGROUND_ROOM_LEFT = 1536.0f;
+constexpr float UNDERGROUND_ROOM_TOP = 544.0f;
+constexpr float UNDERGROUND_ROOM_WIDTH = 512.0f;
+constexpr float UNDERGROUND_ROOM_HEIGHT = 416.0f;
+
+bool isPipeDirectionHeld(PipeDirection direction) {
+    switch (direction) {
+    case PipeDirection::Down:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Down)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::S);
+    case PipeDirection::Up:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Up)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+    case PipeDirection::Left:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Left)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    case PipeDirection::Right:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Right)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    case PipeDirection::None:
+        return false;
+    }
+
+    return false;
+}
+
+PipeDirection getHeldPipeDirection() {
+    if (isPipeDirectionHeld(PipeDirection::Down)) {
+        return PipeDirection::Down;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Up)) {
+        return PipeDirection::Up;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Left)) {
+        return PipeDirection::Left;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Right)) {
+        return PipeDirection::Right;
+    }
+    return PipeDirection::None;
+}
+
+float getCameraY(float activeRegionBottom) {
+    return activeRegionBottom - CAMERA_HEIGHT * 0.5f;
+}
 }
 
 PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
@@ -25,9 +73,11 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
     if (!m_hudManager) {
         m_hudManager = std::make_shared<HUDManager>();
     }
-    m_camera.setSize(1280.0f, 720.0f);
+    m_camera.setSize(CAMERA_WIDTH, CAMERA_HEIGHT);
+    m_camera.setCenter(
+        CAMERA_WIDTH * 0.5f,
+        getCameraY(m_levelRuntime.getActiveRegionBottom()));
     m_hudManager->init("assets/fonts/SuperMario256.ttf");
-    m_hudManager->resetTimer();
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
@@ -35,7 +85,7 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
     }
 
     m_soundManager.loadAllSFX();
-    m_soundManager.playBGM("underground");
+    m_soundManager.playBGM("ground");
 }
 
 PlayingState::~PlayingState() = default;
@@ -46,13 +96,6 @@ void PlayingState::processEvents(sf::Event& event) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
 		return;
 	}
-
-    // Bấm phím C để giả lập ăn 1 xu (+100 điểm)
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
-        m_hudManager->addCoin(1);
-        m_hudManager->addScore(100);
-        m_soundManager.playSFX("coin");
-    }
 }
 
 void PlayingState::update(sf::Time dt) {
@@ -61,12 +104,32 @@ void PlayingState::update(sf::Time dt) {
     // The timer intentionally continues through victory and defeat delays.
     m_hudManager->updateTimer(deltaTime);
     if (m_hudManager->getRemainingTime() <= 0.0f) {
-        // Time-out behavior remains deferred until the lives/session phase.
+        Game::getInstance().changeState(std::make_unique<GameOverState>());
+        return;
     }
 
-    const int scoreDelta = m_levelRuntime.update(deltaTime);
-    if (scoreDelta > 0) {
-        m_hudManager->addScore(scoreDelta);
+    const PipeDirection heldPipeDirection = getHeldPipeDirection();
+    if (m_latchedPipeDirection != PipeDirection::None
+        && !isPipeDirectionHeld(m_latchedPipeDirection)) {
+        m_latchedPipeDirection = PipeDirection::None;
+    }
+    const PipeDirection requestedPipeDirection =
+        (m_latchedPipeDirection == PipeDirection::None
+         && !m_victoryPending && !m_defeatPending)
+            ? heldPipeDirection
+            : PipeDirection::None;
+
+    const LevelUpdateResult levelUpdate =
+        m_levelRuntime.update(deltaTime, requestedPipeDirection);
+    if (levelUpdate.scoreDelta > 0) {
+        m_hudManager->addScore(levelUpdate.scoreDelta);
+    }
+    if (levelUpdate.travelledThroughPipe) {
+        m_latchedPipeDirection = requestedPipeDirection;
+        m_soundManager.playSFX("pipe");
+        const bool isUnderground =
+            m_levelRuntime.getActiveRegionBottom() > CAMERA_HEIGHT;
+        m_soundManager.playBGM(isUnderground ? "underground" : "ground");
     }
 
     Hero* hero = m_levelRuntime.getHero();
@@ -81,12 +144,20 @@ void PlayingState::update(sf::Time dt) {
         m_lastCoinCount = currentCoins;
     }
 
-    const float halfScreenWidth = 640.0f;
+    const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
     const float levelEnd = m_levelRuntime.getWorldWidth();
     const float cameraX = std::clamp(hero->getPosition().x,
                                      halfScreenWidth,
                                      levelEnd - halfScreenWidth);
-    m_camera.setCenter(cameraX, 360.0f);
+    // Keep the world aligned to physical pixels. Following the Hero's
+    // fractional X position directly makes tightly packed atlas tiles sample
+    // neighbouring texels, which appears as one-pixel vertical seams.
+    // Align the active room's bottom with the bottom of the viewport. On the
+    // surface this prevents the vertically stacked underground map from being
+    // visible; pipe travel still moves the camera to that room after entry.
+    const float cameraY = getCameraY(
+        m_levelRuntime.getActiveRegionBottom());
+    m_camera.setCenter(std::round(cameraX), std::round(cameraY));
 
     // Goal activation is resolved by InteractionSystem. PlayingState only
     // owns the presentation delay and the game-state transition.
@@ -141,6 +212,15 @@ void PlayingState::update(sf::Time dt) {
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.setView(m_camera);
+    if (m_levelRuntime.getActiveRegionBottom() > CAMERA_HEIGHT) {
+        sf::RectangleShape undergroundBackdrop({
+            UNDERGROUND_ROOM_WIDTH, UNDERGROUND_ROOM_HEIGHT
+        });
+        undergroundBackdrop.setPosition(
+            UNDERGROUND_ROOM_LEFT, UNDERGROUND_ROOM_TOP);
+        undergroundBackdrop.setFillColor(sf::Color::Black);
+        window.draw(undergroundBackdrop);
+    }
     m_levelRuntime.renderWorld(window);
     window.draw(*m_hudManager);
     window.setView(window.getDefaultView());

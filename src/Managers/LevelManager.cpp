@@ -14,6 +14,10 @@ bool LevelManager::loadLevel(const std::string& jsonPath, const std::string& til
         std::cerr << "[LevelManager] Error: Failed to load tileset image: " << tilesetTexturePath << std::endl;
         return false;
     }
+    // Pixel-art tiles must use nearest-neighbour sampling. Repeating would
+    // also allow pixels from the opposite atlas edge to bleed into a tile.
+    m_tilesetTexture.setSmooth(false);
+    m_tilesetTexture.setRepeated(false);
 
     // 3. Build VertexArray mesh for batch rendering
     if (!buildMapMesh()) {
