@@ -68,6 +68,7 @@ public:
     virtual void checkObstacles();
     virtual void move(float deltaTime);
     virtual void applyAnimation();
+    virtual void notifyWallHit() {}
 };
 
 #endif

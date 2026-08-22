@@ -6,6 +6,7 @@
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -27,6 +28,19 @@ std::string getContainedItem(const MapObject& object) {
 
     const std::string legacyItem = object.getProperty("item", "coin");
     return legacyItem == "none" ? "coin" : legacyItem;
+}
+
+float getFloatProperty(const MapObject& object,
+                       const std::string& name,
+                       float fallback) {
+    const std::string value = object.getProperty(name, "");
+    if (value.empty()) return fallback;
+
+    try {
+        return std::stof(value);
+    } catch (const std::exception&) {
+        return fallback;
+    }
 }
 }
 
@@ -150,6 +164,11 @@ bool LevelBuilder::build(GameWorld& world,
         } else if (spawner.className == "witch") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Witch, spawner.x, spawner.y, 150.f,
+                spawnCallback);
+        } else if (spawner.className == "thorking") {
+            enemy = EnemyFactory::createEnemy(
+                EnemyType::ThorKing, spawner.x, spawner.y,
+                getFloatProperty(spawner, "patrolRange", 600.f),
                 spawnCallback);
         }
         if (!enemy) continue;

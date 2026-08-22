@@ -444,6 +444,7 @@ void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
         }
         if (hitWall) {
             enemy->flipDirection();
+            enemy->notifyWallHit();
         }
 
         enemy->setPosition(sf::Vector2f(

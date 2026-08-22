@@ -227,6 +227,25 @@
                 }, 
                 {
                  "height":0,
+                 "id":123,
+                 "name":"",
+                 "opacity":1,
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"patrolRange",
+                         "type":"float",
+                         "value":300
+                        }],
+                 "rotation":0,
+                 "type":"thorking",
+                 "visible":true,
+                 "width":0,
+                 "x":5888,
+                 "y":416
+                },
+                {
+                 "height":0,
                  "id":103,
                  "name":"",
                  "opacity":1,
@@ -1552,7 +1571,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":123,
+ "nextobjectid":124,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
