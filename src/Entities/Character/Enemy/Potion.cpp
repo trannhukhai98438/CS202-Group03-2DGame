@@ -70,12 +70,15 @@ void Potion::shatterOnTile(float tileY) {
     float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80.0f);
     float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24.0f);
     sprite.setScale(scaleX, scaleY);
+    // Sync sprite position with shape immediately
+    sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
 
     animator.playAnimation("puddle", 0.0f);
 }
 
-void Potion::shatter() {
-    shatterOnTile(groundY);
+void Potion::setPosition(const sf::Vector2f& pos) {
+    Projectile::setPosition(pos);
+    sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
 }
 
 void Potion::update(float deltaTime) {
@@ -91,27 +94,16 @@ void Potion::update(float deltaTime) {
         float texH = static_cast<float>(texture.getSize().y > 0 ? texture.getSize().y : 1);
         sprite.setOrigin(texW / 2.f, texH); // bottom-center origin
         sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
-
-        if (position.y + shape.getSize().y >= groundY) {
-            shatter();
-        }
     } else {
         puddleTimer -= deltaTime;
         if (puddleTimer <= 0.0f) {
             die();
+            return;
         }
-        // Apply gravity to puddle so it falls down if platforms are removed or if it shatters mid-air
+        // Apply gravity to puddle so it can fall if platform under it is removed or mid-air
         velocity.y += gravity * deltaTime;
         position += velocity * deltaTime;
-
-        // Ground clamping fallback
-        if (position.y + shape.getSize().y >= groundY) {
-            position.y = groundY - shape.getSize().y;
-            velocity.y = 0.0f;
-        }
-
         shape.setPosition(position);
-        // Align puddle sprite bottom-center to shape bottom-center to match the Animator's bottom-center origin
         sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
     }
     

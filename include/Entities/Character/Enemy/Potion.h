@@ -12,9 +12,6 @@ private:
     bool isPuddle;
     float puddleTimer;
     const float gravity = 1400.0f; // px/s^2
-    const float groundY = 688.0f;
-
-    void shatter();
 
 public:
     Potion(float startX, float startY, float velX, float velY);
@@ -22,6 +19,7 @@ public:
 
     void shatterOnTile(float tileY);
 
+    void setPosition(const sf::Vector2f& pos) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
     

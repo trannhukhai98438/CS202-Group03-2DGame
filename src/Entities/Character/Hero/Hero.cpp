@@ -132,6 +132,11 @@ void Hero::takedamage(){
     }
 }
 
+void Hero::takeDamage(int damage) {
+    if (damage <= 0) return;
+    takedamage();
+}
+
 void Hero::die(){
     Character::die(); // sets isAlive = false
     setState(std::make_unique<DeadState>());
@@ -178,9 +183,6 @@ int Hero::interactWith(Character* other) {
         return other->getScoreValue();   // Return score to be added
     } else {
         other->onSideCollision(this);
-        if (other->getDamageOnTouch() > 0) {
-            takedamage();
-        }
         return 0;
     }
 }

@@ -26,8 +26,9 @@ public:
     int getDamage() const { return damage; }
 
     sf::Vector2f getPosition() const { return position; }
-    void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }
+    virtual void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }
     sf::Vector2f getVelocity() const { return velocity; }
     void setVelocity(float vx, float vy) { velocity.x = vx; velocity.y = vy; }
     sf::RectangleShape& getHitbox() { return shape; }
+    virtual bool shouldDieOnSolid() const { return false; }
 };

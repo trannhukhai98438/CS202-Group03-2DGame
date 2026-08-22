@@ -44,6 +44,7 @@ PlayingState::PlayingState(): m_physics(), m_hudManager(), m_lastCoinCount(0) {
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Goomba, 300.f, 624.f, 150.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Koopa, 600.f, 608.f, 200.f, spawnCallback));
     m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::Witch, 900.f, 560.f, 150.f, spawnCallback));
+    m_enemies.push_back(EnemyFactory::createEnemy(EnemyType::ThorKing, 3500.f, 528.f, 600.f, spawnCallback));
     
     // We can disable hardcoded blocks or move them to match the new grid (e.g. y = 464.f)
     // BlockFactory blockFac;
@@ -216,6 +217,7 @@ void PlayingState::update(sf::Time dt) {
             }
             if (hitWall) {
                 (*it)->flipDirection();
+                (*it)->notifyWallHit();
             }
 
             (*it)->setPosition(sf::Vector2f((*it)->getHitbox().getPosition().x, oldpos.y + vel.y * dt.asSeconds()));
@@ -258,21 +260,66 @@ void PlayingState::update(sf::Time dt) {
     for (auto it = m_projectiles.begin(); it != m_projectiles.end();) {
         (*it)->update(dt.asSeconds());
         
-        // Potion shatter or puddle Y-collision on collision with map tiles
-        for (auto& collider : m_mapColliders) {
-            if ((*it)->getBounds().intersects(collider.getGlobalBounds())) {
-                if (auto potion = dynamic_cast<Potion*>(it->get())) {
+        // Clean up projectiles that fall below the screen
+        if ((*it)->getPosition().y > 800.0f) {
+            (*it)->die();
+        }
+
+        // Potion shatter or puddle Y-collision on collision with terrain / blocks
+        if (auto potion = dynamic_cast<Potion*>(it->get())) {
+            if (potion->getIsAlive()) {
+                if (!potion->getIsPuddle()) {
+                    // Flying bottle: check collision with map colliders & blocks
+                    for (auto& collider : m_mapColliders) {
+                        if (potion->getBounds().intersects(collider.getGlobalBounds())) {
+                            potion->shatterOnTile(collider.getGlobalBounds().top);
+                            break;
+                        }
+                    }
                     if (!potion->getIsPuddle()) {
-                        std::cout << "[Debug] Potion shattered by collider at X=" << collider.getPosition().x 
-                                  << ", Y=" << collider.getPosition().y << std::endl;
-                        potion->shatterOnTile(collider.getPosition().y);
-                    } else {
-                        float velY = potion->getVelocity().y;
+                        for (auto& block : m_blocks) {
+                            if (block->getIsActive() && potion->getBounds().intersects(block->getHitbox().getGlobalBounds())) {
+                                potion->shatterOnTile(block->getHitbox().getGlobalBounds().top);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // Puddle: resolve Y collision against map terrain & active blocks
+                    float velY = potion->getVelocity().y;
+                    for (auto& collider : m_mapColliders) {
                         m_physics.resolveCollisionY(potion->getHitbox(), collider, velY);
-                        potion->setPosition(potion->getHitbox().getPosition());
-                        potion->setVelocity(potion->getVelocity().x, velY);
+                    }
+                    for (auto& block : m_blocks) {
+                        if (block->getIsActive()) {
+                            m_physics.resolveCollisionY(potion->getHitbox(), block->getHitbox(), velY);
+                        }
+                    }
+                    potion->setPosition(potion->getHitbox().getPosition());
+                    potion->setVelocity(potion->getVelocity().x, velY);
+                }
+            }
+        }
+
+        // Generic solid collision for projectiles that should die on impact (e.g. BossFire)
+        if ((*it)->getIsAlive() && (*it)->shouldDieOnSolid()) {
+            bool hitSolid = false;
+            for (auto& collider : m_mapColliders) {
+                if ((*it)->getBounds().intersects(collider.getGlobalBounds())) {
+                    hitSolid = true;
+                    break;
+                }
+            }
+            if (!hitSolid) {
+                for (auto& block : m_blocks) {
+                    if (block->getIsActive() && (*it)->getBounds().intersects(block->getHitbox().getGlobalBounds())) {
+                        hitSolid = true;
+                        break;
                     }
                 }
+            }
+            if (hitSolid) {
+                (*it)->die();
             }
         }
 

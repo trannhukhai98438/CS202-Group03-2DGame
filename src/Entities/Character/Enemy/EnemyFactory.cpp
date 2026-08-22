@@ -1,5 +1,6 @@
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Character/Enemy/Witch.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include <algorithm>
 
 std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, float x, float y, float patrolRange, std::function<void(std::unique_ptr<Projectile>)> spawnCallback) {
@@ -10,6 +11,8 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, float x, float 
             return std::make_unique<Koopa>(x, y, patrolRange);
         case EnemyType::Witch:
             return std::make_unique<Witch>(x, y, patrolRange, spawnCallback);
+        case EnemyType::ThorKing:
+            return std::make_unique<ThorKing>(x, y, spawnCallback, patrolRange);
         default:
             return nullptr;
     }
@@ -25,6 +28,8 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemyFromString(const std::string& ty
         return createEnemy(EnemyType::Koopa, x, y, patrolRange);
     } else if (lowerType == "witch") {
         return createEnemy(EnemyType::Witch, x, y, patrolRange);
+    } else if (lowerType == "thorking") {
+        return createEnemy(EnemyType::ThorKing, x, y, patrolRange);
     }
     return nullptr;
 }
