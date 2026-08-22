@@ -23,6 +23,8 @@ private:
 	PendingStateAction m_pendingStateAction{PendingStateAction::None};
 	std::unique_ptr<State> m_pendingState;
 	HeroType m_selectedHero{HeroType::Mario};
+	float m_themeMusicVolume{80.0f};
+	float m_sfxVolume{100.0f};
 	bool m_tabKeyDown{false};
 	bool m_enterKeyDown{false};
 	void applyPendingStateAction();
@@ -46,4 +48,8 @@ public:
 	void clearStatesAndChange(std::unique_ptr<State> state);
 	void setSelectedHero(HeroType heroType) { m_selectedHero = heroType; }
 	HeroType getSelectedHero() const { return m_selectedHero; }
+	void setThemeMusicVolume(float volume);
+	float getThemeMusicVolume() const { return m_themeMusicVolume; }
+	void setSfxVolume(float volume);
+	float getSfxVolume() const { return m_sfxVolume; }
 };

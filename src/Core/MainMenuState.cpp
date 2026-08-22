@@ -4,6 +4,7 @@
 #include "Core/TransitionState.h"
 #include "Core/CharacterSelectState.h"
 #include "Core/GuideState.h"
+#include "Core/SettingsState.h"
 #include <array>
 #include <iostream>
 
@@ -161,10 +162,12 @@ void MainMenuState::activateButton(int index) {
 		Game::getInstance().changeState(std::make_unique<GuideState>());
 		return;
 	}
-	if (index == 2 || index == 4) {
-		m_statusText.setString(index == 2
-			? "LEVELS - COMING SOON"
-			: "SETTINGS - COMING SOON");
+	if (index == 4) {
+		Game::getInstance().changeState(std::make_unique<SettingsState>());
+		return;
+	}
+	if (index == 2) {
+		m_statusText.setString("LEVELS - COMING SOON");
 		const sf::FloatRect bounds = m_statusText.getLocalBounds();
 		m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
 		                       bounds.top + bounds.height / 2.f);

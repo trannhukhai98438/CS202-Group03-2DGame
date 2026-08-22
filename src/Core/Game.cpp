@@ -1,5 +1,7 @@
 #include "Core/Game.h"
 
+#include <algorithm>
+
 Game::Game() : m_window(sf::VideoMode(1280, 720), "Super Mario - Custom Engine", sf::Style::Titlebar | sf::Style::Close)
 {
 }
@@ -106,6 +108,14 @@ void Game::changeState(std::unique_ptr<State> state) {
 void Game::clearStatesAndChange(std::unique_ptr<State> state) {
 	m_pendingState = std::move(state);
 	m_pendingStateAction = PendingStateAction::ClearAndPush;
+}
+
+void Game::setThemeMusicVolume(float volume) {
+	m_themeMusicVolume = std::clamp(volume, 0.0f, 100.0f);
+}
+
+void Game::setSfxVolume(float volume) {
+	m_sfxVolume = std::clamp(volume, 0.0f, 100.0f);
 }
 
 void Game::applyPendingStateAction() {

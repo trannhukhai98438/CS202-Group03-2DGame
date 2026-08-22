@@ -84,6 +84,9 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
                   << std::endl;
     }
 
+    const Game& game = Game::getInstance();
+    m_soundManager.setBGMVolume(game.getThemeMusicVolume());
+    m_soundManager.setSFXVolume(game.getSfxVolume());
     m_soundManager.loadAllSFX();
     m_soundManager.playBGM("ground");
 }
