@@ -3,27 +3,37 @@
 #include "Utilities/Animator.h"
 #include "Entities/Character/Hero/HeroForm/HeroForm.h"
 #include "Entities/Character/Hero/HeroState/HeroState.h"
+#include "Entities/Character/Enemy/Projectile.h"
+#include <functional>
 #include <memory>
 
 #include "Entities/Character/Character.h"
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"
+
+using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>;
 
 class Hero : public Character {
 protected:
     std::unique_ptr<HeroForm> form;   // Small / Giant / Fire
     std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Fly / Grow / Shrink
     std::string baseTexturePath;
+	std::string specialTexturePath;
+	float spriteRenderScale{2.f};
+	float specialSpriteRenderScale{0.f};
     std::string overrideAnim;
     float overrideTimer;
     float invincibleTimer;
     bool isStarman;
     int coin;
     int hp;
+    ProjectileSpawnCallback spawnProjectileCallback;
+    virtual std::unique_ptr<Projectile> createSpecialProjectile() const = 0;
 public:
-    Hero(float x, float y);
+    Hero(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
     virtual ~Hero()=default;
-    void loadTexture(const std::string& path);
+    virtual void loadTexture(const std::string& path);
     std::string getBaseTexturePath() const;
+	std::string getSpecialTexturePath() const;
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
@@ -34,12 +44,15 @@ public:
     void setState(std::unique_ptr<HeroState> newState);
     std::string getStateName() const;
     std::string getFormName() const;
-    virtual void specialAbility();
+    bool specialAbility();
+    virtual float getSpecialCooldown() const = 0;
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
     int interactWith(Character* other) override;
+    void onStomped(Character* attacker) override;
+    void onSideCollision(Character* attacker) override;
     void collectItem(Item* item);
-
+    
     void collectCoin();
     int getCoin() const;
     bool isDead() const;

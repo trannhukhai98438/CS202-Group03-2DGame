@@ -1,9 +1,12 @@
 #include "Luigi.h"
 #include "SmallForm.h"
 #include "IdleState.h"
+#include "Entities/Projectile/LuigiWaterBomb.h"
 
-Luigi::Luigi(float x, float y): Hero(x,y){
+Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
+    : Hero(x, y, std::move(spawnCallback)) {
     baseTexturePath = "assets/textures/luigi.png";
+	specialTexturePath = "assets/textures/FireMario.png";
     
     // Small Form
     animator.addAnimation("SmallIdle", Animation({{0, 8, 16, 16}}, 0.15f));
@@ -41,6 +44,12 @@ Luigi::Luigi(float x, float y): Hero(x,y){
     setPosition(x,y);
 }
 
-void Luigi::specialAbility(){
-    if(form) form->specialAbility(this);
+std::unique_ptr<Projectile> Luigi::createSpecialProjectile() const {
+    const float direction = facingRight ? 1.0f : -1.0f;
+    const float startX = facingRight
+        ? position.x + shape.getSize().x + 2.0f
+        : position.x - 26.0f;
+    const float startY = position.y + shape.getSize().y * 0.25f;
+    return std::make_unique<LuigiWaterBomb>(startX, startY,
+                                            direction * 480.0f, -550.0f);
 }

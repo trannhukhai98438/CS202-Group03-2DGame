@@ -14,7 +14,8 @@ void GiantForm::enter(Hero* hero){
 
 void GiantForm::update(Hero* hero, float deltatime){
     // Allow sitting only when Idle or Run (which implies grounded)
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::S)){
         std::string s = hero->getStateName();
         if (s == "Idle" || s == "Run"){
             hero->setState(std::make_unique<SitState>());

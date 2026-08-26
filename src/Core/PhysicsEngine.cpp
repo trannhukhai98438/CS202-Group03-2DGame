@@ -1,80 +1,83 @@
-#include "Core/PhysicsEngine.h"
+﻿#include "Core/PhysicsEngine.h"
 
 void PhysicsEngine::applyGravity(float& velocityY, float dt) {
-	velocityY += GRAVITY * dt; // v = v0 + g * t with v0 = 0
+	applyGravity(velocityY, dt, GRAVITY);
 }
 
-void PhysicsEngine::resolveCollisionX(sf::RectangleShape& entity, const sf::RectangleShape& obstacle, float& velocityX) {
-	SideType side = checkCollision(entity, obstacle);
+void PhysicsEngine::applyGravity(float& velocityY, float dt, float acceleration) {
+	velocityY += acceleration * dt;
+}
+
+// ============================================================
+// FloatRect CORE — all AABB math lives here
+// ============================================================
+
+SideType PhysicsEngine::checkCollision(const sf::FloatRect& eb,
+                                        const sf::FloatRect& ob) {
+	if (!eb.intersects(ob)) return SideType::None;
+
+	float cex = eb.left + eb.width  * 0.5f;
+	float cey = eb.top  + eb.height * 0.5f;
+	float cox  = ob.left + ob.width  * 0.5f;
+	float coy  = ob.top  + ob.height * 0.5f;
+
+	float dx = cex - cox;
+	float dy = cey - coy;
+
+	float overlapX = (eb.width  * 0.5f + ob.width  * 0.5f) - std::abs(dx);
+	float overlapY = (eb.height * 0.5f + ob.height * 0.5f) - std::abs(dy);
+
+	if (overlapX < overlapY)
+		return dx < 0.f ? SideType::Left : SideType::Right;
+	else
+		return dy < 0.f ? SideType::Top  : SideType::Bottom;
+}
+
+void PhysicsEngine::resolveCollisionX(sf::RectangleShape& entity,
+                                       const sf::FloatRect& ob,
+                                       float& velocityX) {
+	sf::FloatRect eb = entity.getGlobalBounds();
+	SideType side = checkCollision(eb, ob);
 	if (side == SideType::Left) {
-		sf::FloatRect entityBounds = entity.getGlobalBounds();
-		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-		entity.setPosition(obsBounds.left - entityBounds.width, entityBounds.top);
+		entity.setPosition(ob.left - eb.width, eb.top);
 		velocityX = 0.f;
 	} else if (side == SideType::Right) {
-		sf::FloatRect entityBounds = entity.getGlobalBounds();
-		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-		entity.setPosition(obsBounds.left + obsBounds.width, entityBounds.top);
+		entity.setPosition(ob.left + ob.width, eb.top);
 		velocityX = 0.f;
 	}
 }
 
-void PhysicsEngine::resolveCollisionY(sf::RectangleShape& entity, const sf::RectangleShape& obstacle, float& velocityY) {
-	SideType side = checkCollision(entity, obstacle);
+void PhysicsEngine::resolveCollisionY(sf::RectangleShape& entity,
+                                       const sf::FloatRect& ob,
+                                       float& velocityY) {
+	sf::FloatRect eb = entity.getGlobalBounds();
+	SideType side = checkCollision(eb, ob);
 	if (side == SideType::Top) {
-		sf::FloatRect entityBounds = entity.getGlobalBounds();
-		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-		entity.setPosition(entityBounds.left, obsBounds.top - entityBounds.height);
+		entity.setPosition(eb.left, ob.top - eb.height);
 		velocityY = 0.f;
 	} else if (side == SideType::Bottom) {
-		sf::FloatRect entityBounds = entity.getGlobalBounds();
-		sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-		entity.setPosition(entityBounds.left, obsBounds.top + obsBounds.height);
+		entity.setPosition(eb.left, ob.top + ob.height);
 		velocityY = 0.f;
 	}
 }
 
-SideType PhysicsEngine::checkCollision(sf::RectangleShape& entity, const sf::RectangleShape& obstacle){
-	sf::FloatRect entityBounds = entity.getGlobalBounds();
-	sf::FloatRect obsBounds = obstacle.getGlobalBounds();
-	if (!entityBounds.intersects(obsBounds))
-		return SideType::None;
-	// Tâm của hai AABB
-    float centerEntityX = entityBounds.left + entityBounds.width * 0.5f;
-    float centerEntityY = entityBounds.top + entityBounds.height * 0.5f;
+// ============================================================
+// RectangleShape overloads — delegate to FloatRect core
+// ============================================================
 
-    float centerObsX = obsBounds.left + obsBounds.width * 0.5f;
-    float centerObsY = obsBounds.top + obsBounds.height * 0.5f;
+SideType PhysicsEngine::checkCollision(sf::RectangleShape& entity,
+                                        const sf::RectangleShape& obstacle) {
+	return checkCollision(entity.getGlobalBounds(), obstacle.getGlobalBounds());
+}
 
-    // Khoảng cách giữa hai tâm
-    float dx = centerEntityX - centerObsX;
-    float dy = centerEntityY - centerObsY;
+void PhysicsEngine::resolveCollisionX(sf::RectangleShape& entity,
+                                       const sf::RectangleShape& obstacle,
+                                       float& velocityX) {
+	resolveCollisionX(entity, obstacle.getGlobalBounds(), velocityX);
+}
 
-    // Độ chồng lấn theo X
-    float overlapX =
-        (entityBounds.width * 0.5f + obsBounds.width * 0.5f) - std::abs(dx);
-
-    // Độ chồng lấn theo Y
-    float overlapY =
-        (entityBounds.height * 0.5f + obsBounds.height * 0.5f) - std::abs(dy);
-
-
-
-    // Trục có overlap nhỏ hơn là hướng va chạm
-    if (overlapX < overlapY)
-    {
-        if (dx < 0)
-            return SideType::Left;
-        else
-            return SideType::Right;
-    }
-    else
-    {
-        if (dy < 0)
-            return SideType::Top;
-        else
-            return SideType::Bottom;
-    }
-
-    return SideType::None;
+void PhysicsEngine::resolveCollisionY(sf::RectangleShape& entity,
+                                       const sf::RectangleShape& obstacle,
+                                       float& velocityY) {
+	resolveCollisionY(entity, obstacle.getGlobalBounds(), velocityY);
 }

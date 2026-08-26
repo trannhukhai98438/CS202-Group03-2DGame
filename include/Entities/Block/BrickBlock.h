@@ -16,13 +16,10 @@ public:
     // Returns false while block is alive or particles are still showing.
     // Scene removes block from world once this returns false (isActive=false in base).
     bool getIsActive() const override { return isActive; }
+    bool isSolid() const override { return !isDestroyed; }
 
 private:
     bool  isDestroyed;   // true when Giant/Fire has destroyed the brick
-
-    // --- Bounce effect (SmallForm hit) ---
-    float bounceTimer;   // 0.1s countdown
-    float originalY;     // restore Y after bounce
 
     // --- Particles (Giant/Fire destruction) ---
     std::array<BrickParticle, 4> particles;

@@ -21,16 +21,17 @@ void SitState::exit(Hero* hero){
 
 void SitState::update(Hero* hero, float deltatime){
     if (!hero->getGrounded()){
-        sf::Vector2f vel=hero->getVelocity();
-        hero->setState(std::make_unique<JumpState>());
-        hero->setVelocity(vel.x,PhysicsConstants::GRAVITY*deltatime);
+        hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
+        return;
     }
 
     hero->setVelocity(0.f, PhysicsConstants::GRAVITY*deltatime);  
     // Y position unchanged — already on the ground
 
     // Transition: release Down → stand up
-    if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+    const bool pressDown = sf::Keyboard::isKeyPressed(sf::Keyboard::Down)
+        || sf::Keyboard::isKeyPressed(sf::Keyboard::S);
+    if (!pressDown){
         hero->setState(std::make_unique<IdleState>());
     }
 }

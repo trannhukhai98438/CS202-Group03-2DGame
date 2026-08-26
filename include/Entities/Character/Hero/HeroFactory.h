@@ -4,10 +4,12 @@
 
 enum class HeroType {
     Mario,
-    Luigi
+	Luigi,
+	Flash
 };
 
 class HeroFactory {
 public:
-    static std::unique_ptr<Hero> createHero(HeroType type, float x, float y);
+    static std::unique_ptr<Hero> createHero(HeroType type, float x, float y,
+                                            ProjectileSpawnCallback spawnCallback = nullptr);
 };

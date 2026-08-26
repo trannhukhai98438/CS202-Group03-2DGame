@@ -1,9 +1,9 @@
 #include "Entities/Character/Enemy/Potion.h"
 #include "Entities/Character/Character.h"
-#include <iostream>
 
 Potion::Potion(float startX, float startY, float velX, float velY)
-    : Projectile(startX, startY, velX, velY, 1), animator(sprite), isPuddle(false), puddleTimer(0.0f) {
+    : Projectile(startX, startY, velX, velY, ProjectileFaction::Enemy, 1),
+      animator(sprite), isPuddle(false), puddleTimer(0.0f) {
     
     shape.setSize(sf::Vector2f(32.0f, 32.0f));
     shape.setPosition(position);
@@ -61,10 +61,6 @@ void Potion::shatterOnTile(float tileY) {
     position.y = tileY - shape.getSize().y;
     position.x -= 24.0f; // Center the wider puddle
     shape.setPosition(position);
-    std::cout << "[Debug] Potion::shatterOnTile: tileY = " << tileY 
-              << ", puddle Y = " << position.y 
-              << ", shape size Y = " << shape.getSize().y << std::endl;
-    
     // Switch to puddle texture
     sprite.setTexture(puddleTexture);
     float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80.0f);
@@ -74,40 +70,48 @@ void Potion::shatterOnTile(float tileY) {
     sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
 
     animator.playAnimation("puddle", 0.0f);
+    setPosition(position);
 }
 
-void Potion::setPosition(const sf::Vector2f& pos) {
-    Projectile::setPosition(pos);
-    sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
+void Potion::shatterAtImpact(SideType side, const sf::FloatRect& solidBounds) {
+    if (side == SideType::Top) {
+        shatterOnTile(solidBounds.top);
+        return;
+    }
+
+    sf::Vector2f impactCenter(position.x + shape.getSize().x * 0.5f,
+                              position.y + shape.getSize().y * 0.5f);
+    isPuddle = true;
+    puddleTimer = 1.5f;
+    velocity = {0.0f, 0.0f};
+    shape.setSize({80.0f, 24.0f});
+    sprite.setTexture(puddleTexture);
+    float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80);
+    float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24);
+    sprite.setScale(scaleX, scaleY);
+    animator.playAnimation("puddle", 0.0f);
+    setPosition({impactCenter.x - 40.0f, impactCenter.y - 12.0f});
+}
+
+void Potion::onSolidCollision(SideType side, const sf::FloatRect& solidBounds) {
+    if (!isPuddle) shatterAtImpact(side, solidBounds);
 }
 
 void Potion::update(float deltaTime) {
     if (!isAlive) return;
 
-    if (!isPuddle) {
-        velocity.y += gravity * deltaTime;
-        position += velocity * deltaTime;
-        shape.setPosition(position);
-        
-        // Flying bottle: bottom-center of sprite aligns to shape bottom
-        float texW = static_cast<float>(texture.getSize().x);
-        float texH = static_cast<float>(texture.getSize().y > 0 ? texture.getSize().y : 1);
-        sprite.setOrigin(texW / 2.f, texH); // bottom-center origin
-        sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
-    } else {
+    velocity.y += getGravityAcceleration() * deltaTime;
+
+    if (isPuddle) {
         puddleTimer -= deltaTime;
         if (puddleTimer <= 0.0f) {
             die();
             return;
         }
-        // Apply gravity to puddle so it can fall if platform under it is removed or mid-air
-        velocity.y += gravity * deltaTime;
-        position += velocity * deltaTime;
-        shape.setPosition(position);
-        sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
     }
-    
+
     animator.playAnimation(isPuddle ? "puddle" : "flying", deltaTime);
+    setPosition(position);
 }
 
 void Potion::render(sf::RenderWindow& window) {
@@ -119,9 +123,8 @@ void Potion::render(sf::RenderWindow& window) {
     }
 }
 
-void Potion::onHitPlayer(Character* player) {
-    if (player && isAlive) {
-        player->takeDamage(damage);
-        die();
-    }
+void Potion::setPosition(const sf::Vector2f& pos) {
+    Projectile::setPosition(pos);
+    sprite.setPosition(position.x + shape.getSize().x * 0.5f,
+                       position.y + shape.getSize().y);
 }

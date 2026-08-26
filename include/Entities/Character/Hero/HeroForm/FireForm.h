@@ -9,8 +9,6 @@ public:
     void update(Hero* hero, float deltatime) override;
     std::string getForm() override;
     void takedamage(Hero* hero) override;
-    void specialAbility(Hero* hero) override;
 private:
-    const float cooldown;
     float counttime;
 };

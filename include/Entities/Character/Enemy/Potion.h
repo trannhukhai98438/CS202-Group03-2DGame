@@ -12,19 +12,17 @@ private:
     bool isPuddle;
     float puddleTimer;
     const float gravity = 1400.0f; // px/s^2
+    void shatterAtImpact(SideType side, const sf::FloatRect& solidBounds);
+    void shatterOnTile(float tileY);
 
 public:
     Potion(float startX, float startY, float velX, float velY);
     ~Potion() override = default;
 
-    void shatterOnTile(float tileY);
-
-    void setPosition(const sf::Vector2f& pos) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
-    
-    // Override onHitPlayer to prevent hitting while flying if desired, or keep default
-    void onHitPlayer(Character* player) override;
-
-    bool getIsPuddle() const { return isPuddle; }
+    float getGravityAcceleration() const override { return isPuddle ? 0.0f : gravity; }
+    bool usesWorldPhysics() const override { return !isPuddle; }
+    void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) override;
+    void setPosition(const sf::Vector2f& pos) override;
 };

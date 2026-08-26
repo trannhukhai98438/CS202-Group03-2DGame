@@ -24,6 +24,11 @@ public:
     // Analogous to !isActive in Item. Default: never remove (QuestionBlock stays forever).
     virtual bool getIsActive() const { return isActive; }
 
+    // Collision capabilities are separate from lifetime. A destroyed block can
+    // remain active while its particles finish, without remaining solid.
+    virtual bool isSolid() const { return true; }
+    virtual bool canBeHitFromBelow() const { return isSolid(); }
+
 protected:
     sf::Vector2f position;
     sf::Sprite sprite;

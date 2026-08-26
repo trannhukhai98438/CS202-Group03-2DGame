@@ -1,9 +1,12 @@
 #include "Mario.h"
 #include "SmallForm.h"
 #include "IdleState.h"
+#include "Entities/Projectile/MarioFireball.h"
 
-Mario::Mario(float x, float y):Hero(x,y){
+Mario::Mario(float x, float y, ProjectileSpawnCallback spawnCallback)
+    : Hero(x, y, std::move(spawnCallback)) {
     baseTexturePath = "assets/textures/mario.png";
+	specialTexturePath = "assets/textures/FireMario.png";
     
     // Small Form
     animator.addAnimation("SmallIdle", Animation({{0, 8, 16, 16}}, 0.15f));
@@ -40,6 +43,12 @@ Mario::Mario(float x, float y):Hero(x,y){
     setPosition(x,y);
 }
 
-void Mario::specialAbility(){
-    if(form) form->specialAbility(this);
+std::unique_ptr<Projectile> Mario::createSpecialProjectile() const {
+    const float direction = facingRight ? 1.0f : -1.0f;
+    const float startX = facingRight
+        ? position.x + shape.getSize().x + 2.0f
+        : position.x - 18.0f;
+    const float startY = position.y + shape.getSize().y * 0.55f - 8.0f;
+    return std::make_unique<MarioFireball>(startX, startY,
+                                           direction * 420.0f);
 }

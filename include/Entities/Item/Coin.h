@@ -9,7 +9,8 @@ public:
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
-    void spawn() override;
+    void spawn() override;        // bounce-up animation (spawned from block)
+    void spawnAsGroundCoin();      // activate in-place (floating coin from map)
     std::unique_ptr<Item> clone(Hero* hero) const override;
 
     void getCollected(Hero* hero) override;

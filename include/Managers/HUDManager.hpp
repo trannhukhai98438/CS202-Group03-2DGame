@@ -34,6 +34,7 @@ public:
     void addScore(int points);
     void addCoin(int amount = 1);
     void setLives(int lives);
+    int loseLife();
     void setWorld(std::string worldIndex);
     void resetTimer(float seconds = 300.0f);
 

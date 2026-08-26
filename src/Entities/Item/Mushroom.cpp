@@ -67,7 +67,12 @@ void Mushroom::getCollision() {
 
 void Mushroom::getCollected(Hero* hero) {
     if (!isActive || isSpawning) return;
-    hero->setState(std::make_unique<GrowState>()); // Small→Giant with SmallGrow animation
+    // Mushrooms only perform the Small-to-Giant transformation. In
+	// particular, collecting another one must not downgrade a Fire/Thunder
+	// hero or request a nonexistent FireGrow animation.
+	if (hero->getFormName() == "Small") {
+		hero->setState(std::make_unique<GrowState>());
+	}
     isActive = false;
 }
 

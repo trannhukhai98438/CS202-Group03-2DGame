@@ -5,9 +5,14 @@
 #include "PhysicsConstants.h"
 #include <cmath>
 
+JumpState::JumpState(AirEntry entry) : entry(entry) {}
+
 void JumpState::enter(Hero* hero){
-    // Apply initial jump velocity 
-    hero->setVelocity(hero->getVelocity().x, PhysicsConstants::JUMP_FORCE);
+    // Only a player-initiated jump applies an upward impulse. Walking off a
+    // ledge keeps the vertical velocity produced by the physics step.
+    if (entry == AirEntry::Jumped) {
+        hero->setVelocity(hero->getVelocity().x, PhysicsConstants::JUMP_FORCE);
+    }
     hero->setGrounded(false); // CollisionSystem will set true on landing
 }
 
@@ -15,12 +20,12 @@ void JumpState::update(Hero* hero, float deltatime){
     sf::Vector2f vel = hero->getVelocity();
 
     // --- Horizontal air control (reduced compared to ground)
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
         hero->setFacingRight(false);
         vel.x -= PhysicsConstants::ACCELERATION * PhysicsConstants::AIR_CONTROL * deltatime;
         if (vel.x < -PhysicsConstants::WALK_SPEED) vel.x = -PhysicsConstants::WALK_SPEED;
     }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D)){
         hero->setFacingRight(true);
         vel.x += PhysicsConstants::ACCELERATION * PhysicsConstants::AIR_CONTROL * deltatime;
         if (vel.x > PhysicsConstants::WALK_SPEED) vel.x = PhysicsConstants::WALK_SPEED;

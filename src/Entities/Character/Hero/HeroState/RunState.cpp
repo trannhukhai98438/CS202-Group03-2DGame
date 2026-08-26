@@ -13,15 +13,12 @@ void RunState::enter(Hero* hero){
 void RunState::update(Hero* hero, float deltatime){
     // Ground states only valid when grounded
     if (!hero->getGrounded()){
-        hero->setState(std::make_unique<JumpState>());
-        sf::Vector2f vel=hero->getVelocity();
-        vel.y=PhysicsConstants::GRAVITY*deltatime;
-        hero->setVelocity(vel.x,vel.y);
+        hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
         return;
     }
 
-    bool pressLeft   = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-    bool pressRight  = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+    bool pressLeft   = sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    bool pressRight  = sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D);
     bool bothPressed = pressLeft && pressRight; // both at same time → cancel each other
 
     sf::Vector2f vel = hero->getVelocity();
@@ -63,8 +60,8 @@ void RunState::update(Hero* hero, float deltatime){
     // --- State transitions ---
 
     // Jump (not when both keys conflict)
-    if (!bothPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-        hero->setState(std::make_unique<JumpState>());
+    if (!bothPressed && (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))){
+        hero->setState(std::make_unique<JumpState>(AirEntry::Jumped));
         return;
     }
 

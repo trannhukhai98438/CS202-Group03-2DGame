@@ -76,6 +76,14 @@ void HUDManager::setLives(int lives) {
     updateTextStrings();
 }
 
+int HUDManager::loseLife() {
+    if (m_lives > 0) {
+        --m_lives;
+    }
+    updateTextStrings();
+    return m_lives;
+}
+
 void HUDManager::setWorld(std::string worldIndex) {
     m_world = worldIndex;
     updateTextStrings();
