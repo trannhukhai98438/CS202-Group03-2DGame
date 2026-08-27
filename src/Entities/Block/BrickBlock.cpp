@@ -77,7 +77,11 @@ void BrickBlock::render(sf::RenderWindow& window) {
 
 // ---------------------------------------------------------------
 std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
-    if (isDestroyed) return nullptr;
+    if (isDestroyed || !hero) return nullptr;
+
+    if (hasHiddenItems()) {
+        return releaseHiddenItem(hero);
+    }
 
     std::string form = hero->getFormName();
     if (form == "Giant" || form == "Fire") {
@@ -101,5 +105,5 @@ std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
         // SmallForm: brick is indestructible, do nothing
     }
 
-    return nullptr; // BrickBlock never spawns items
+    return nullptr;
 }

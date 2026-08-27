@@ -34,12 +34,14 @@ public:
     void addScore(int points);
     void addCoin(int amount = 1);
     void setLives(int lives);
+    void restoreProgress(int score, int coins, int lives);
     int loseLife();
     void setWorld(std::string worldIndex);
     void resetTimer(float seconds = 300.0f);
 
     // Getters
     int getScore() const { return m_score; }
+    int getCoins() const { return m_coins; }
     int getLives() const { return m_lives; }
     float getRemainingTime() const { return m_remainingTime; }
 };

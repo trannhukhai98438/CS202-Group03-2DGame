@@ -13,5 +13,10 @@ enum class BlockType {
 class BlockFactory {
 public:
     // hiddenItem defaults to None, useful for BrickBlocks or empty QuestionBlocks
-    static std::unique_ptr<Block> createBlock(BlockType type, float x, float y, ItemType hiddenItem = ItemType::None);
+    static std::unique_ptr<Block> createBlock(
+        BlockType type,
+        float x,
+        float y,
+        ItemType hiddenItem = ItemType::None,
+        int itemCount = 1);
 };

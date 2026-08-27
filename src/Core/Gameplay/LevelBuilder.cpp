@@ -6,27 +6,37 @@
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <utility>
 
 namespace {
-ItemType getBlockItemType(const std::string& itemName) {
+ItemType getBlockItemType(const std::string& itemName, ItemType fallback) {
+    if (itemName == "coin") {
+        return ItemType::Coin;
+    }
     if (itemName == "star") {
         return ItemType::Star;
     }
     if (itemName == "mushroom" || itemName == "flower") {
         return ItemType::PowerUpPrototype;
     }
-    return ItemType::Coin;
+    return fallback;
 }
 
-std::string getContainedItem(const MapObject& object) {
-    const std::string contain = object.getProperty("contain", object.contain);
-    if (!contain.empty() && contain != "none") return contain;
+std::string getContainedItem(const MapObject& object,
+                             const std::string& defaultItem) {
+    const auto contain = object.properties.find("contain");
+    if (contain != object.properties.end()) return contain->second;
+    if (!object.contain.empty() && object.contain != "none") {
+        return object.contain;
+    }
 
-    const std::string legacyItem = object.getProperty("item", "coin");
-    return legacyItem == "none" ? "coin" : legacyItem;
+    const auto legacyItem = object.properties.find("item");
+    return legacyItem != object.properties.end()
+        ? legacyItem->second
+        : defaultItem;
 }
 }
 
@@ -106,21 +116,26 @@ bool LevelBuilder::build(GameWorld& world,
         const std::string& type = object.className;
         if (type == "brick") {
             world.addBlock(blockFactory.createBlock(
-                BlockType::Brick, worldX, worldY));
+                BlockType::Brick,
+                worldX,
+                worldY,
+                getBlockItemType(
+                    getContainedItem(object, "none"), ItemType::None),
+                std::max(0, object.count)));
         } else if (type == "question") {
-            const std::string item = getContainedItem(object);
+            const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Question,
                 worldX,
                 worldY,
-                getBlockItemType(item)));
+                getBlockItemType(item, ItemType::Coin)));
         } else if (type == "invisible") {
-            const std::string item = getContainedItem(object);
+            const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Invisible,
                 worldX,
                 worldY,
-                getBlockItemType(item)));
+                getBlockItemType(item, ItemType::Coin)));
         } else if (type == "coin") {
             auto coin = std::make_unique<Coin>(worldX, worldY);
             coin->spawnAsGroundCoin();

@@ -16,7 +16,7 @@ public:
     // Returns the spawned Item if any, otherwise nullptr
     virtual std::unique_ptr<Item> hit(Hero* hero) = 0;
 
-    void setItemPrototype(std::unique_ptr<Item> itemProto);
+    void setItemPrototype(std::unique_ptr<Item> itemProto, int itemCount = 1);
     sf::FloatRect getBounds() const;
     sf::RectangleShape& getHitbox();
 
@@ -30,12 +30,18 @@ public:
     virtual bool canBeHitFromBelow() const { return isSolid(); }
 
 protected:
+    bool hasHiddenItems() const;
+    std::unique_ptr<Item> releaseHiddenItem(Hero* hero);
+
     sf::Vector2f position;
     sf::Sprite sprite;
     sf::Texture texture;
     Animator animator;
     sf::RectangleShape hitbox;
-    std::unique_ptr<Item> hiddenItemPrototype;
     bool isHit;
     bool isActive; // false → scene removes this block
+
+private:
+    std::unique_ptr<Item> hiddenItemPrototype;
+    int hiddenItemCount{0};
 };

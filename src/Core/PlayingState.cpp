@@ -78,6 +78,9 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
         CAMERA_WIDTH * 0.5f,
         getCameraY(m_levelRuntime.getActiveRegionBottom()));
     m_hudManager->init("assets/fonts/SuperMario256.ttf");
+    m_attemptStartScore = m_hudManager->getScore();
+    m_attemptStartCoins = m_hudManager->getCoins();
+    m_attemptStartLives = m_hudManager->getLives();
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
@@ -93,6 +96,14 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
 
 PlayingState::~PlayingState() = default;
 
+bool PlayingState::updateTimer(float deltaTime) {
+    m_hudManager->updateTimer(deltaTime);
+    if (m_hudManager->getRemainingTime() > 0.0f) return false;
+
+    Game::getInstance().changeState(std::make_unique<GameOverState>());
+    return true;
+}
+
 void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed
         && event.key.code == sf::Keyboard::Tab) {
@@ -103,13 +114,6 @@ void PlayingState::processEvents(sf::Event& event) {
 
 void PlayingState::update(sf::Time dt) {
     const float deltaTime = dt.asSeconds();
-
-    // The timer intentionally continues through victory and defeat delays.
-    m_hudManager->updateTimer(deltaTime);
-    if (m_hudManager->getRemainingTime() <= 0.0f) {
-        Game::getInstance().changeState(std::make_unique<GameOverState>());
-        return;
-    }
 
     const PipeDirection heldPipeDirection = getHeldPipeDirection();
     if (m_latchedPipeDirection != PipeDirection::None
@@ -124,7 +128,7 @@ void PlayingState::update(sf::Time dt) {
 
     const LevelUpdateResult levelUpdate =
         m_levelRuntime.update(deltaTime, requestedPipeDirection);
-    if (levelUpdate.scoreDelta > 0) {
+    if (!m_defeatPending && levelUpdate.scoreDelta > 0) {
         m_hudManager->addScore(levelUpdate.scoreDelta);
     }
     if (levelUpdate.travelledThroughPipe) {
@@ -136,10 +140,13 @@ void PlayingState::update(sf::Time dt) {
     }
 
     Hero* hero = m_levelRuntime.getHero();
-    if (!hero) return;
+    if (!hero) {
+        updateTimer(deltaTime);
+        return;
+    }
 
     const int currentCoins = hero->getCoin();
-    if (currentCoins > m_lastCoinCount) {
+    if (!m_defeatPending && currentCoins > m_lastCoinCount) {
         const int difference = currentCoins - m_lastCoinCount;
         m_hudManager->addCoin(difference);
         m_hudManager->addScore(100 * difference);
@@ -194,7 +201,15 @@ void PlayingState::update(sf::Time dt) {
     // simulation makes the Hero dead during the transition delay.
     if (m_victoryPending) return;
 
+    // Victory is resolved before the timer so touching the goal freezes the
+    // HUD immediately and cannot be overwritten by a timeout in this frame.
+    if (updateTimer(deltaTime)) return;
+
     if (!m_defeatPending && hero->isDead()) {
+        m_hudManager->restoreProgress(
+            m_attemptStartScore,
+            m_attemptStartCoins,
+            m_attemptStartLives);
         m_hudManager->loseLife();
         m_defeatPending = true;
         m_defeatDelayRemaining = DEFEAT_DELAY_SECONDS;

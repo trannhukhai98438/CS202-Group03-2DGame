@@ -35,11 +35,5 @@ std::unique_ptr<Item> QuestionBlock::hit(Hero* hero) {
     isHit = true;
     animator.playAnimation("EmptyBrick", 0.f);
 
-    if (hiddenItemPrototype) {
-        std::unique_ptr<Item> spawnedItem = hiddenItemPrototype->clone(hero);
-        spawnedItem->spawn();
-        return spawnedItem;
-    }
-
-    return nullptr;
+    return releaseHiddenItem(hero);
 }
