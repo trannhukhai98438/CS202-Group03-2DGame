@@ -1,0 +1,132 @@
+#include "Gameplay/GameWorld.h"
+
+#include "Entities/Block/Block.h"
+#include "Entities/Character/Enemy/Enemy.h"
+#include "Entities/Character/Enemy/Projectile.h"
+#include "Entities/Character/Hero/Hero.h"
+#include "Entities/Goal/LevelGoal.h"
+#include "Entities/Item/Item.h"
+
+#include <algorithm>
+#include <utility>
+
+GameWorld::GameWorld() = default;
+GameWorld::~GameWorld() = default;
+
+LevelManager& GameWorld::levelManager() {
+    return m_levelManager;
+}
+
+const LevelManager& GameWorld::levelManager() const {
+    return m_levelManager;
+}
+
+Hero* GameWorld::hero() {
+    return m_hero.get();
+}
+
+const Hero* GameWorld::hero() const {
+    return m_hero.get();
+}
+
+void GameWorld::setHero(std::unique_ptr<Hero> hero) {
+    m_hero = std::move(hero);
+}
+
+std::vector<std::unique_ptr<Block>>& GameWorld::blocks() {
+    return m_blocks;
+}
+
+const std::vector<std::unique_ptr<Block>>& GameWorld::blocks() const {
+    return m_blocks;
+}
+
+std::vector<std::unique_ptr<Item>>& GameWorld::items() {
+    return m_items;
+}
+
+const std::vector<std::unique_ptr<Item>>& GameWorld::items() const {
+    return m_items;
+}
+
+std::vector<std::unique_ptr<Enemy>>& GameWorld::enemies() {
+    return m_enemies;
+}
+
+const std::vector<std::unique_ptr<Enemy>>& GameWorld::enemies() const {
+    return m_enemies;
+}
+
+std::vector<std::unique_ptr<Projectile>>& GameWorld::projectiles() {
+    return m_projectiles;
+}
+
+const std::vector<std::unique_ptr<Projectile>>& GameWorld::projectiles() const {
+    return m_projectiles;
+}
+
+std::vector<std::unique_ptr<LevelGoal>>& GameWorld::goals() {
+    return m_goals;
+}
+
+const std::vector<std::unique_ptr<LevelGoal>>& GameWorld::goals() const {
+    return m_goals;
+}
+
+std::vector<sf::RectangleShape>& GameWorld::mapColliders() {
+    return m_mapColliders;
+}
+
+const std::vector<sf::RectangleShape>& GameWorld::mapColliders() const {
+    return m_mapColliders;
+}
+
+void GameWorld::addBlock(std::unique_ptr<Block> block) {
+    if (block) m_blocks.push_back(std::move(block));
+}
+
+void GameWorld::addItem(std::unique_ptr<Item> item) {
+    if (item) m_items.push_back(std::move(item));
+}
+
+void GameWorld::addEnemy(std::unique_ptr<Enemy> enemy) {
+    if (enemy) m_enemies.push_back(std::move(enemy));
+}
+
+void GameWorld::addProjectile(std::unique_ptr<Projectile> projectile) {
+    if (projectile) m_projectiles.push_back(std::move(projectile));
+}
+
+void GameWorld::addGoal(std::unique_ptr<LevelGoal> goal) {
+    if (goal) m_goals.push_back(std::move(goal));
+}
+
+void GameWorld::removeInactiveEntities() {
+    m_blocks.erase(
+        std::remove_if(m_blocks.begin(), m_blocks.end(),
+                       [](const std::unique_ptr<Block>& block) {
+                           return !block || !block->getIsActive();
+                       }),
+        m_blocks.end());
+
+    m_items.erase(
+        std::remove_if(m_items.begin(), m_items.end(),
+                       [](const std::unique_ptr<Item>& item) {
+                           return !item || item->isCollected();
+                       }),
+        m_items.end());
+
+    m_enemies.erase(
+        std::remove_if(m_enemies.begin(), m_enemies.end(),
+                       [](const std::unique_ptr<Enemy>& enemy) {
+                           return !enemy || !enemy->getIsAlive();
+                       }),
+        m_enemies.end());
+
+    m_projectiles.erase(
+        std::remove_if(m_projectiles.begin(), m_projectiles.end(),
+                       [](const std::unique_ptr<Projectile>& projectile) {
+                           return !projectile || !projectile->getIsAlive();
+                       }),
+        m_projectiles.end());
+}

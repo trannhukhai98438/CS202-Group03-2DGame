@@ -1,75 +1,245 @@
 #include "Core/PlayingState.h"
+
 #include "Core/Game.h"
-#include "Core/PausedState.h"
 #include "Core/GameOverState.h"
+#include "Core/PausedState.h"
+#include "Core/TransitionState.h"
 #include "Core/VictoryState.h"
+#include "Entities/Character/Hero/Hero.h"
+#include "Entities/Character/Hero/HeroState/CheerState.h"
 
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <utility>
 
-PlayingState::PlayingState(): m_velocityX(200.f), m_velocityY(0.f){
-	// TODO (Khai): Replace these dummy shapes with actual Mario and level assets when available.
-    m_camera.setSize(1280.f, 720.f);
-    m_dummyMario.setSize(sf::Vector2f(50.f, 50.f));
-    m_dummyMario.setFillColor(sf::Color::Cyan);
-    m_dummyMario.setPosition(600.f, 100.f);
+namespace {
+constexpr float VICTORY_DELAY_SECONDS = 0.75f;
+constexpr float CAMERA_WIDTH = 1280.0f;
+constexpr float CAMERA_HEIGHT = 720.0f;
+constexpr float UNDERGROUND_ROOM_LEFT = 1536.0f;
+constexpr float UNDERGROUND_ROOM_TOP = 544.0f;
+constexpr float UNDERGROUND_ROOM_WIDTH = 512.0f;
+constexpr float UNDERGROUND_ROOM_HEIGHT = 416.0f;
 
-    m_dummyFloor.setSize(sf::Vector2f(5000.f, 50.f));
-    m_dummyFloor.setFillColor(sf::Color::Green);
-    m_dummyFloor.setPosition(240.f, 600.f);
+bool isPipeDirectionHeld(PipeDirection direction) {
+    switch (direction) {
+    case PipeDirection::Down:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Down)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::S);
+    case PipeDirection::Up:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Up)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::W);
+    case PipeDirection::Left:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Left)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::A);
+    case PipeDirection::Right:
+        return sf::Keyboard::isKeyPressed(sf::Keyboard::Right)
+            || sf::Keyboard::isKeyPressed(sf::Keyboard::D);
+    case PipeDirection::None:
+        return false;
+    }
 
-    m_dummyWall.setSize(sf::Vector2f(50.f, 200.f));
-    m_dummyWall.setFillColor(sf::Color::Magenta);
-    m_dummyWall.setPosition(800.f, 400.f);
+    return false;
+}
+
+PipeDirection getHeldPipeDirection() {
+    if (isPipeDirectionHeld(PipeDirection::Down)) {
+        return PipeDirection::Down;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Up)) {
+        return PipeDirection::Up;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Left)) {
+        return PipeDirection::Left;
+    }
+    if (isPipeDirectionHeld(PipeDirection::Right)) {
+        return PipeDirection::Right;
+    }
+    return PipeDirection::None;
+}
+
+float getCameraY(float activeRegionBottom) {
+    return activeRegionBottom - CAMERA_HEIGHT * 0.5f;
+}
+}
+
+PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
+	: m_hudManager(std::move(hudManager)),
+	  m_levelRuntime("assets/maps/levels/1-1.tmj",
+	                     "assets/maps/resources/tileset.png",
+	                     Game::getInstance().getSelectedHero()) {
+    if (!m_hudManager) {
+        m_hudManager = std::make_shared<HUDManager>();
+    }
+    m_camera.setSize(CAMERA_WIDTH, CAMERA_HEIGHT);
+    m_camera.setCenter(
+        CAMERA_WIDTH * 0.5f,
+        getCameraY(m_levelRuntime.getActiveRegionBottom()));
+    m_hudManager->init("assets/fonts/SuperMario256.ttf");
+    m_attemptStartScore = m_hudManager->getScore();
+    m_attemptStartCoins = m_hudManager->getCoins();
+    m_attemptStartLives = m_hudManager->getLives();
+
+    if (!m_levelRuntime.isReady()) {
+        std::cerr << "[PlayingState] ERROR: Cannot initialize level runtime!"
+                  << std::endl;
+    }
+
+    const Game& game = Game::getInstance();
+    m_soundManager.setBGMVolume(game.getThemeMusicVolume());
+    m_soundManager.setSFXVolume(game.getSfxVolume());
+    m_soundManager.loadAllSFX();
+    m_soundManager.playBGM("ground");
+}
+
+PlayingState::~PlayingState() = default;
+
+bool PlayingState::updateTimer(float deltaTime) {
+    m_hudManager->updateTimer(deltaTime);
+    if (m_hudManager->getRemainingTime() > 0.0f) return false;
+
+    Game::getInstance().changeState(std::make_unique<GameOverState>());
+    return true;
 }
 
 void PlayingState::processEvents(sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Tab) {
+    if (event.type == sf::Event::KeyPressed
+        && event.key.code == sf::Keyboard::Tab) {
         Game::getInstance().pushState(std::make_unique<PausedState>());
-    }
-    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-        m_velocityY = -600.f;
-    }
+		return;
+	}
 }
 
 void PlayingState::update(sf::Time dt) {
-	// Temporary (Delete this when we have a proper Mario sprite and level assets)
-    float dummyVelocityX = 0.f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        dummyVelocityX = 300.f;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        dummyVelocityX = -300.f;
-    }
-    // X-axis movement
-    m_dummyMario.move(dummyVelocityX * dt.asSeconds(), 0.f);
-    m_physics.resolveCollisionX(m_dummyMario, m_dummyFloor, dummyVelocityX);
-    m_physics.resolveCollisionX(m_dummyMario, m_dummyWall, dummyVelocityX);
-    // Y-axis movement
-    m_physics.applyGravity(m_velocityY, dt.asSeconds());
-    m_dummyMario.move(0.f, m_velocityY * dt.asSeconds());
-    m_physics.resolveCollisionY(m_dummyMario, m_dummyFloor, m_velocityY);
-    m_physics.resolveCollisionY(m_dummyMario, m_dummyWall, m_velocityY);
+    const float deltaTime = dt.asSeconds();
 
-    float marioX = m_dummyMario.getPosition().x;
-    float halfScreenWidth = 640.f;
-    float levelEnd = 5000.f; //Wherever the level ends. This is just a PLACEHOLDER for now.
-    float cameraX = std::clamp(marioX, halfScreenWidth, levelEnd - halfScreenWidth);
-    m_camera.setCenter(cameraX, 360.f);
-	// TEST SCREENS (delete this when we have a proper Mario sprite and level assets)
-    // Press 'L' to simulate Mario dying
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
-        Game::getInstance().changeState(std::make_unique<GameOverState>());
+    const PipeDirection heldPipeDirection = getHeldPipeDirection();
+    if (m_latchedPipeDirection != PipeDirection::None
+        && !isPipeDirectionHeld(m_latchedPipeDirection)) {
+        m_latchedPipeDirection = PipeDirection::None;
+    }
+    const PipeDirection requestedPipeDirection =
+        (m_latchedPipeDirection == PipeDirection::None
+         && !m_victoryPending && !m_defeatPending)
+            ? heldPipeDirection
+            : PipeDirection::None;
+
+    const LevelUpdateResult levelUpdate =
+        m_levelRuntime.update(deltaTime, requestedPipeDirection);
+    if (!m_defeatPending && levelUpdate.scoreDelta > 0) {
+        m_hudManager->addScore(levelUpdate.scoreDelta);
+    }
+    if (levelUpdate.travelledThroughPipe) {
+        m_latchedPipeDirection = requestedPipeDirection;
+        m_soundManager.playSFX("pipe");
+        const bool isUnderground =
+            m_levelRuntime.getActiveRegionBottom() > CAMERA_HEIGHT;
+        m_soundManager.playBGM(isUnderground ? "underground" : "ground");
     }
 
-    // Press 'W' to simulate touching the flagpole
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-        Game::getInstance().changeState(std::make_unique<VictoryState>());
+    Hero* hero = m_levelRuntime.getHero();
+    if (!hero) {
+        updateTimer(deltaTime);
+        return;
+    }
+
+    const int currentCoins = hero->getCoin();
+    if (!m_defeatPending && currentCoins > m_lastCoinCount) {
+        const int difference = currentCoins - m_lastCoinCount;
+        m_hudManager->addCoin(difference);
+        m_hudManager->addScore(100 * difference);
+        m_soundManager.playSFX("coin");
+        m_lastCoinCount = currentCoins;
+    }
+
+    const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
+    const float levelEnd = m_levelRuntime.getWorldWidth();
+    const float cameraX = std::clamp(hero->getPosition().x,
+                                     halfScreenWidth,
+                                     levelEnd - halfScreenWidth);
+    // Keep the world aligned to physical pixels. Following the Hero's
+    // fractional X position directly makes tightly packed atlas tiles sample
+    // neighbouring texels, which appears as one-pixel vertical seams.
+    // Align the active room's bottom with the bottom of the viewport. On the
+    // surface this prevents the vertically stacked underground map from being
+    // visible; pipe travel still moves the camera to that room after entry.
+    const float cameraY = getCameraY(
+        m_levelRuntime.getActiveRegionBottom());
+    m_camera.setCenter(std::round(cameraX), std::round(cameraY));
+
+    // Goal activation is resolved by InteractionSystem. PlayingState only
+    // owns the presentation delay and the game-state transition.
+    if (!m_victoryPending && m_levelRuntime.hasActivatedGoal()) {
+        hero->setState(std::make_unique<CheerState>());
+        m_victoryPending = true;
+        m_victoryDelayRemaining = VICTORY_DELAY_SECONDS;
+    } else if (m_victoryPending) {
+        m_victoryDelayRemaining -= deltaTime;
+        if (m_victoryDelayRemaining <= 0.0f) {
+            const sf::FloatRect heroBounds = hero->getBounds();
+            const sf::Vector2f cameraTopLeft = {
+                m_camera.getCenter().x - m_camera.getSize().x / 2.f,
+                m_camera.getCenter().y - m_camera.getSize().y / 2.f
+            };
+            sf::Vector2f heroScreenPosition = {
+                heroBounds.left + heroBounds.width / 2.f - cameraTopLeft.x,
+                heroBounds.top + heroBounds.height / 2.f - cameraTopLeft.y
+            };
+            heroScreenPosition.x = std::clamp(
+                heroScreenPosition.x, 48.f, 1232.f);
+            heroScreenPosition.y = std::clamp(
+                heroScreenPosition.y, 48.f, 672.f);
+            Game::getInstance().pushState(
+                std::make_unique<VictoryState>(heroScreenPosition));
+            return;
+        }
+    }
+
+    // Once victory is pending it remains authoritative, even if the ongoing
+    // simulation makes the Hero dead during the transition delay.
+    if (m_victoryPending) return;
+
+    // Victory is resolved before the timer so touching the goal freezes the
+    // HUD immediately and cannot be overwritten by a timeout in this frame.
+    if (updateTimer(deltaTime)) return;
+
+    if (!m_defeatPending && hero->isDead()) {
+        m_hudManager->restoreProgress(
+            m_attemptStartScore,
+            m_attemptStartCoins,
+            m_attemptStartLives);
+        m_hudManager->loseLife();
+        m_defeatPending = true;
+        m_defeatDelayRemaining = DEFEAT_DELAY_SECONDS;
+    } else if (m_defeatPending) {
+        m_defeatDelayRemaining -= deltaTime;
+        if (m_defeatDelayRemaining <= 0.0f) {
+			if (m_hudManager->getLives() > 0) {
+				Game::getInstance().changeState(
+					std::make_unique<TransitionState>(m_hudManager));
+			} else {
+				Game::getInstance().changeState(
+					std::make_unique<GameOverState>());
+			}
+            return;
+        }
     }
 }
 
 void PlayingState::render(sf::RenderWindow& window) {
     window.setView(m_camera);
-    window.draw(m_dummyFloor);
-    window.draw(m_dummyMario);
-    window.draw(m_dummyWall);
-	window.setView(window.getDefaultView()); // Reset view to default for UI rendering
+    if (m_levelRuntime.getActiveRegionBottom() > CAMERA_HEIGHT) {
+        sf::RectangleShape undergroundBackdrop({
+            UNDERGROUND_ROOM_WIDTH, UNDERGROUND_ROOM_HEIGHT
+        });
+        undergroundBackdrop.setPosition(
+            UNDERGROUND_ROOM_LEFT, UNDERGROUND_ROOM_TOP);
+        undergroundBackdrop.setFillColor(sf::Color::Black);
+        window.draw(undergroundBackdrop);
+    }
+    m_levelRuntime.renderWorld(window);
+    window.draw(*m_hudManager);
+    window.setView(window.getDefaultView());
 }

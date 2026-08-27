@@ -22,13 +22,23 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(SFML)
 
 # 2. GOM CÁC FILE SOURCE (.cpp)
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+# Dùng CONFIGURE_DEPENDS để CMake tự động nhận diện khi có file .cpp mới được tạo
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 # 3. TẠO FILE THỰC THI (EXECUTABLE)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # 4. CHỈ ĐỊNH THƯ MỤC CHỨA FILE HEADER (.h)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+# Dùng CONFIGURE_DEPENDS để tự động quét các thư mục con khi có file .h mới
+file(GLOB_RECURSE INC_ALL_FILES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/include/*.h" "${CMAKE_SOURCE_DIR}/include/*.hpp")
+set(INC_DIRS ${CMAKE_SOURCE_DIR}/include)
+foreach(f ${INC_ALL_FILES})
+    get_filename_component(dir ${f} DIRECTORY)
+    list(APPEND INC_DIRS ${dir})
+endforeach()
+list(REMOVE_DUPLICATES INC_DIRS)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${INC_DIRS})
 
 # 5. LINK THƯ VIỆN SFML VÀO PROJECT
 # SFML khi được tải bằng FetchContent sẽ giữ các tên target tiêu chuẩn
@@ -39,3 +49,19 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )
+
+# SFML audio is linked statically, but its OpenAL backend remains a runtime
+# DLL on Windows. Keep it beside the executable for both Debug and Release.
+if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SFML_OPENAL_ARCH x64)
+    else()
+        set(SFML_OPENAL_ARCH x86)
+    endif()
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${SFML_SOURCE_DIR}/extlibs/bin/${SFML_OPENAL_ARCH}/openal32.dll
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/openal32.dll
+    )
+endif()
