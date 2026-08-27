@@ -15,7 +15,7 @@ using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>
 class Hero : public Character {
 protected:
     std::unique_ptr<HeroForm> form;   // Small / Giant / Fire
-    std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Fly / Grow / Shrink
+    std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Cheer / Grow / Shrink
     std::string baseTexturePath;
 	std::string specialTexturePath;
 	float spriteRenderScale{2.f};

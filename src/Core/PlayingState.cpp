@@ -6,7 +6,7 @@
 #include "Core/TransitionState.h"
 #include "Core/VictoryState.h"
 #include "Entities/Character/Hero/Hero.h"
-#include "Entities/Character/Hero/HeroState/FlyState.h"
+#include "Entities/Character/Hero/HeroState/CheerState.h"
 
 #include <algorithm>
 #include <cmath>
@@ -172,7 +172,7 @@ void PlayingState::update(sf::Time dt) {
     // Goal activation is resolved by InteractionSystem. PlayingState only
     // owns the presentation delay and the game-state transition.
     if (!m_victoryPending && m_levelRuntime.hasActivatedGoal()) {
-        hero->setState(std::make_unique<FlyState>());
+        hero->setState(std::make_unique<CheerState>());
         m_victoryPending = true;
         m_victoryDelayRemaining = VICTORY_DELAY_SECONDS;
     } else if (m_victoryPending) {

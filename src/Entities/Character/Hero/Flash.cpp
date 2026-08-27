@@ -38,7 +38,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	animator.addAnimation("SmallSlide", Animation({{489, 51, 82, 111}}, 0.15f));
 	animator.addAnimation("SmallJump", Animation({{605, 51, 106, 111}}, 0.15f));
 	animator.addAnimation("SmallDead", Animation({{723, 51, 127, 111}}, 0.15f));
-	animator.addAnimation("SmallFly", Animation({
+	animator.addAnimation("SmallCheer", Animation({
 		{883, 51, 107, 111}, {1023, 49, 111, 113},
 		{1148, 50, 98, 112}, {1275, 52, 123, 110}
 	}, 0.10f));
@@ -51,7 +51,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	const Animation bigSlide({{549, 200, 123, 228}}, 0.15f);
 	const Animation bigJump({{672, 218, 139, 216}}, 0.15f);
 	const Animation bigSit({{815, 267, 148, 164}}, 0.15f);
-	const Animation bigFly({
+	const Animation bigCheer({
 		{959, 209, 137, 221}, {1097, 222, 139, 208},
 		{1234, 226, 143, 203}, {1375, 219, 141, 210}
 	}, 0.10f);
@@ -65,7 +65,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	const Animation thunderSlide({{587, 240, 119, 190}}, 0.15f);
 	const Animation thunderJump({{709, 244, 136, 186}}, 0.15f);
 	const Animation thunderSit({{853, 283, 132, 147}}, 0.15f);
-	const Animation thunderFly({
+	const Animation thunderCheer({
 		{985, 237, 122, 193}, {1110, 248, 132, 182},
 		{1246, 249, 137, 181}, {1387, 247, 132, 183}
 	}, 0.10f);
@@ -79,14 +79,14 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	animator.addAnimation("GiantSlide", bigSlide);
 	animator.addAnimation("GiantJump", bigJump);
 	animator.addAnimation("GiantSit", bigSit);
-	animator.addAnimation("GiantFly", bigFly);
+	animator.addAnimation("GiantCheer", bigCheer);
 	if (thunderTextureAvailable) {
 		animator.addAnimation("FireIdle", thunderIdle);
 		animator.addAnimation("FireRun", thunderRun);
 		animator.addAnimation("FireSlide", thunderSlide);
 		animator.addAnimation("FireJump", thunderJump);
 		animator.addAnimation("FireSit", thunderSit);
-		animator.addAnimation("FireFly", thunderFly);
+		animator.addAnimation("FireCheer", thunderCheer);
 		animator.addAnimation("FireSpecial", thunderSpecial);
 	} else {
 		// A missing optional sheet must not leave Fire animations pointing at
@@ -96,7 +96,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 		animator.addAnimation("FireSlide", bigSlide);
 		animator.addAnimation("FireJump", bigJump);
 		animator.addAnimation("FireSit", bigSit);
-		animator.addAnimation("FireFly", bigFly);
+		animator.addAnimation("FireCheer", bigCheer);
 		animator.addAnimation("FireSpecial", bigSit);
 	}
 

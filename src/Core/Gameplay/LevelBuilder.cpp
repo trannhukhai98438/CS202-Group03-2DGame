@@ -128,7 +128,8 @@ bool LevelBuilder::build(GameWorld& world,
                 BlockType::Question,
                 worldX,
                 worldY,
-                getBlockItemType(item, ItemType::Coin)));
+                getBlockItemType(item, ItemType::Coin),
+                std::max(0, object.count)));
         } else if (type == "invisible") {
             const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(

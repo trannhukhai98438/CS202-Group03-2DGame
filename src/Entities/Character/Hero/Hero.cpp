@@ -149,6 +149,9 @@ void Hero::collectCoin(){
 }
 
 void Hero::takeDamage(int damage){
+    if (getStateName() == "Cheer") {
+        return;
+    }
     if (invincibleTimer > 0.f) {
         return; // Ignore damage during I-frames
     }

@@ -14,7 +14,7 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("SmallSlide", Animation({{76, 8, 16, 16}}, 0.15f));
     animator.addAnimation("SmallJump", Animation({{96, 8, 16, 16}}, 0.15f));
     animator.addAnimation("SmallDead", Animation({{116, 8, 16, 16}}, 0.15f));
-    animator.addAnimation("SmallFly", Animation({{136, 8, 16, 16}, {154, 8, 16, 16}, {174, 8, 16, 16}, {192, 8, 16, 16}, {210, 8, 16, 16}, {228, 8, 16, 16}, {246, 8, 16, 16}}, 0.1f));
+    animator.addAnimation("SmallCheer", Animation({{0, 8, 16, 16}, {96, 8, 16, 16}, {0, 8, 16, 16}, {96, 8, 16, 16}}, 0.1f));
 
     // Giant Form
     animator.addAnimation("GiantIdle", Animation({{0, 32, 16, 32}}, 0.15f));
@@ -22,7 +22,7 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("GiantSlide", Animation({{76, 32, 16, 32}}, 0.15f));
     animator.addAnimation("GiantJump", Animation({{96, 32, 16, 32}}, 0.15f));
     animator.addAnimation("GiantSit", Animation({{116, 40, 16, 24}}, 0.15f));
-    animator.addAnimation("GiantFly", Animation({{136, 31, 16, 32}, {154, 31, 16, 32}, {174, 31, 16, 32}, {192, 31, 16, 32}, {210, 31, 16, 32}, {228, 31, 16, 32}, {246, 31, 16, 32}, {264, 31, 16, 32}}, 0.1f));
+    animator.addAnimation("GiantCheer", Animation({{0, 32, 16, 32}, {96, 32, 16, 32}, {0, 32, 16, 32}, {96, 32, 16, 32}}, 0.1f));
 
     // Fire Form (uses Giant coords + Fire Special)
     animator.addAnimation("FireIdle", Animation({{0, 32, 16, 32}}, 0.15f));
@@ -30,7 +30,7 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("FireSlide", Animation({{76, 32, 16, 32}}, 0.15f));
     animator.addAnimation("FireJump", Animation({{96, 32, 16, 32}}, 0.15f));
     animator.addAnimation("FireSit", Animation({{116, 40, 16, 24}}, 0.15f));
-    animator.addAnimation("FireFly", Animation({{136, 31, 16, 32}, {154, 31, 16, 32}, {174, 31, 16, 32}, {192, 31, 16, 32}, {210, 31, 16, 32}, {228, 31, 16, 32}, {246, 31, 16, 32}, {264, 31, 16, 32}}, 0.1f));
+    animator.addAnimation("FireCheer", Animation({{0, 32, 16, 32}, {96, 32, 16, 32}, {0, 32, 16, 32}, {96, 32, 16, 32}}, 0.1f));
     animator.addAnimation("FireSpecial", Animation({{136, 72, 16, 32}, {154, 72, 16, 32}}, 0.15f));
 
     // Growth / Shrink
