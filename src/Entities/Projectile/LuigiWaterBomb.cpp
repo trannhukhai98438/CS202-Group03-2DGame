@@ -18,7 +18,7 @@ LuigiWaterBomb::LuigiWaterBomb(float startX, float startY,
     if (splashTexture.loadFromFile("assets/textures/LuigiWaterSplash.png")) {
         splashTexture.setSmooth(false);
         splashSprite.setTexture(splashTexture);
-        configureSprite(splashSprite, splashTexture, 80.0f, 24.0f);
+        configureSprite(splashSprite, splashTexture, 96.0f, 24.0f);
     }
 
     setPosition({startX, startY});
@@ -77,9 +77,9 @@ void LuigiWaterBomb::enterSplash(SideType side,
     impactEffectTimer = 0.18f;
     damageWindowOpen = true;
     velocity = {0.0f, 0.0f};
-    shape.setSize({80.0f, 24.0f});
+    shape.setSize({96.0f, 24.0f});
 
-    sf::Vector2f splashPosition(center.x - 40.0f, center.y - 12.0f);
+    sf::Vector2f splashPosition(center.x - 48.0f, center.y - 12.0f);
     if (side == SideType::Top && solidBounds) {
         splashPosition.y = solidBounds->top - shape.getSize().y;
     }
