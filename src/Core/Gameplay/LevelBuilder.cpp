@@ -168,14 +168,12 @@ bool LevelBuilder::build(GameWorld& world,
         world.addEnemy(std::move(enemy));
     }
 
-    // Programmatic fallback to ensure ThorKing is spawned at X=900 for testing
-    if (!spawnedThorKing) {
-        auto boss = EnemyFactory::createEnemy(
-            EnemyType::ThorKing, 900.f, 200.f, 600.f,
-            spawnCallback);
-        if (boss) {
-            world.addEnemy(std::move(boss));
-        }
+    // Spawn a Witch near the beginning for easy testing
+    auto testWitch = EnemyFactory::createEnemy(
+        EnemyType::Witch, 450.f, 350.f, 150.f,
+        spawnCallback);
+    if (testWitch) {
+        world.addEnemy(std::move(testWitch));
     }
 
     return world.hero() != nullptr;

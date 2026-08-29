@@ -46,6 +46,7 @@ Potion::Potion(float startX, float startY, float velX, float velY)
 
     float scale = 32.0f / static_cast<float>(texture.getSize().y > 0 ? texture.getSize().y : 32.0f);
     sprite.setScale(scale, scale);
+    sprite.setOrigin(texture.getSize().x / 2.0f, static_cast<float>(texture.getSize().y));
     
     animator.playAnimation("flying", 0.0f);
 }
@@ -55,26 +56,25 @@ void Potion::shatterOnTile(float tileY) {
     isPuddle = true;
     puddleTimer = 1.5f; // Puddle lasts 1.5 seconds
     velocity = sf::Vector2f(0.0f, 0.0f);
-    shape.setSize(sf::Vector2f(80.0f, 24.0f)); // Puddle is wider and flatter
+    shape.setSize(sf::Vector2f(96.0f, 18.0f)); // Puddle is wider and flatter
     
     // Snap puddle exactly on TOP of the tile surface
     position.y = tileY - shape.getSize().y;
-    position.x -= 24.0f; // Center the wider puddle
+    position.x -= 32.0f; // Center the wider puddle
     shape.setPosition(position);
     // Switch to puddle texture
     sprite.setTexture(puddleTexture);
-    float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80.0f);
+    float scaleX = 96.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 96.0f);
     float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24.0f);
     sprite.setScale(scaleX, scaleY);
-    // Sync sprite position with shape immediately
-    sprite.setPosition(position.x + shape.getSize().x / 2.f, position.y + shape.getSize().y);
+    sprite.setOrigin(puddleTexture.getSize().x / 2.0f, static_cast<float>(puddleTexture.getSize().y));
 
     animator.playAnimation("puddle", 0.0f);
     setPosition(position);
 }
 
 void Potion::shatterAtImpact(SideType side, const sf::FloatRect& solidBounds) {
-    if (side == SideType::Top) {
+    if (side == SideType::Top || velocity.y >= 0.0f) {
         shatterOnTile(solidBounds.top);
         return;
     }
@@ -84,17 +84,24 @@ void Potion::shatterAtImpact(SideType side, const sf::FloatRect& solidBounds) {
     isPuddle = true;
     puddleTimer = 1.5f;
     velocity = {0.0f, 0.0f};
-    shape.setSize({80.0f, 24.0f});
+    shape.setSize({96.0f, 18.0f});
     sprite.setTexture(puddleTexture);
-    float scaleX = 80.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 80);
-    float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24);
+    float scaleX = 96.0f / static_cast<float>(puddleTexture.getSize().x > 0 ? puddleTexture.getSize().x : 96.0f);
+    float scaleY = 24.0f / static_cast<float>(puddleTexture.getSize().y > 0 ? puddleTexture.getSize().y : 24.0f);
     sprite.setScale(scaleX, scaleY);
+    sprite.setOrigin(puddleTexture.getSize().x / 2.0f, static_cast<float>(puddleTexture.getSize().y));
     animator.playAnimation("puddle", 0.0f);
-    setPosition({impactCenter.x - 40.0f, impactCenter.y - 12.0f});
+    setPosition({impactCenter.x - 48.0f, solidBounds.top - 18.0f});
 }
 
 void Potion::onSolidCollision(SideType side, const sf::FloatRect& solidBounds) {
-    if (!isPuddle) shatterAtImpact(side, solidBounds);
+    if (!isPuddle) {
+        if (side == SideType::Top || velocity.y >= 0.0f) {
+            shatterOnTile(solidBounds.top);
+        } else {
+            shatterAtImpact(side, solidBounds);
+        }
+    }
 }
 
 void Potion::update(float deltaTime) {
@@ -126,5 +133,5 @@ void Potion::render(sf::RenderWindow& window) {
 void Potion::setPosition(const sf::Vector2f& pos) {
     Projectile::setPosition(pos);
     sprite.setPosition(position.x + shape.getSize().x * 0.5f,
-                       position.y + shape.getSize().y);
+                       position.y + shape.getSize().y + (isPuddle ? 4.0f : 0.0f));
 }

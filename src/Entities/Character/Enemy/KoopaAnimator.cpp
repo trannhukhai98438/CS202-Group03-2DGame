@@ -6,42 +6,39 @@ void KoopaAnimator::initAnimations(Koopa& koopa) {
     koopa.loadSpriteTexture("assets/textures/koopa.png", 1, 48.0f, 1);
     
     sf::Sprite& sprite = koopa.getSprite();
-    // 1024 x 558 resolution -> walk frame height is ~142px
-    float scale = 48.0f / 142.0f;
+    // 1024 x 558 modern 2.5D spritesheet -> walk frame height is 160px
+    float scale = 48.0f / 160.0f;
     sprite.setScale(scale, scale);
 
-    // Color-scanned exact sub-rectangles from new Koopa sheet
+    // Exact sub-rectangles for modern 2.5D Koopa sheet
     // Walk: 6 frames (Row 0)
     koopa.getAnimator().addAnimation("walk", Animation({
-        sf::IntRect(40,  19, 97, 139),
-        sf::IntRect(208, 19, 96, 139),
-        sf::IntRect(375, 19, 97, 142),
-        sf::IntRect(547, 19, 98, 139),
-        sf::IntRect(719, 19, 93, 142),
-        sf::IntRect(883, 19, 95, 142)
+        sf::IntRect(44,  29, 97,  160),
+        sf::IntRect(210, 29, 97,  160),
+        sf::IntRect(381, 29, 96,  160),
+        sf::IntRect(551, 29, 96,  160),
+        sf::IntRect(717, 29, 100, 160),
+        sf::IntRect(885, 29, 97,  160)
     }, 0.12f));
 
-    // Shell state: static shell (Row 1, Col 2)
+    // Shell state: static shell (Row 1)
     koopa.getAnimator().addAnimation("shell", Animation({
-        sf::IntRect(385, 249, 87, 82)
+        sf::IntRect(47, 255, 100, 79)
     }, 0.2f));
 
-    // Spin: 3 frames fast spinning shell with motion blur and sparks (Row 1, Col 3, 4, 5)
+    // Spin: 3 frames fast spinning shell with motion trails (Row 1)
     koopa.getAnimator().addAnimation("spin", Animation({
-        sf::IntRect(551, 236, 96, 93),
-        sf::IntRect(712, 230, 110, 97),
-        sf::IntRect(866, 206, 118, 128)
-    }, 0.05f));
+        sf::IntRect(460, 247, 113, 80),
+        sf::IntRect(668, 229, 99,  105),
+        sf::IntRect(874, 229, 94,  107)
+    }, 0.06f));
 
-    // FlippingDeath: 7 frames full tumbling sequence (Row 2, Col 0..6)
+    // FlippingDeath: 4 frames tumbling sequence (Row 2)
     koopa.getAnimator().addAnimation("flippingDeath", Animation({
-        sf::IntRect(43,  394, 94, 137),
-        sf::IntRect(208, 396, 100, 116),
-        sf::IntRect(350, 379, 88, 110),
-        sf::IntRect(448, 391, 113, 141),
-        sf::IntRect(584, 398, 86, 129),
-        sf::IntRect(716, 401, 100, 115),
-        sf::IntRect(889, 392, 85, 139)
+        sf::IntRect(55,  382, 151, 137),
+        sf::IntRect(332, 374, 129, 123),
+        sf::IntRect(564, 391, 161, 116),
+        sf::IntRect(833, 390, 118, 148)
     }, 0.08f));
 }
 
