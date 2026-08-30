@@ -54,6 +54,8 @@ public:
 
     void removeInactiveEntities();
 
+    void clear();
+
 private:
     LevelManager m_levelManager;
     std::unique_ptr<Hero> m_hero;

@@ -130,3 +130,13 @@ void GameWorld::removeInactiveEntities() {
                        }),
         m_projectiles.end());
 }
+
+void GameWorld::clear() {
+    m_hero.reset();
+    m_blocks.clear();
+    m_items.clear();
+    m_enemies.clear();
+    m_projectiles.clear();
+    m_goals.clear();
+    m_mapColliders.clear();
+}

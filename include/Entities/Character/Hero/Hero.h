@@ -39,6 +39,7 @@ public:
 
     void takeDamage(int damage) override;
     void die() override;
+    void setForm(const std::string& newForm);
     void setForm(std::unique_ptr<HeroForm> newForm);
     void setState(std::unique_ptr<HeroState> newState);
     std::string getStateName() const;
@@ -54,8 +55,10 @@ public:
     
     void collectCoin();
     int getCoin() const;
+    void setCoin(int newCoin);
     bool isDead() const;
-    int getHp();
+    int getHp() const;
+    void setHp(int newHp);
     void setSize(float x, float y);
     void setPosition(float x, float y);
 };

@@ -8,6 +8,8 @@
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/CheerState.h"
 
+#include "Managers/SaveManager.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -105,11 +107,77 @@ bool PlayingState::updateTimer(float deltaTime) {
 }
 
 void PlayingState::processEvents(sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed
-        && event.key.code == sf::Keyboard::Tab) {
-        Game::getInstance().pushState(std::make_unique<PausedState>());
-		return;
-	}
+    if (event.type == sf::Event::KeyPressed) {
+
+        // --- Pause Game (TAB Key) ---
+        if (event.key.code == sf::Keyboard::Tab) {
+            Game::getInstance().pushState(std::make_unique<PausedState>());
+            return;
+        }
+
+        // ==========================================
+        // F5: QUICK SAVE
+        // ==========================================
+        if (event.key.code == sf::Keyboard::F5) {
+            std::cout << "\n[QuickSave] Saving game state..." << std::endl;
+
+            SaveManager saveManager;
+            GameWorld& world = m_levelRuntime.getWorld();
+
+            const bool success = saveManager.saveToFile(
+                "savegame.json",
+                "assets/maps/levels/1-1.tmj",
+                "assets/maps/resources/tileset.png",
+                world.hero(),
+                world.enemies(),
+                world.blocks(),
+                *m_hudManager
+            );
+
+            if (success) {
+                std::cout << "[QuickSave] Game saved successfully!" << std::endl;
+            } else {
+                std::cerr << "[QuickSave] Failed to save game!" << std::endl;
+            }
+        }
+
+        // ==========================================
+        // F9: QUICK LOAD
+        // ==========================================
+        if (event.key.code == sf::Keyboard::F9) {
+            std::cout << "\n[QuickLoad] Loading saved game state..." << std::endl;
+
+            SaveManager saveManager;
+
+            if (saveManager.loadFromFile("savegame.json")) {
+                
+                // 1. Reset the level runtime to its default state
+                m_levelRuntime.reload(
+                    "assets/maps/levels/1-1.tmj",
+                    "assets/maps/resources/tileset.png",
+                    Game::getInstance().getSelectedHero()
+                );
+
+                // 2. Overlay saved state onto GameWorld and HUDManager
+                const bool applied = saveManager.applySaveToWorld(
+                    m_levelRuntime.getWorld(),
+                    *m_hudManager
+                );
+
+                if (applied) {
+                    // Sync local coin tracking state inside PlayingState
+                    if (Hero* hero = m_levelRuntime.getHero()) {
+                        m_lastCoinCount = hero->getCoin();
+                    }
+                    std::cout << "[QuickLoad] Game loaded successfully!" << std::endl;
+                } else {
+                    std::cerr << "[QuickLoad] Failed to apply save data to GameWorld!" << std::endl;
+                }
+            } else {
+                std::cerr << "[QuickLoad] Failed to read save file!" << std::endl;
+            }
+        }
+    }
 }
 
 void PlayingState::update(sf::Time dt) {

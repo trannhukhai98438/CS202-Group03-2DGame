@@ -29,6 +29,9 @@ public:
     virtual bool isSolid() const { return true; }
     virtual bool canBeHitFromBelow() const { return isSolid(); }
 
+    bool getIsHit() const { return isHit; }
+    void setIsHit(bool hit) { isHit = hit; }
+
 protected:
     bool hasHiddenItems() const;
     std::unique_ptr<Item> releaseHiddenItem(Hero* hero);

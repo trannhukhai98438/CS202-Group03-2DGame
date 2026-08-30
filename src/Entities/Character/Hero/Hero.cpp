@@ -1,5 +1,7 @@
 #include "Hero.h"
 #include "SmallForm.h"
+#include "GiantForm.h"
+#include "FireForm.h"
 #include "IdleState.h"
 #include "DeadState.h"
 #include "Item.h"
@@ -96,6 +98,16 @@ void Hero::render(sf::RenderWindow& window){
     window.draw(sprite);
 }
 
+void Hero::setForm(const std::string& newForm) {
+    if (newForm == "SmallForm") {
+        setForm(std::make_unique<SmallForm>());
+    } else if (newForm == "GiantForm") {
+        setForm(std::make_unique<GiantForm>());
+    } else if (newForm == "FireForm") {
+        setForm(std::make_unique<FireForm>());
+    }
+}
+
 void Hero::setForm(std::unique_ptr<HeroForm> newForm){
     // An override belongs to the old form's texture coordinates and must not
     // survive a texture/form swap.
@@ -144,6 +156,10 @@ int Hero::getCoin() const{
     return coin;
 }
 
+void Hero::setCoin(int newCoin) {
+    coin = newCoin;
+}
+
 void Hero::collectCoin(){
     ++coin;
 }
@@ -174,8 +190,12 @@ bool Hero::isDead() const {
     return hp <= 0 || !isAlive;
 }
 
-int Hero::getHp(){
+int Hero::getHp() const {
     return hp;
+}
+
+void Hero::setHp(int newHp) {
+    hp = newHp;
 }
 
 void Hero::setSize(float x, float y){

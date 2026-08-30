@@ -31,10 +31,17 @@ public:
     LevelRuntime(const std::string& mapPath,
                  const std::string& tilesetPath,
                  HeroType heroType);
+    
+    void reload(const std::string& mapPath,
+                const std::string& tilesetPath,
+                HeroType heroType);
 
     LevelUpdateResult update(float deltaTime,
                              PipeDirection pipeDirection = PipeDirection::None);
     void renderWorld(sf::RenderWindow& window);
+
+    GameWorld& getWorld() { return m_world; }
+    const GameWorld& getWorld() const { return m_world; }
 
     Hero* getHero();
     const Hero* getHero() const;

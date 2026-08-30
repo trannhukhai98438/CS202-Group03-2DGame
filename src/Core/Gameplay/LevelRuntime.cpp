@@ -45,6 +45,25 @@ LevelRuntime::LevelRuntime(const std::string& mapPath,
     }
 }
 
+void LevelRuntime::reload(const std::string& mapPath,
+                          const std::string& tilesetPath,
+                          HeroType heroType) {
+    m_pipeRoutes.clear();
+    m_pipeCooldownRemaining = 0.0f;
+    m_activeRegionBottom = 720.0f;
+    m_ready = false;
+
+    m_world.clear();
+
+    LevelBuilder builder;
+    m_ready = builder.build(m_world, mapPath, tilesetPath, heroType);
+
+    if (m_ready) {
+        cachePipeRoutes();
+        m_activeRegionBottom = detectActiveRegionBottom();
+    }
+}
+
 LevelUpdateResult LevelRuntime::update(float deltaTime,
                                        PipeDirection pipeDirection) {
     LevelUpdateResult result;
