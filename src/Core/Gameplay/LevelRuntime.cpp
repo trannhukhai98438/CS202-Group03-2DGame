@@ -165,6 +165,13 @@ float LevelRuntime::getActiveRegionBottom() const {
 
 void LevelRuntime::cachePipeRoutes() {
     const LevelManager& level = m_world.levelManager();
+    const auto starts = level.getObjectsByClass("Trigger", "start");
+    const MapTheme initialTheme =
+        !starts.empty() && starts.front().theme != MapTheme::Unspecified
+            ? starts.front().theme
+            : MapTheme::Overworld;
+    m_world.blockThemePalette().setActiveTheme(initialTheme);
+
     const auto entrances = level.getObjectsByClass("Trigger", "pipe_in");
     m_pipeRoutes.clear();
 
@@ -178,7 +185,8 @@ void LevelRuntime::cachePipeRoutes() {
             sf::FloatRect(entrance.x, entrance.y,
                           entrance.width, entrance.height),
             sf::Vector2f(destination->x, destination->y),
-            direction
+            direction,
+            destination->theme
         });
     }
 }
@@ -228,6 +236,10 @@ bool LevelRuntime::tryTravelThroughPipe(PipeDirection direction) {
             hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
         }
 
+        if (route.destinationTheme != MapTheme::Unspecified) {
+            m_world.blockThemePalette().setActiveTheme(
+                route.destinationTheme);
+        }
         m_activeRegionBottom = detectActiveRegionBottom();
         m_pipeCooldownRemaining = PIPE_COOLDOWN_SECONDS;
         return true;

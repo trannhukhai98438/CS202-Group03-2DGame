@@ -3,16 +3,19 @@
 #include "Entities/Block/InvisibleBlock.h"
 #include "Entities/Block/QuestionBlock.h"
 
+BlockFactory::BlockFactory(const BlockThemePalette& themePalette)
+    : themePalette(themePalette) {}
+
 std::unique_ptr<Block> BlockFactory::createBlock(
     BlockType type,
     float x,
     float y,
     ItemType hiddenItem,
-    int itemCount) {
+    int itemCount) const {
     std::unique_ptr<Block> block;
     switch (type) {
         case BlockType::Brick:
-            block = std::make_unique<BrickBlock>(x, y);
+            block = std::make_unique<BrickBlock>(x, y, themePalette);
             break;
             
         case BlockType::Question:

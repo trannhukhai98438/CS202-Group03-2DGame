@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Gameplay/BlockThemePalette.h"
 #include "Managers/LevelManager.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -23,6 +24,9 @@ public:
 
     LevelManager& levelManager();
     const LevelManager& levelManager() const;
+
+    BlockThemePalette& blockThemePalette();
+    const BlockThemePalette& blockThemePalette() const;
 
     Hero* hero();
     const Hero* hero() const;
@@ -58,6 +62,7 @@ public:
 
 private:
     LevelManager m_levelManager;
+    BlockThemePalette m_blockThemePalette;
     std::unique_ptr<Hero> m_hero;
     std::vector<std::unique_ptr<Block>> m_blocks;
     std::vector<std::unique_ptr<Item>> m_items;
