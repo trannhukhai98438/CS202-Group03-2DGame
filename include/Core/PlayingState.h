@@ -21,6 +21,7 @@ private:
 
     sf::View m_camera;
     std::shared_ptr<HUDManager> m_hudManager;
+    std::string m_levelPath;
     LevelRuntime m_levelRuntime;
     SoundManager m_soundManager;
     int m_lastCoinCount{0};

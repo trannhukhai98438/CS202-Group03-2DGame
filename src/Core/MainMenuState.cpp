@@ -168,7 +168,7 @@ void MainMenuState::activateButton(int index) {
 	}
 	if (index == 2) {
 		Game::getInstance().changeState(
-			std::make_unique<TransitionState>(nullptr, "assets/maps/levels/boss_arena.tmj", "BOSS: THORKING"));
+			std::make_unique<TransitionState>(std::make_shared<HUDManager>(), "assets/maps/levels/boss_arena.tmj", "BOSS: THORKING"));
 		return;
 	}
 }

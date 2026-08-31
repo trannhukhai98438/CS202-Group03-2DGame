@@ -8,8 +8,10 @@ FlashThunder::FlashThunder(float startX, float startY, float velocityX)
 	shape.setSize({64.f, 20.f});
 	shape.setFillColor(sf::Color(165, 70, 255));
 	if (const sf::Texture* thunderTexture = ThunderFlashTexture::get()) {
-		const sf::IntRect flyingFrame{1198, 495, 344, 93};
-		const float renderScale = 64.f / flyingFrame.width;
+		// Use the purple lightning swipe from the Swing animation as the projectile,
+        // offset X to 455 to cut out the character's hand/staff
+		const sf::IntRect flyingFrame{455, 280, 90, 228};
+		const float renderScale = 80.f / flyingFrame.height;
 		sprite.setTexture(*thunderTexture);
 		sprite.setTextureRect(flyingFrame);
 		sprite.setOrigin(flyingFrame.width * 0.5f,

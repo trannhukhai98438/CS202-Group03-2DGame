@@ -266,17 +266,19 @@ void GuideState::showPage(int page) {
 		m_body.setString("");
 
         m_demoSprites[0].setTexture(m_marioTexture);
-        m_demoSprites[0].setTextureRect({0, 8, 16, 16});
-		m_demoSprites[0].setScale(7.f, 7.f);
-		m_demoSprites[0].setPosition(235.f, 245.f);
+        m_demoSprites[0].setTextureRect({28, 68, 94, 164});
+        m_demoSprites[0].setOrigin(47.f, 82.f);
+		m_demoSprites[0].setScale(0.85f, 0.85f);
+		m_demoSprites[0].setPosition(290.f, 310.f);
         m_demoSprites[1].setTexture(m_luigiTexture);
-        m_demoSprites[1].setTextureRect({0, 8, 16, 16});
-        m_demoSprites[1].setScale(7.f, 7.f);
-		m_demoSprites[1].setPosition(575.f, 245.f);
+        m_demoSprites[1].setTextureRect({27, 56, 118, 227});
+        m_demoSprites[1].setOrigin(59.f, 113.5f);
+        m_demoSprites[1].setScale(0.68f, 0.68f);
+		m_demoSprites[1].setPosition(585.f, 310.f);
 		m_demoSprites[2].setTexture(m_flashTexture);
-		m_demoSprites[2].setTextureRect({15, 52, 104, 113});
-		m_demoSprites[2].setScale(0.9f, 0.9f);
-		m_demoSprites[2].setPosition(895.f, 235.f);
+		m_demoSprites[2].setTextureRect({85, 20, 149, 192});
+		m_demoSprites[2].setScale(0.6f, 0.6f);
+		m_demoSprites[2].setPosition(875.f, 235.f);
 
 		m_demoLabels[0].setString(
 			"MARIO\nBOUNCING FIREBALL\nCOOLDOWN: 2 SECONDS");

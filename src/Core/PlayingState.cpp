@@ -7,6 +7,9 @@
 #include "Core/VictoryState.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/FlyState.h"
+#include "Entities/Character/Hero/HeroForm/FireForm.h"
+#include "Entities/Character/Hero/HeroForm/GiantForm.h"
+#include "Entities/Character/Hero/HeroForm/SmallForm.h"
 #include "Entities/Character/Enemy/ThorKing.h"
 
 #include <algorithm>
@@ -67,6 +70,7 @@ float getCameraY(float activeRegionBottom) {
 
 PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager, const std::string& levelPath)
 	: m_hudManager(std::move(hudManager)),
+	  m_levelPath(levelPath),
 	  m_levelRuntime(levelPath,
 	                 "assets/maps/resources/tileset.png",
 	                 Game::getInstance().getSelectedHero()) {
@@ -125,6 +129,21 @@ void PlayingState::processEvents(sf::Event& event) {
                     boss->setBossHp(1);
                     std::cout << "[DEBUG] Switched ThorKing Boss to Phase 3 (HP 1/3 - Magma Winged Demon)" << std::endl;
                 }
+            }
+        } else if (event.key.code == sf::Keyboard::F || event.key.code == sf::Keyboard::Num4 || event.key.code == sf::Keyboard::F4) {
+            if (auto* hero = m_levelRuntime.getHero()) {
+                hero->setForm(std::make_unique<FireForm>());
+                std::cout << "[DEBUG] Switched Hero to Fire Form (Press X to shoot fireball!)" << std::endl;
+            }
+        } else if (event.key.code == sf::Keyboard::G || event.key.code == sf::Keyboard::Num5 || event.key.code == sf::Keyboard::F5) {
+            if (auto* hero = m_levelRuntime.getHero()) {
+                hero->setForm(std::make_unique<GiantForm>());
+                std::cout << "[DEBUG] Switched Hero to Giant Form" << std::endl;
+            }
+        } else if (event.key.code == sf::Keyboard::H || event.key.code == sf::Keyboard::Num6 || event.key.code == sf::Keyboard::F6) {
+            if (auto* hero = m_levelRuntime.getHero()) {
+                hero->setForm(std::make_unique<SmallForm>());
+                std::cout << "[DEBUG] Switched Hero to Small Form" << std::endl;
             }
         }
     }
@@ -305,8 +324,11 @@ void PlayingState::update(sf::Time dt) {
         m_defeatDelayRemaining -= deltaTime;
         if (m_defeatDelayRemaining <= 0.0f) {
 			if (m_hudManager->getLives() > 0) {
+				std::string worldName = (m_levelPath == "assets/maps/levels/boss_arena.tmj")
+					? "BOSS: THORKING"
+					: "WORLD 1-1";
 				Game::getInstance().changeState(
-					std::make_unique<TransitionState>(m_hudManager));
+					std::make_unique<TransitionState>(m_hudManager, m_levelPath, worldName));
 			} else {
 				Game::getInstance().changeState(
 					std::make_unique<GameOverState>());

@@ -19,6 +19,7 @@ protected:
     std::string baseTexturePath;
 	std::string specialTexturePath;
 	float spriteRenderScale{2.f};
+	float smallSpriteRenderScale{0.f};
 	float specialSpriteRenderScale{0.f};
     std::string overrideAnim;
     float overrideTimer;

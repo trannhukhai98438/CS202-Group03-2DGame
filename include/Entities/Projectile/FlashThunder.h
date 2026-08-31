@@ -17,8 +17,8 @@ private:
 	bool damageWindowOpen{false};
 	std::unordered_set<const Character*> hitTargets;
 	const std::array<sf::IntRect, 4> impactFrames{{
-		{1190, 638, 70, 68}, {1288, 628, 89, 88},
-		{1404, 614, 93, 108}, {1521, 614, 105, 107}
+		{455, 280, 90, 228}, {455, 280, 90, 228},
+		{455, 280, 90, 228}, {455, 280, 90, 228}
 	}};
 
 	void enterImpact();
