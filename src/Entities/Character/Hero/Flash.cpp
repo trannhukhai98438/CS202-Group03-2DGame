@@ -6,14 +6,7 @@
 #include "Utilities/ThunderFlashTexture.h"
 
 void Flash::loadTexture(const std::string& path) {
-    std::string targetPath = path;
-    
-    // Override the requested path if we are in Giant form
-    if (form && form->getForm() == "Giant" && thunderTextureAvailable) {
-        targetPath = specialTexturePath;
-    }
-
-	if (targetPath == specialTexturePath) {
+	if (path == specialTexturePath) {
 		if (thunderTextureAvailable) {
 			const sf::Texture* specialTexture = ThunderFlashTexture::get();
 			sprite.setTexture(*specialTexture);
@@ -23,19 +16,19 @@ void Flash::loadTexture(const std::string& path) {
 		return;
 	}
 
-	Hero::loadTexture(targetPath);
+	Hero::loadTexture(path);
 }
 
 Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	: Hero(x, y, std::move(spawnCallback)) {
 	baseTexturePath = "assets/textures/Flash.png";
 	specialTexturePath = "assets/textures/thunderflash2.png";
-	spriteRenderScale = 0.29f; // Used by Giant form, must match special scale
+	spriteRenderScale = 0.29f; // Used by Giant form
 	thunderTextureAvailable = ThunderFlashTexture::get() != nullptr;
-	specialSpriteRenderScale = 0.29f; // Used by Fire form
-    smallSpriteRenderScale = 0.166f;
+	specialSpriteRenderScale = 0.29f; // Used by Fire form (Epic Archmage)
+    smallSpriteRenderScale = 0.166f; // Used by Small form (Cute small wizard)
 
-    // Small & Giant Flash (Base Form) uses Flash.png
+    // Base Flash (Flash.png) - used for Small and Giant forms
 	const Animation baseIdle({{85, 20, 150, 192}}, 0.15f);
 	const Animation baseRun({{347, 20, 160, 192}}, 0.15f);
 	const Animation baseSlide({{347, 20, 160, 192}}, 0.15f);
@@ -44,6 +37,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	const Animation baseFly({{81, 230, 158, 193}}, 0.15f);
     const Animation baseSpecial({{296, 230, 262, 193}}, 0.15f);
 
+    // Small Form (Flash.png)
 	animator.addAnimation("SmallIdle", baseIdle);
 	animator.addAnimation("SmallRun", baseRun);
 	animator.addAnimation("SmallSlide", baseSlide);
@@ -51,7 +45,15 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	animator.addAnimation("SmallDead", baseSit);
 	animator.addAnimation("SmallFly", baseFly);
 
-    // Fire/Thunder Flash uses thunderflash2.png
+    // Giant Form (Flash.png enlarged)
+    animator.addAnimation("GiantIdle", baseIdle);
+    animator.addAnimation("GiantRun", baseRun);
+    animator.addAnimation("GiantSlide", baseSlide);
+    animator.addAnimation("GiantJump", baseJump);
+    animator.addAnimation("GiantSit", baseSit);
+    animator.addAnimation("GiantFly", baseFly);
+
+    // Fire/Thunder Form - Upgraded Stage 2 (thunderflash2.png)
 	const Animation thunderIdle({{50, 20, 149, 220}}, 0.15f);
 	const Animation thunderRun({{223, 20, 303, 220}}, 0.15f);
 	const Animation thunderSlide({{223, 20, 303, 220}}, 0.15f);
@@ -61,13 +63,6 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	const Animation thunderSpecial({{204, 280, 341, 228}}, 0.15f);
 
 	if (thunderTextureAvailable) {
-        animator.addAnimation("GiantIdle", thunderIdle);
-        animator.addAnimation("GiantRun", thunderRun);
-        animator.addAnimation("GiantSlide", thunderSlide);
-        animator.addAnimation("GiantJump", thunderJump);
-        animator.addAnimation("GiantSit", thunderSit);
-        animator.addAnimation("GiantFly", thunderFly);
-
 		animator.addAnimation("FireIdle", thunderIdle);
 		animator.addAnimation("FireRun", thunderRun);
 		animator.addAnimation("FireSlide", thunderSlide);
@@ -76,15 +71,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 		animator.addAnimation("FireFly", thunderFly);
 		animator.addAnimation("FireSpecial", thunderSpecial);
 	} else {
-        animator.addAnimation("GiantIdle", baseIdle);
-        animator.addAnimation("GiantRun", baseRun);
-        animator.addAnimation("GiantSlide", baseSlide);
-        animator.addAnimation("GiantJump", baseJump);
-        animator.addAnimation("GiantSit", baseSit);
-        animator.addAnimation("GiantFly", baseFly);
-
-		// A missing optional sheet must not leave Fire animations pointing at
-		// unrelated coordinates on the base Flash texture.
+		// Fallback to base texture coordinates if optional sheet missing
 		animator.addAnimation("FireIdle", baseIdle);
 		animator.addAnimation("FireRun", baseRun);
 		animator.addAnimation("FireSlide", baseSlide);
@@ -95,10 +82,10 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	}
 
 	animator.addAnimation("SmallGrow", Animation({
-		baseIdle.frames[0], thunderIdle.frames[0], baseIdle.frames[0]
+		baseIdle.frames[0], baseSit.frames[0], baseIdle.frames[0]
 	}, 0.15f));
 	animator.addAnimation("GiantShrink", Animation({
-		thunderIdle.frames[0], baseIdle.frames[0], thunderIdle.frames[0]
+		baseSit.frames[0], baseIdle.frames[0], baseSit.frames[0]
 	}, 0.15f));
 
 	setForm(std::make_unique<SmallForm>());

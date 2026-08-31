@@ -33,9 +33,9 @@ GameOverState::GameOverState() {
 	m_heroSprite.setTexture(m_heroTexture);
 	// Dedicated small-character death/falling frame in sprite sheets.
 	if (selectedHero == HeroType::Flash) {
-		m_heroSprite.setTextureRect({723, 51, 127, 111});
-		m_heroSprite.setOrigin(63.5f, 111.f);
-		m_heroSprite.setScale(0.85f, 0.85f);
+		m_heroSprite.setTextureRect({618, 230, 152, 193});
+		m_heroSprite.setOrigin(76.f, 193.f);
+		m_heroSprite.setScale(0.90f, 0.90f);
 	} else if (selectedHero == HeroType::Mario) {
 		m_heroSprite.setTextureRect({851, 164, 156, 66});
 		m_heroSprite.setOrigin(78.f, 66.f);
