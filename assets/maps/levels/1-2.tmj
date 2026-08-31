@@ -46,6 +46,12 @@
                  "name":"A",
                  "opacity":1,
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -77,6 +83,12 @@
                  "name":"B",
                  "opacity":1,
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -108,6 +120,12 @@
                  "name":"C",
                  "opacity":1,
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -139,6 +157,12 @@
                  "name":"D",
                  "opacity":1,
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"overworld"
+                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
