@@ -30,6 +30,7 @@ struct MapObject {
     std::string targetMap;
     std::string direction{ "down" };
     std::string contain{ "none" };
+    std::string theme{ "overworld" };
     int count{ 1 };
 
     std::string getProperty(const std::string& key,

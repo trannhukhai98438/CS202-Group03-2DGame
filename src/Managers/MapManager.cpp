@@ -33,6 +33,8 @@ void MapManager::parseCustomProperties(const nlohmann::json& objJson, MapObject&
             outObj.direction = textValue;
         } else if (propName == "contain") {
             outObj.contain = textValue;
+        } else if (propName == "theme") {
+            outObj.theme = textValue;
         } else if (propName == "count"
                    || propName == "number"
                    || propName == "quantity") {
