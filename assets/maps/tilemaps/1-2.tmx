@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="192" height="45" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="298">
+ <editorsettings>
+  <export target="../levels/1-2.tmj" format="json"/>
+ </editorsettings>
  <tileset firstgid="1" source="../resources/tileset.tsx"/>
  <tileset firstgid="925" source="../resources/object.tsx"/>
  <imagelayer id="6" name="Image" visible="0" locked="1" mode="screen">
@@ -12,6 +15,9 @@
    </properties>
   </object>
   <object id="267" name="A" type="pipe_out" x="96" y="576">
+   <properties>
+    <property name="theme" value="underground"/>
+   </properties>
    <point/>
   </object>
   <object id="268" name="B" type="pipe_in" x="3296" y="736" width="64" height="64">
@@ -20,6 +26,9 @@
    </properties>
   </object>
   <object id="269" name="B" type="pipe_out" x="3136" y="1056">
+   <properties>
+    <property name="theme" value="underground"/>
+   </properties>
    <point/>
   </object>
   <object id="271" name="C" type="pipe_in" x="3456" y="1312" width="32" height="64">
@@ -28,6 +37,9 @@
    </properties>
   </object>
   <object id="272" name="C" type="pipe_out" x="3712" y="832">
+   <properties>
+    <property name="theme" value="underground"/>
+   </properties>
    <point/>
   </object>
   <object id="273" name="D" type="pipe_in" x="5280" y="736" width="32" height="64">
@@ -36,6 +48,9 @@
    </properties>
   </object>
   <object id="274" name="D" type="pipe_out" x="5152" y="352">
+   <properties>
+    <property name="theme" value="overworld"/>
+   </properties>
    <point/>
   </object>
   <object id="276" type="end" x="5696" y="0" width="32" height="416"/>
