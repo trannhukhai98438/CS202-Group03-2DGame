@@ -34,7 +34,7 @@ Mario::Mario(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("FireJump", Animation({{652, 33, 122, 171}}, 0.15f));
     animator.addAnimation("FireSit", Animation({{859, 73, 92, 135}}, 0.15f));
     animator.addAnimation("FireFly", Animation({{652, 33, 122, 171}}, 0.15f));
-    animator.addAnimation("FireSpecial", Animation({{769, 233, 90, 159}}, 0.15f));
+    animator.addAnimation("FireSpecial", Animation({{728, 233, 183, 159}}, 0.15f));
 
     // Growth / Shrink
     animator.addAnimation("SmallGrow", Animation({{28, 68, 94, 164}, {752, 102, 90, 128}, {28, 68, 94, 164}}, 0.15f));
