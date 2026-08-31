@@ -106,7 +106,7 @@ bool LevelBuilder::build(GameWorld& world,
 
     // Spawn Interactive blocks, ground coins and goals from the map object
     // layer. Tile objects use their bottom edge as Tiled's Y coordinate.
-    BlockFactory blockFactory;
+    BlockFactory blockFactory(world.blockThemePalette());
     const auto objects =
         world.levelManager().getObjectsFromLayer("Interactive");
     for (const auto& object : objects) {
@@ -217,7 +217,8 @@ bool LevelBuilder::build(GameWorld& world,
                 spawner.height,
                 topBoundary,
                 bottomBoundary,
-                isUpLifter));
+                isUpLifter,
+                world.blockThemePalette()));
             continue;
         }
 

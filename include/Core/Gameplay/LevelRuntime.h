@@ -4,6 +4,7 @@
 #include "Gameplay/GameWorld.h"
 #include "Gameplay/InteractionSystem.h"
 #include "Gameplay/WorldPhysicsSystem.h"
+#include "Managers/MapData.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <string>
@@ -55,6 +56,7 @@ private:
         sf::FloatRect entrance;
         sf::Vector2f destination;
         PipeDirection direction{PipeDirection::None};
+        MapTheme destinationTheme{MapTheme::Unspecified};
     };
 
     void cachePipeRoutes();
