@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="192" height="45" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="285">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="192" height="45" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="288">
  <tileset firstgid="1" source="../resources/tileset.tsx"/>
  <tileset firstgid="925" source="../resources/object.tsx"/>
  <imagelayer id="6" name="Image" visible="0" locked="1" mode="screen">
@@ -42,6 +42,8 @@
   <object id="277" type="start" x="96" y="416">
    <point/>
   </object>
+  <object id="286" type="platform_despawn" x="4416" y="928" width="224" height="32"/>
+  <object id="287" type="platform_despawn" x="4896" y="480" width="224" height="32"/>
  </objectgroup>
  <objectgroup id="4" name="Spawner" visible="0" locked="1">
   <object id="243" type="goomba" x="480" y="896">
