@@ -16,19 +16,14 @@ void TKPatrolState::update(Enemy& enemy, float deltaTime) {
         return;
     }
 
-    enemy.checkObstacles();
-    enemy.move(deltaTime);
-    enemy.applyAnimation();
+    boss->move(deltaTime);
+    boss->applyAnimation();
 }
 
 // TKCrouchState
 TKCrouchState::TKCrouchState() : m_timer(0.5f) {}
 
-void TKCrouchState::onEnter(Enemy& enemy) {
-    enemy.getShape().setSize(sf::Vector2f(70.f, 70.f));
-    enemy.getShape().move(0.f, 58.f);
-    enemy.setPosition(enemy.getShape().getPosition());
-}
+void TKCrouchState::onEnter(Enemy& enemy) {}
 
 void TKCrouchState::update(Enemy& enemy, float deltaTime) {
     m_timer -= deltaTime;
@@ -45,28 +40,16 @@ void TKRollingState::update(Enemy& enemy, float deltaTime) {
     ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
     if (!boss) return;
 
-    float speed = boss->getRollSpeed();
-    float dirX = (boss->getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
-
-    boss->getShape().move(dirX * speed * deltaTime, 0.f);
-    boss->setPosition(boss->getShape().getPosition());
-
+    boss->move(deltaTime);
     boss->applyAnimation();
 }
 
 // TKStunnedState
 TKStunnedState::TKStunnedState(float duration) : m_timer(duration) {}
 
-void TKStunnedState::onEnter(Enemy& enemy) {
-}
+void TKStunnedState::onEnter(Enemy& enemy) {}
 
 void TKStunnedState::update(Enemy& enemy, float deltaTime) {
-    if (!m_initialized) {
-        enemy.getShape().move(0.f, -58.f);
-        enemy.getShape().setSize(sf::Vector2f(96.f, 128.f));
-        enemy.setPosition(enemy.getShape().getPosition());
-        m_initialized = true;
-    }
     m_timer -= deltaTime;
     if (m_timer <= 0.f) {
         enemy.changeState(std::make_unique<TKPatrolState>(3.0f));
@@ -75,29 +58,59 @@ void TKStunnedState::update(Enemy& enemy, float deltaTime) {
 }
 
 // TKFireAttackState
-TKFireAttackState::TKFireAttackState() : m_timer(0.90f), m_fired(false) {}
+TKFireAttackState::TKFireAttackState() : m_timer(0.90f), m_shotsFired(0), m_totalShots(1), m_nextShotTime(0.5f) {}
 
-void TKFireAttackState::onEnter(Enemy& enemy) {}
+void TKFireAttackState::onEnter(Enemy& enemy) {
+    ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
+    if (boss) {
+        m_totalShots = boss->getFireBurstCount();
+        if (boss->getPhase() == 3) {
+            boss->incrementShotSeq(); // Increment shot sequence at the start of the attack
+            // Phase 3: Sync duration with 10 animation frames * 0.12s = 1.20s total
+            // Plays once: 0.0s-0.36s windup -> 0.36s-1.08s pulsating fire columns -> 1.08s-1.20s cool down
+            m_timer = 1.20f;
+            m_nextShotTime = 0.84f; // Shoots at exactly t=0.36s elapsed (start of Frame 3)
+            m_totalShots = 1;       // Shoot exactly 1 skill per attack state to prevent overlap
+        } else {
+            m_timer = 0.6f + static_cast<float>(m_totalShots) * 0.35f;
+            m_nextShotTime = m_timer - 0.45f;
+        }
+    }
+}
 
 void TKFireAttackState::update(Enemy& enemy, float deltaTime) {
     ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
     if (!boss) return;
 
     m_timer -= deltaTime;
-    // Spawn projectile exactly when the roaring mouth-open frame (Frame 2) starts
-    // Frame 2 starts at 0.30s (which is 0.90s - 0.60s remaining)
-    if (m_timer <= 0.60f && !m_fired) {
+    if (m_shotsFired < m_totalShots && m_timer <= m_nextShotTime) {
         boss->spawnFireProjectile();
-        m_fired = true;
+        m_shotsFired++;
+        m_nextShotTime -= 0.35f;
     }
+
     if (m_timer <= 0.f) {
         boss->incrementFireCount();
-        if (boss->getFireCount() >= 1) { // Only 1 fire before rolling!
+        if (boss->getFireCount() >= 1) {
             boss->resetFireCount();
             boss->changeState(std::make_unique<TKCrouchState>());
         } else {
             boss->changeState(std::make_unique<TKPatrolState>(2.0f));
         }
+        return;
+    }
+    enemy.applyAnimation();
+}
+
+// TKRoarState
+TKRoarState::TKRoarState(float duration) : m_timer(duration) {}
+
+void TKRoarState::onEnter(Enemy& enemy) {}
+
+void TKRoarState::update(Enemy& enemy, float deltaTime) {
+    m_timer -= deltaTime;
+    if (m_timer <= 0.f) {
+        enemy.changeState(std::make_unique<TKPatrolState>(1.5f));
         return;
     }
     enemy.applyAnimation();

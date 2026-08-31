@@ -7,30 +7,30 @@ void GoombaAnimator::initAnimations(Goomba& goomba) {
     goomba.loadSpriteTexture("assets/textures/goomba.png", 1, 32.0f, 1);
     
     sf::Sprite& sprite = goomba.getSprite();
-    // 1024 x 558 resolution -> walk frame height is ~103px
-    float scale = 32.0f / 103.0f;
+    // 1024 x 557 modern 2.5D spritesheet -> walk frame height is 146px
+    float scale = 32.0f / 146.0f;
     sprite.setScale(scale, scale);
 
-    // Exact sub-rectangle frames for new clean Goomba sheet
+    // Exact sub-rectangle frames for user's transparent 2.5D Goomba sheet
     goomba.getAnimator().addAnimation("walk", Animation({
-        sf::IntRect(21,  21, 91, 103),
-        sf::IntRect(158, 21, 90, 103),
-        sf::IntRect(307, 21, 95, 103),
-        sf::IntRect(464, 21, 91, 103),
-        sf::IntRect(627, 21, 90, 103),
-        sf::IntRect(772, 21, 94, 103),
-        sf::IntRect(913, 21, 90, 103)
+        sf::IntRect(71,  18, 119, 146),
+        sf::IntRect(237, 18, 119, 146),
+        sf::IntRect(407, 18, 118, 146),
+        sf::IntRect(569, 18, 118, 146),
+        sf::IntRect(735, 18, 116, 146),
+        sf::IntRect(890, 18, 118, 146)
     }, 0.10f));
 
     goomba.getAnimator().addAnimation("squished", Animation({
-        sf::IntRect(16, 196, 104, 69)
-    }, 0.2f));
+        sf::IntRect(198, 236, 162, 104),
+        sf::IntRect(390, 277, 186, 63)
+    }, 0.15f));
 
     goomba.getAnimator().addAnimation("flippingDeath", Animation({
-        sf::IntRect(25,  307, 87, 99),
-        sf::IntRect(166, 307, 95, 90),
-        sf::IntRect(311, 307, 99, 90),
-        sf::IntRect(460, 307, 95, 90)
+        sf::IntRect(212, 382, 133, 167),
+        sf::IntRect(405, 386, 161, 133),
+        sf::IntRect(619, 386, 138, 157),
+        sf::IntRect(817, 386, 154, 163)
     }, 0.1f));
 }
 

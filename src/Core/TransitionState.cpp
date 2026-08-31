@@ -9,11 +9,14 @@
 #include <utility>
 
 TransitionState::TransitionState()
-	: TransitionState(std::make_shared<HUDManager>()) {
+	: TransitionState(std::make_shared<HUDManager>(), "assets/maps/levels/1-1.tmj", "WORLD 1-1") {
 }
 
-TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager)
+TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager,
+                                 const std::string& levelPath,
+                                 const std::string& worldName)
 	: m_hudManager(std::move(hudManager)),
+	  m_levelPath(levelPath),
 	  m_elapsedTime(sf::Time::Zero) {
 	if (!m_hudManager) {
 		m_hudManager = std::make_shared<HUDManager>();
@@ -22,7 +25,7 @@ TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager)
 		std::cerr << "ERROR: Failed to load font!\n";
 	}
 	m_worldText.setFont(m_font);
-	m_worldText.setString("WORLD 1-1");
+	m_worldText.setString(worldName);
 	m_worldText.setCharacterSize(40);
 	m_worldText.setFillColor(sf::Color::White);
 	m_livesText.setFont(m_font);
@@ -38,9 +41,9 @@ void TransitionState::processEvents(sf::Event& event) {
 
 void TransitionState::update(sf::Time dt) {
 	m_elapsedTime += dt;
-	if (m_elapsedTime.asSeconds() > 2.5f) { // After 2.5 seconds, transition to the PlayingState
+	if (m_elapsedTime.asSeconds() > 2.0f) { // After 2.0 seconds, transition to the PlayingState
 		Game::getInstance().changeState(
-			std::make_unique<PlayingState>(m_hudManager));
+			std::make_unique<PlayingState>(m_hudManager, m_levelPath));
 	}
 }
 

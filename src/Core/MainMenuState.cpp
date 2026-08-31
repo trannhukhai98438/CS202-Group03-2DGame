@@ -37,7 +37,7 @@ MainMenuState::MainMenuState() {
 	m_titleText.setPosition(640.f, 135.f);
 
 	const std::array<std::string, 5> labels = {
-		"PLAY", "CHARACTER", "LEVEL", "GUIDE", "SETTINGS"
+		"PLAY", "CHARACTER", "BOSS BATTLE", "GUIDE", "SETTINGS"
 	};
 	for (std::size_t i = 0; i < m_buttons.size(); ++i) {
 		auto& button = m_buttons[i];
@@ -167,10 +167,9 @@ void MainMenuState::activateButton(int index) {
 		return;
 	}
 	if (index == 2) {
-		m_statusText.setString("LEVELS - COMING SOON");
-		const sf::FloatRect bounds = m_statusText.getLocalBounds();
-		m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
-		                       bounds.top + bounds.height / 2.f);
+		Game::getInstance().changeState(
+			std::make_unique<TransitionState>(nullptr, "assets/maps/levels/boss_arena.tmj", "BOSS: THORKING"));
+		return;
 	}
 }
 

@@ -235,13 +235,13 @@
                         {
                          "name":"patrolRange",
                          "type":"float",
-                         "value":300
+                         "value":600
                         }],
                  "rotation":0,
                  "type":"thorking",
                  "visible":true,
                  "width":0,
-                 "x":5888,
+                 "x":3500,
                  "y":416
                 },
                 {

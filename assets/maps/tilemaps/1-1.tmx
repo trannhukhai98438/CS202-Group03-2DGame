@@ -55,9 +55,9 @@
   <object id="100" type="koopa" x="3424" y="416">
    <point/>
   </object>
-  <object id="123" type="thorking" x="5888" y="416">
+  <object id="123" type="thorking" x="3500" y="416">
    <properties>
-    <property name="patrolRange" type="float" value="300"/>
+    <property name="patrolRange" type="float" value="600"/>
    </properties>
    <point/>
   </object>

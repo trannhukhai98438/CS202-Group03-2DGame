@@ -148,13 +148,18 @@ void Hero::collectCoin(){
     ++coin;
 }
 
-void Hero::takeDamage(int damage){
-    if (damage <= 0 || invincibleTimer > 0.f) {
+void Hero::takedamage() {
+    if (invincibleTimer > 0.f) {
         return; // Ignore damage during I-frames
     }
     if (form) {
         form->takedamage(this);
     }
+}
+
+void Hero::takeDamage(int damage) {
+    if (damage <= 0) return;
+    takedamage();
 }
 
 void Hero::die(){

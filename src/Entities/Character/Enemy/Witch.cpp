@@ -12,15 +12,15 @@ void ThrowState::update(Enemy& enemy, float deltaTime) {
     throwTimer += deltaTime;
     Witch* witch = dynamic_cast<Witch*>(&enemy);
     
-    // At 0.5 seconds, actually throw the potion
-    if (throwTimer >= 0.5f && !hasThrown) {
+    // At 0.25 seconds, actually throw the potion
+    if (throwTimer >= 0.25f && !hasThrown) {
         if (witch) {
             witch->throwPotion();
         }
         hasThrown = true;
     }
     
-    // At 1.0 seconds, return to patrol
+    // At end of duration, smoothly return to patrol
     if (throwTimer >= stateDuration) {
         enemy.changeState(std::make_unique<PatrolState>());
     }
@@ -32,7 +32,7 @@ void ThrowState::onExit(Enemy& enemy) {
 
 
 Witch::Witch(float startX, float startY, float patrolRange, std::function<void(std::unique_ptr<Projectile>)> spawnCallback)
-    : Enemy(startX, startY, 50.0f, patrolRange), attackCooldown(0.0f), spawnProjectileCallback(std::move(spawnCallback)) {
+    : Enemy(startX, startY, 30.0f, patrolRange), attackCooldown(0.0f), spawnProjectileCallback(std::move(spawnCallback)) {
     
     shape.setSize(sf::Vector2f(32.0f, 64.0f));
     shape.setFillColor(sf::Color::Blue);
@@ -81,6 +81,8 @@ void Witch::move(float deltaTime) {
 
 void Witch::applyAnimation() {
     animatorComp.applyAnimation(*this);
+    // Continuously lock sprite origin to hitbox bottom-center even when standing still
+    sprite.setPosition(position.x + (shape.getSize().x / 2.0f), position.y + shape.getSize().y);
 }
 
 void Witch::throwPotion() {

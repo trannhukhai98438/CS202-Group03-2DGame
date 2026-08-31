@@ -151,6 +151,7 @@ bool LevelBuilder::build(GameWorld& world,
 
     const auto enemySpawners =
         world.levelManager().getObjectsFromLayer("Spawner");
+    bool spawnedThorKing = false;
     for (const auto& spawner : enemySpawners) {
         std::unique_ptr<Enemy> enemy;
         if (spawner.className == "goomba") {
@@ -165,11 +166,11 @@ bool LevelBuilder::build(GameWorld& world,
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Witch, spawner.x, spawner.y, 150.f,
                 spawnCallback);
-        } else if (spawner.className == "thorking") {
+        } else if (spawner.className == "thorking" || spawner.className == "ThorKing") {
             enemy = EnemyFactory::createEnemy(
-                EnemyType::ThorKing, spawner.x, spawner.y,
-                getFloatProperty(spawner, "patrolRange", 600.f),
+                EnemyType::ThorKing, spawner.x, spawner.y, 600.f,
                 spawnCallback);
+            spawnedThorKing = true;
         }
         if (!enemy) continue;
 
@@ -179,6 +180,14 @@ bool LevelBuilder::build(GameWorld& world,
             spawner.y - enemy->getBounds().height
         });
         world.addEnemy(std::move(enemy));
+    }
+
+    // Spawn a Witch near the beginning for easy testing
+    auto testWitch = EnemyFactory::createEnemy(
+        EnemyType::Witch, 450.f, 350.f, 150.f,
+        spawnCallback);
+    if (testWitch) {
+        world.addEnemy(std::move(testWitch));
     }
 
     return world.hero() != nullptr;

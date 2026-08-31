@@ -37,6 +37,7 @@ public:
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
+    void takedamage();
     void takeDamage(int damage) override;
     void die() override;
     void setForm(std::unique_ptr<HeroForm> newForm);

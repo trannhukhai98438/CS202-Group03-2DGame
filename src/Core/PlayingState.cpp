@@ -7,6 +7,7 @@
 #include "Core/VictoryState.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/FlyState.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 
 #include <algorithm>
 #include <cmath>
@@ -40,7 +41,6 @@ bool isPipeDirectionHeld(PipeDirection direction) {
     case PipeDirection::None:
         return false;
     }
-
     return false;
 }
 
@@ -65,11 +65,13 @@ float getCameraY(float activeRegionBottom) {
 }
 }
 
-PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
+PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager, const std::string& levelPath)
 	: m_hudManager(std::move(hudManager)),
-	  m_levelRuntime("assets/maps/levels/1-1.tmj",
-	                     "assets/maps/resources/tileset.png",
-	                     Game::getInstance().getSelectedHero()) {
+	  m_levelRuntime(levelPath,
+	                 "assets/maps/resources/tileset.png",
+	                 Game::getInstance().getSelectedHero()) {
+    m_vfxTexture.loadFromFile("assets/textures/boss_vfx.png");
+    std::cout << "[PlayingState] Loaded map: " << levelPath << std::endl;
     if (!m_hudManager) {
         m_hudManager = std::make_shared<HUDManager>();
     }
@@ -94,17 +96,43 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
 PlayingState::~PlayingState() = default;
 
 void PlayingState::processEvents(sf::Event& event) {
-    if (event.type == sf::Event::KeyPressed
-        && event.key.code == sf::Keyboard::Tab) {
-        Game::getInstance().pushState(std::make_unique<PausedState>());
-		return;
-	}
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Tab) {
+            Game::getInstance().pushState(std::make_unique<PausedState>());
+            return;
+        }
+
+        // ============================================================
+        // DEBUG TEST HOTKEYS (Instant Phase Switch & Testing)
+        // ============================================================
+        if (event.key.code == sf::Keyboard::Num1 || event.key.code == sf::Keyboard::F1) {
+            for (auto& enemy : m_levelRuntime.getWorld().enemies()) {
+                if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                    boss->setBossHp(3);
+                    std::cout << "[DEBUG] Switched ThorKing Boss to Phase 1 (HP 3/3)" << std::endl;
+                }
+            }
+        } else if (event.key.code == sf::Keyboard::Num2 || event.key.code == sf::Keyboard::F2) {
+            for (auto& enemy : m_levelRuntime.getWorld().enemies()) {
+                if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                    boss->setBossHp(2);
+                    std::cout << "[DEBUG] Switched ThorKing Boss to Phase 2 (HP 2/3)" << std::endl;
+                }
+            }
+        } else if (event.key.code == sf::Keyboard::Num3 || event.key.code == sf::Keyboard::F3) {
+            for (auto& enemy : m_levelRuntime.getWorld().enemies()) {
+                if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                    boss->setBossHp(1);
+                    std::cout << "[DEBUG] Switched ThorKing Boss to Phase 3 (HP 1/3 - Magma Winged Demon)" << std::endl;
+                }
+            }
+        }
+    }
 }
 
 void PlayingState::update(sf::Time dt) {
     const float deltaTime = dt.asSeconds();
 
-    // The timer intentionally continues through victory and defeat delays.
     m_hudManager->updateTimer(deltaTime);
     if (m_hudManager->getRemainingTime() <= 0.0f) {
         Game::getInstance().changeState(std::make_unique<GameOverState>());
@@ -190,6 +218,81 @@ void PlayingState::update(sf::Time dt) {
         }
     }
 
+    // Update Boss Environmental VFX for Phase 3
+    m_vfxAnimTimer += deltaTime;
+    bool isBossPhase3 = false;
+    for (const auto& enemy : m_levelRuntime.getWorld().enemies()) {
+        ThorKing* boss = dynamic_cast<ThorKing*>(enemy.get());
+        if (boss && boss->getIsAlive() && (boss->getPhase() == 3 || boss->getStateName() == "TKRoar")) {
+            isBossPhase3 = true;
+            break;
+        }
+    }
+
+    if (isBossPhase3) {
+        const float regionBottom = m_levelRuntime.getActiveRegionBottom();
+        const float screenTopY   = regionBottom - CAMERA_HEIGHT;
+
+        // Get the actual floor Y from the boss's feet - 100% accurate
+        float floorY = regionBottom - 64.f; // safe fallback
+        for (const auto& enemy : m_levelRuntime.getWorld().enemies()) {
+            ThorKing* b = dynamic_cast<ThorKing*>(enemy.get());
+            if (b && b->getIsAlive()) {
+                floorY = b->getPosition().y + b->getHitbox().getSize().y;
+                break;
+            }
+        }
+        // Shift visual floor Y up by 14px so impact is on the top surface of the grass/dirt tile
+        const float visualFloorY = floorY - 14.f;
+
+        m_lightningStrikeTimer -= deltaTime;
+        if (m_lightningStrikeTimer <= 0.f) {
+            m_lightningActive = true;
+            m_lightningDamagedHero = false;
+            m_lightningFrame = 0;
+            m_lightningFrameTimer = 0.045f;
+            m_lightningX = 150.0f + static_cast<float>(std::rand() % 1000);
+            m_lightningStrikeTimer = 2.0f + static_cast<float>(std::rand() % 15) * 0.1f;
+        }
+        if (m_lightningActive) {
+            m_lightningFrameTimer -= deltaTime;
+            if (m_lightningFrameTimer <= 0.f) {
+                m_lightningFrameTimer = 0.045f;
+                m_lightningFrame++;
+
+                // Spawn crater at visual floor Y - guaranteed to sit on the real ground
+                if (m_lightningFrame == 2) {
+                    m_groundCraters.push_back({m_lightningX + 20.f, visualFloorY, 2.5f, 2.5f, 0.f});
+                }
+
+                if (m_lightningFrame >= 8) {
+                    m_lightningActive = false;
+                }
+            }
+
+            // Deal damage to Mario if touched by the lightning bolt
+            if (!m_lightningDamagedHero && m_lightningFrame >= 1 && m_lightningFrame <= 5) {
+                sf::FloatRect lightningHitbox(m_lightningX + 5.f, screenTopY, 60.f, visualFloorY - screenTopY);
+                if (hero->getBounds().intersects(lightningHitbox)) {
+                    hero->takeDamage(1);
+                    m_lightningDamagedHero = true;
+                }
+            }
+        }
+    } else {
+        m_lightningActive = false;
+    }
+
+    // Update ground craters (advance animation and fade over time)
+    for (auto& crater : m_groundCraters) {
+        crater.animTimer += deltaTime;
+        crater.remainingTime -= deltaTime;
+    }
+    m_groundCraters.erase(
+        std::remove_if(m_groundCraters.begin(), m_groundCraters.end(),
+            [](const GroundCrater& c) { return c.remainingTime <= 0.0f; }),
+        m_groundCraters.end());
+
     // Once victory is pending it remains authoritative, even if the ongoing
     // simulation makes the Hero dead during the transition delay.
     if (m_victoryPending) return;
@@ -225,6 +328,124 @@ void PlayingState::render(sf::RenderWindow& window) {
         window.draw(undergroundBackdrop);
     }
     m_levelRuntime.renderWorld(window);
+
+    // Render Environmental Cataclysm VFX (Dark Sky, Lightning, Levitating Debris)
+    for (const auto& enemy : m_levelRuntime.getWorld().enemies()) {
+        ThorKing* boss = dynamic_cast<ThorKing*>(enemy.get());
+        if (boss && boss->getIsAlive()) {
+            if (boss->getPhase() == 3 || boss->getStateName() == "TKRoar") {
+                // 1. Dark Apocalyptic Sky Atmosphere
+                sf::RectangleShape darkOverlay(sf::Vector2f(m_camera.getSize().x * 2.5f, m_camera.getSize().y * 2.5f));
+                darkOverlay.setPosition(m_camera.getCenter().x - m_camera.getSize().x * 1.25f, m_camera.getCenter().y - m_camera.getSize().y * 1.25f);
+                darkOverlay.setFillColor(sf::Color(15, 8, 25, 110)); // Deep atmospheric dark tint
+                window.draw(darkOverlay);
+
+                if (m_vfxTexture.getSize().x > 0) {
+                    const float regionBottom = m_levelRuntime.getActiveRegionBottom();
+                    const float screenTopY   = regionBottom - CAMERA_HEIGHT;
+
+                    // Actual floor surface = boss feet Y (100% accurate, no tile-size guessing)
+                    float floorY = regionBottom - 64.f; // safe fallback
+                    floorY = boss->getPosition().y + boss->getHitbox().getSize().y;
+                    const float visualFloorY = floorY - 14.f;
+
+                    // 2. Red Lightning Strike — from screen top DOWN TO floor surface (not into ground)
+                    if (m_lightningActive && m_lightningFrame < 8) {
+                        static const sf::IntRect lightningRects[8] = {
+                            sf::IntRect(25, 151, 86, 126),
+                            sf::IntRect(146, 151, 98, 126),
+                            sf::IntRect(276, 151, 89, 126),
+                            sf::IntRect(416, 151, 82, 126),
+                            sf::IntRect(544, 151, 63, 126),
+                            sf::IntRect(678, 151, 54, 126),
+                            sf::IntRect(808, 151, 46, 126),
+                            sf::IntRect(936, 151, 37, 126)
+                        };
+                        const auto& lr = lightningRects[m_lightningFrame];
+                        sf::Sprite lightningSprite(m_vfxTexture, lr);
+                        float scaleX = 80.f / static_cast<float>(lr.width);
+                        // Scale Y so bolt tip ends exactly at visualFloorY
+                        float scaleY = (visualFloorY - screenTopY) / static_cast<float>(lr.height);
+                        lightningSprite.setScale(scaleX, scaleY);
+                        lightningSprite.setPosition(m_lightningX, screenTopY);
+                        window.draw(lightningSprite);
+                    }
+
+                    // 3. Ground Craters — centered on floor surface
+                    static const sf::IntRect craterRects[6] = {
+                        sf::IntRect(32, 293, 106, 120),
+                        sf::IntRect(192, 293, 132, 120),
+                        sf::IntRect(350, 293, 152, 120),
+                        sf::IntRect(521, 293, 149, 120),
+                        sf::IntRect(687, 293, 155, 120),
+                        sf::IntRect(857, 293, 157, 120)
+                    };
+                    for (const auto& crater : m_groundCraters) {
+                        int cFrame = static_cast<int>(crater.animTimer * 10.0f);
+                        if (cFrame >= 6) cFrame = 5;
+                        sf::Sprite craterSprite(m_vfxTexture, craterRects[cFrame]);
+                        // Set origin slightly higher (0.45f of height) to pull the visual crack up
+                        craterSprite.setOrigin(craterRects[cFrame].width / 2.0f,
+                                               craterRects[cFrame].height * 0.45f);
+                        craterSprite.setScale(0.85f, 0.85f);
+                        craterSprite.setPosition(crater.x, crater.y); // crater.y = visualFloorY
+
+                        float alphaFactor = std::clamp(crater.remainingTime / crater.totalTime, 0.0f, 1.0f);
+                        sf::Uint8 alpha = static_cast<sf::Uint8>(alphaFactor * 255.0f);
+                        craterSprite.setColor(sf::Color(255, 255, 255, alpha));
+                        window.draw(craterSprite);
+                    }
+
+                    // Ground Fissure & Rising Rock Debris around Boss during transformation roar
+                    if (boss->getStateName() == "TKRoar") {
+                        float bossCenterX = boss->getPosition().x + boss->getHitbox().getSize().x / 2.0f;
+                        // Use actual floor Y: boss feet when standing on ground
+                        float floorY = boss->getPosition().y + boss->getHitbox().getSize().y;
+
+                        // 1. Ground Fissure under Boss — snapped to floor
+                        int fissureFrame = static_cast<int>(m_vfxAnimTimer * 9.0f) % 6;
+                        static const sf::IntRect fissureRects[6] = {
+                            sf::IntRect(32, 293, 106, 120),
+                            sf::IntRect(192, 293, 132, 120),
+                            sf::IntRect(350, 293, 152, 120),
+                            sf::IntRect(521, 293, 149, 120),
+                            sf::IntRect(687, 293, 155, 120),
+                            sf::IntRect(857, 293, 157, 120)
+                        };
+                        sf::Sprite fissureSprite(m_vfxTexture, fissureRects[fissureFrame]);
+                        fissureSprite.setOrigin(fissureRects[fissureFrame].width / 2.0f, fissureRects[fissureFrame].height);
+                        fissureSprite.setPosition(bossCenterX, floorY);
+                        window.draw(fissureSprite);
+
+                        // 2. Rising Volcanic Rock Debris — anchored at floor, rising upward
+                        int debrisFrame = static_cast<int>(m_vfxAnimTimer * 8.0f) % 7;
+                        static const sf::IntRect debrisRects[7] = {
+                            sf::IntRect(18, 16, 93, 119),
+                            sf::IntRect(142, 16, 97, 119),
+                            sf::IntRect(267, 16, 104, 119),
+                            sf::IntRect(392, 16, 108, 119),
+                            sf::IntRect(518, 16, 110, 119),
+                            sf::IntRect(644, 16, 112, 119),
+                            sf::IntRect(790, 16, 93, 119)
+                        };
+                        sf::Sprite debrisLeft(m_vfxTexture, debrisRects[debrisFrame]);
+                        debrisLeft.setOrigin(debrisRects[debrisFrame].width / 2.0f, debrisRects[debrisFrame].height);
+                        debrisLeft.setScale(0.7f, 0.7f);
+                        debrisLeft.setPosition(bossCenterX - 55.f, floorY);
+                        window.draw(debrisLeft);
+
+                        sf::Sprite debrisRight(m_vfxTexture, debrisRects[(debrisFrame + 3) % 7]);
+                        debrisRight.setOrigin(debrisRects[(debrisFrame + 3) % 7].width / 2.0f, debrisRects[(debrisFrame + 3) % 7].height);
+                        debrisRight.setScale(-0.7f, 0.7f);
+                        debrisRight.setPosition(bossCenterX + 55.f, floorY);
+                        window.draw(debrisRight);
+                    }
+                }
+            }
+            break;
+        }
+    }
+
     window.draw(*m_hudManager);
     window.setView(window.getDefaultView());
 }

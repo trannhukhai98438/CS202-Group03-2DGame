@@ -54,17 +54,32 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// TKFireAttackState — boss stands still, fires star projectile (0.6s)
+// TKFireAttackState — boss stands still, fires burst of projectiles
 // ---------------------------------------------------------------------------
 class TKFireAttackState : public EnemyState {
 private:
     float m_timer;
-    bool  m_fired;
+    int   m_shotsFired = 0;
+    int   m_totalShots = 1;
+    float m_nextShotTime = 0.5f;
 public:
     TKFireAttackState();
     void onEnter(Enemy& enemy) override;
     void update(Enemy& enemy, float deltaTime) override;
     std::string getName() const override { return "TKFire"; }
+};
+
+// ---------------------------------------------------------------------------
+// TKRoarState — boss stands still roaring in rage when damaged/changing phase
+// ---------------------------------------------------------------------------
+class TKRoarState : public EnemyState {
+private:
+    float m_timer;
+public:
+    explicit TKRoarState(float duration = 0.8f);
+    void onEnter(Enemy& enemy) override;
+    void update(Enemy& enemy, float deltaTime) override;
+    std::string getName() const override { return "TKRoar"; }
 };
 
 #endif // THOR_KING_STATE_H

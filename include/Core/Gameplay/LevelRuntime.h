@@ -42,6 +42,8 @@ public:
     float getActiveRegionBottom() const;
     bool hasActivatedGoal() const;
     bool isReady() const;
+    GameWorld& getWorld() { return m_world; }
+    const GameWorld& getWorld() const { return m_world; }
 
 private:
     struct PipeRoute {
