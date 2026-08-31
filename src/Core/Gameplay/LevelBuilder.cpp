@@ -1,12 +1,14 @@
 #include "Gameplay/LevelBuilder.h"
 
 #include "Entities/Block/BlockFactory.h"
+#include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Goal/Flag.h"
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -153,7 +155,72 @@ bool LevelBuilder::build(GameWorld& world,
 
     const auto enemySpawners =
         world.levelManager().getObjectsFromLayer("Spawner");
+    const auto lifterBoundaries =
+        world.levelManager().getObjectsByClass(
+            "Trigger", "platform_despawn");
     for (const auto& spawner : enemySpawners) {
+        const bool isUpLifter = spawner.className == "platform_up";
+        const bool isDownLifter = spawner.className == "platform_down";
+        if (isUpLifter || isDownLifter) {
+            if (spawner.width <= 0.0f || spawner.height <= 0.0f) {
+                std::cerr << "[LevelBuilder] WARNING: Lifter "
+                          << spawner.id << " has invalid dimensions."
+                          << std::endl;
+                continue;
+            }
+
+            const MapObject* matchedBoundary = nullptr;
+            float closestDistance = -1.0f;
+            bool hasAmbiguousBoundary = false;
+
+            for (const auto& boundary : lifterBoundaries) {
+                if (boundary.width <= 0.0f) continue;
+
+                const float horizontalOverlap = std::min(
+                    spawner.x + spawner.width,
+                    boundary.x + boundary.width)
+                    - std::max(spawner.x, boundary.x);
+                if (horizontalOverlap <= 0.0f) continue;
+
+                const float verticalOffset = boundary.y - spawner.y;
+                if ((isUpLifter && verticalOffset >= 0.0f)
+                    || (isDownLifter && verticalOffset <= 0.0f)) {
+                    continue;
+                }
+
+                const float distance = std::abs(verticalOffset);
+                if (closestDistance < 0.0f
+                    || distance < closestDistance - 0.001f) {
+                    matchedBoundary = &boundary;
+                    closestDistance = distance;
+                    hasAmbiguousBoundary = false;
+                } else if (std::abs(distance - closestDistance) <= 0.001f) {
+                    hasAmbiguousBoundary = true;
+                }
+            }
+
+            if (!matchedBoundary || hasAmbiguousBoundary) {
+                std::cerr << "[LevelBuilder] WARNING: Cannot resolve a unique "
+                          << "boundary for Lifter " << spawner.id << '.'
+                          << std::endl;
+                continue;
+            }
+
+            const float topBoundary =
+                std::min(spawner.y, matchedBoundary->y);
+            const float bottomBoundary =
+                std::max(spawner.y, matchedBoundary->y);
+            world.addBlock(std::make_unique<Lifter>(
+                spawner.x,
+                spawner.y,
+                spawner.width,
+                spawner.height,
+                topBoundary,
+                bottomBoundary,
+                isUpLifter));
+            continue;
+        }
+
         std::unique_ptr<Enemy> enemy;
         if (spawner.className == "goomba") {
             enemy = EnemyFactory::createEnemy(
