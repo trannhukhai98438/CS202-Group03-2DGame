@@ -263,7 +263,8 @@ void PlayingState::update(sf::Time dt) {
             heroScreenPosition.y = std::clamp(
                 heroScreenPosition.y, 48.f, 672.f);
             Game::getInstance().pushState(
-                std::make_unique<VictoryState>(heroScreenPosition));
+                std::make_unique<VictoryState>(
+                    heroScreenPosition, m_hudManager));
             return;
         }
     }

@@ -1,6 +1,7 @@
 #include "Core/LevelSelectState.h"
 
 #include "Core/Game.h"
+#include "Core/LevelCatalog.h"
 #include "Core/MainMenuState.h"
 
 #include <array>
@@ -9,20 +10,6 @@
 #include <string>
 
 namespace {
-struct LevelOption {
-    const char* number;
-    const char* name;
-    const char* status;
-    const char* mapPath;
-    const char* worldName;
-};
-
-constexpr std::array<LevelOption, 3> LEVEL_OPTIONS = {{
-    {"1", "WORLD 1-1", "READY", "assets/maps/levels/1-1.tmj", "WORLD 1-1"},
-    {"2", "WORLD 1-2", "READY", "assets/maps/levels/1-2.tmj", "WORLD 1-2"},
-    {"3", "WORLD 1-3", "IN DEVELOPMENT", "assets/maps/levels/1-3.tmj", "WORLD 1-3"}
-}};
-
 void centerText(sf::Text& text, sf::Vector2f position) {
     const sf::FloatRect bounds = text.getLocalBounds();
     text.setOrigin(bounds.left + bounds.width / 2.f,
@@ -61,7 +48,8 @@ LevelSelectState::LevelSelectState() {
     const std::array<float, 3> xPositions = {280.f, 640.f, 1000.f};
     for (std::size_t i = 0; i < m_cards.size(); ++i) {
         LevelCard& card = m_cards[i];
-        const LevelOption& option = LEVEL_OPTIONS[i];
+        const LevelCatalog::LevelDefinition& option =
+            LevelCatalog::LEVELS[i];
 
         card.panel.setSize({270.f, 330.f});
         card.panel.setOrigin(135.f, 165.f);
@@ -111,8 +99,8 @@ LevelSelectState::LevelSelectState() {
 
     const std::string& selectedPath =
         Game::getInstance().getSelectedLevelPath();
-    for (std::size_t i = 0; i < LEVEL_OPTIONS.size(); ++i) {
-        if (selectedPath == LEVEL_OPTIONS[i].mapPath) {
+    for (std::size_t i = 0; i < LevelCatalog::LEVELS.size(); ++i) {
+        if (selectedPath == LevelCatalog::LEVELS[i].mapPath) {
             m_selectedIndex = static_cast<int>(i);
             break;
         }
@@ -235,7 +223,8 @@ void LevelSelectState::refreshAppearance() {
 }
 
 void LevelSelectState::confirmSelection() {
-    const LevelOption& selected = LEVEL_OPTIONS[m_selectedIndex];
+    const LevelCatalog::LevelDefinition& selected =
+        LevelCatalog::LEVELS[m_selectedIndex];
     Game::getInstance().setSelectedLevel(
         selected.mapPath, selected.worldName);
     Game::getInstance().changeState(std::make_unique<MainMenuState>());
