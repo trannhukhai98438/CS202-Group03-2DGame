@@ -48,33 +48,27 @@ void SpinningShellState::update(Enemy& enemy, float deltaTime) {
     enemy.applyAnimation();
 }
 
-FlippingDeathState::FlippingDeathState(float initialVelY) : velocityY(initialVelY) {}
+FlippingDeathState::FlippingDeathState(float initialVelY)
+    : velocityY(initialVelY), alpha(255.0f) {}
 
 void FlippingDeathState::onEnter(Enemy& enemy) {
     sf::Vector2f scale = enemy.getSprite().getScale();
     enemy.getSprite().setScale(scale.x, -std::abs(scale.y));
+    alpha = static_cast<float>(enemy.getSprite().getColor().a);
 }
 
 void FlippingDeathState::update(Enemy& enemy, float deltaTime) {
     velocityY += 450.0f * deltaTime; // Soft, smooth gravity acceleration
     sf::Vector2f pos = enemy.getPosition();
     enemy.setPosition(sf::Vector2f(pos.x, pos.y + velocityY * deltaTime));
-    
-    // Quick cleanup if fallen below screen bounds
-    if (pos.y > 800.0f) {
-        enemy.die();
-        return;
-    }
 
     // Fade out
     sf::Sprite& sprite = enemy.getSprite();
     sf::Color color = sprite.getColor();
-    if (color.a > 5) {
-        color.a -= static_cast<sf::Uint8>(120 * deltaTime);
-        sprite.setColor(color);
-    } else {
-        enemy.die(); // Mark dead
-    }
+    alpha = std::max(0.0f, alpha - 120.0f * deltaTime);
+    color.a = static_cast<sf::Uint8>(alpha);
+    sprite.setColor(color);
+    if (alpha <= 0.0f) enemy.die();
     
     enemy.applyAnimation();
 }

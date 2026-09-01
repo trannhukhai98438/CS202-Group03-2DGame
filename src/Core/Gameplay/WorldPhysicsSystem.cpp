@@ -437,11 +437,6 @@ void WorldPhysicsSystem::resolveItems(GameWorld& world, float deltaTime) {
 
 void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
     for (auto& enemy : world.enemies()) {
-        // Preserve the existing out-of-world cleanup threshold.
-        if (enemy->getPosition().y > 800.0f) {
-            enemy->die();
-        }
-
         if (!enemy->getIsAlive()
             || enemy->getStateName() == "FlippingDeath"
             || enemy->getStateName() == "Squished") {

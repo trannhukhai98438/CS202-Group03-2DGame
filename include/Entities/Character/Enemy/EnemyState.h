@@ -53,6 +53,7 @@ public:
 class FlippingDeathState : public EnemyState {
 private:
     float velocityY;
+    float alpha;
 public:
     FlippingDeathState(float initialVelY = -150.0f);
     void onEnter(Enemy& enemy) override;

@@ -285,6 +285,9 @@ void PlayingState::quickLoad() {
         if (Hero* hero = m_levelRuntime.getHero()) {
             m_lastCoinCount = hero->getCoin();
 
+            // SaveManager replaces the Hero instance, so restore the exact
+            // playable room before camera, theme and fall-death are evaluated.
+            m_levelRuntime.syncActiveRegionToHero();
             m_levelRuntime.update(0.0f, PipeDirection::None);
 
             const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
