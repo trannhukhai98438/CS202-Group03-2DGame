@@ -161,4 +161,5 @@ void GameWorld::clear() {
     m_projectiles.clear();
     m_goals.clear();
     m_mapColliders.clear();
+    m_destroyedBlocks.clear();
 }

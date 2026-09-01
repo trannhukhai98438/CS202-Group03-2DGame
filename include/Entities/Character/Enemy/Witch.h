@@ -43,6 +43,7 @@ public:
     void checkObstacles() override;
     void move(float deltaTime) override;
     void applyAnimation() override;
+    std::string getCharacterType() const override { return "Witch"; }
 
     void throwPotion();
     

@@ -281,23 +281,49 @@ void PlayingState::quickLoad() {
         Game::getInstance().getSelectedHero()
     );
 
-    if (saveManager.applySaveToWorld(m_levelRuntime.getWorld(), *m_hudManager)) {
-        if (Hero* hero = m_levelRuntime.getHero()) {
-            m_lastCoinCount = hero->getCoin();
-
-            // SaveManager replaces the Hero instance, so restore the exact
-            // playable room before camera, theme and fall-death are evaluated.
-            m_levelRuntime.syncActiveRegionToHero();
-            m_levelRuntime.update(0.0f, PipeDirection::None);
-
-            const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
-            const float levelEnd = m_levelRuntime.getWorldWidth();
-            const float cameraX = std::clamp(hero->getPosition().x,
-                                              halfScreenWidth,
-                                              levelEnd - halfScreenWidth);
-            const float cameraY = getCameraY(m_levelRuntime.getActiveRegionBottom());
-
-            m_camera.setCenter(std::round(cameraX), std::round(cameraY));
-        }
+    if (!m_levelRuntime.isReady()) {
+        std::cerr << "[PlayingState] ERROR: Cannot reload saved level.\n";
+        return;
     }
+
+    if (!saveManager.applySaveToWorld(
+            m_levelRuntime.getWorld(), *m_hudManager)) {
+        return;
+    }
+
+    Hero* hero = m_levelRuntime.getHero();
+    if (!hero) {
+        std::cerr << "[PlayingState] ERROR: Save did not restore a Hero.\n";
+        return;
+    }
+
+    // SaveManager replaces the Hero instance. Resolve its room before using
+    // the room-dependent palette, music, camera or fall-death boundary.
+    m_levelRuntime.syncActiveRegionToHero();
+
+    const MapTheme activeTheme = m_levelRuntime.getWorld()
+                                     .blockThemePalette()
+                                     .getActiveTheme();
+    m_soundManager.playBGM(
+        activeTheme == MapTheme::Underground ? "underground" : "ground");
+
+    // A loaded save starts a fresh attempt from the restored HUD snapshot.
+    m_lastCoinCount = hero->getCoin();
+    m_attemptStartScore = m_hudManager->getScore();
+    m_attemptStartCoins = m_hudManager->getCoins();
+    m_attemptStartLives = m_hudManager->getLives();
+    m_latchedPipeDirection = PipeDirection::None;
+    m_victoryPending = false;
+    m_victoryDelayRemaining = 0.0f;
+    m_defeatPending = false;
+    m_defeatDelayRemaining = 0.0f;
+
+    const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
+    const float levelEnd = m_levelRuntime.getWorldWidth();
+    const float cameraX = std::clamp(hero->getPosition().x,
+                                     halfScreenWidth,
+                                     levelEnd - halfScreenWidth);
+    const float cameraY = getCameraY(
+        m_levelRuntime.getActiveRegionBottom());
+    m_camera.setCenter(std::round(cameraX), std::round(cameraY));
 }

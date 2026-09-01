@@ -15,14 +15,20 @@
 
 namespace {
 ItemType getBlockItemType(const std::string& itemName, ItemType fallback) {
-    if (itemName == "coin") {
+    std::string lower = itemName;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    if (lower == "coin") {
         return ItemType::Coin;
     }
-    if (itemName == "star") {
+    if (lower == "star") {
         return ItemType::Star;
     }
-    if (itemName == "mushroom" || itemName == "flower") {
+    if (lower == "mushroom" || lower == "flower" || lower == "powerup" || lower == "powerupprototype") {
         return ItemType::PowerUpPrototype;
+    }
+    if (lower == "none" || lower.empty()) {
+        return ItemType::None;
     }
     return fallback;
 }
@@ -116,15 +122,16 @@ bool LevelBuilder::build(GameWorld& world,
             : object.y;
 
         const std::string& type = object.className;
-        if (type == "brick") {
+        if (type == "brick" || type == "Brick") {
+            const std::string item = getContainedItem(object, "none");
+            const ItemType defaultType = (item == "none" || item.empty()) ? ItemType::None : ItemType::Coin;
             world.addBlock(blockFactory.createBlock(
                 BlockType::Brick,
                 worldX,
                 worldY,
-                getBlockItemType(
-                    getContainedItem(object, "none"), ItemType::None),
+                getBlockItemType(item, defaultType),
                 std::max(0, object.count)));
-        } else if (type == "question") {
+        } else if (type == "question" || type == "Question") {
             const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Question,
@@ -132,18 +139,19 @@ bool LevelBuilder::build(GameWorld& world,
                 worldY,
                 getBlockItemType(item, ItemType::Coin),
                 std::max(0, object.count)));
-        } else if (type == "invisible") {
+        } else if (type == "invisible" || type == "Invisible") {
             const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Invisible,
                 worldX,
                 worldY,
-                getBlockItemType(item, ItemType::Coin)));
-        } else if (type == "coin") {
+                getBlockItemType(item, ItemType::Coin),
+                std::max(0, object.count)));
+        } else if (type == "coin" || type == "Coin") {
             auto coin = std::make_unique<Coin>(worldX, worldY);
             coin->spawnAsGroundCoin();
             world.addItem(std::move(coin));
-        } else if (type == "flag" && !hasGoalTrigger) {
+        } else if ((type == "flag" || type == "Flag") && !hasGoalTrigger) {
             const sf::FloatRect triggerBounds(
                 worldX,
                 worldY,
@@ -223,17 +231,21 @@ bool LevelBuilder::build(GameWorld& world,
         }
 
         std::unique_ptr<Enemy> enemy;
-        if (spawner.className == "goomba") {
+        if (spawner.className == "goomba" || spawner.className == "Goomba") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Goomba, spawner.x, spawner.y, 150.f,
                 spawnCallback);
-        } else if (spawner.className == "koopa") {
+        } else if (spawner.className == "koopa" || spawner.className == "Koopa") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Koopa, spawner.x, spawner.y, 200.f,
                 spawnCallback);
-        } else if (spawner.className == "witch") {
+        } else if (spawner.className == "witch" || spawner.className == "Witch") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Witch, spawner.x, spawner.y, 150.f,
+                spawnCallback);
+        } else if (spawner.className == "thorking" || spawner.className == "ThorKing" || spawner.className == "thor_king") {
+            enemy = EnemyFactory::createEnemy(
+                EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);
         }
         if (!enemy) continue;
