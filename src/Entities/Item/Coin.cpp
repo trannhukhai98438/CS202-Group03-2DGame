@@ -50,6 +50,10 @@ std::string Coin::getItemType() const {
     return "Coin";
 }
 
+std::string Coin::getCollectionSfx() const {
+    return {};
+}
+
 void Coin::update(float deltatime){
     if (!isActive) return;
 

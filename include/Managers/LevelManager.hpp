@@ -18,12 +18,11 @@ private:
     sf::Texture m_tilesetTexture;
     sf::VertexArray m_vertices; // Batch rendering mesh for normal map layers
 
-    // Object tileset
-    // Currently used by the Flag tile layer.
+    // Object tileset used by static map objects such as Flag and Princess.
     sf::Texture m_objectTexture;
-    sf::VertexArray m_flagVertices;
+    sf::VertexArray m_objectVertices;
 
-    // firstgid of object.tsx in 1-1.tmj
+    // firstgid of object.tsx in the current map schema.
     static constexpr int OBJECT_FIRST_GID = 925;
 
     std::string m_collisionLayerName{ "Terrain" };

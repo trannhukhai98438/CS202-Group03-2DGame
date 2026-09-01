@@ -22,16 +22,22 @@
                  "y":512
                 }, 
                 {
-                 "height":256,
+                 "height":64,
                  "id":17,
                  "name":"",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"goal",
+                         "type":"string",
+                         "value":"princess"
+                        }],
                  "rotation":0,
                  "type":"end",
                  "visible":true,
                  "width":32,
-                 "x":3840,
-                 "y":64
+                 "x":3904,
+                 "y":256
                 }, 
                 {
                  "height":672,

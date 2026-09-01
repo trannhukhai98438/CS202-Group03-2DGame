@@ -65,11 +65,25 @@ PipeDirection getHeldPipeDirection() {
 float getCameraY(float activeRegionBottom) {
     return activeRegionBottom - CAMERA_HEIGHT * 0.5f;
 }
+
+const char* getThemeBgm(MapTheme theme) {
+    switch (theme) {
+    case MapTheme::Underground:
+        return "underground";
+    case MapTheme::Castle:
+        return "castle";
+    case MapTheme::Unspecified:
+    case MapTheme::Overworld:
+        return "ground";
+    }
+
+    return "ground";
+}
 }
 
 PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
 	: m_hudManager(std::move(hudManager)),
-	  m_levelRuntime("assets/maps/levels/1-1.tmj",
+	  m_levelRuntime("assets/maps/levels/1-3.tmj",
 	                     "assets/maps/resources/tileset.png",
 	                     Game::getInstance().getSelectedHero()) {
     if (!m_hudManager) {
@@ -91,7 +105,10 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
 
     Game& game = Game::getInstance();
     m_levelRuntime.setSoundManager(&game.getSoundManager());
-    game.getSoundManager().playBGM("ground", true);
+    const MapTheme activeTheme = m_levelRuntime.getWorld()
+                                     .blockThemePalette()
+                                     .getActiveTheme();
+    game.getSoundManager().playBGM(getThemeBgm(activeTheme), true);
 }
 
 PlayingState::~PlayingState() = default;
@@ -162,10 +179,7 @@ void PlayingState::update(sf::Time dt) {
                     .getActiveTheme();
 
             Game::getInstance().getSoundManager().playBGM(
-                activeTheme == MapTheme::Underground
-                    ? "underground"
-                    : "ground",
-                true);
+                getThemeBgm(activeTheme), true);
         }
     }
 
@@ -183,10 +197,7 @@ void PlayingState::update(sf::Time dt) {
                 .getActiveTheme();
 
         Game::getInstance().getSoundManager().playBGM(
-            activeTheme == MapTheme::Underground
-                ? "underground"
-                : "ground",
-            true);
+            getThemeBgm(activeTheme), true);
 
         m_invincibilityBgmActive = false;
     }
@@ -238,8 +249,14 @@ void PlayingState::update(sf::Time dt) {
             heroScreenPosition.y = std::clamp(
                 heroScreenPosition.y, 48.f, 672.f);
             m_invincibilityBgmActive = false;
-            Game::getInstance().getSoundManager().stopBGM();
-            Game::getInstance().getSoundManager().playBGM("course_clear", false);
+            SoundManager& soundManager =
+                Game::getInstance().getSoundManager();
+            soundManager.stopBGM();
+            const std::string completionBgm =
+                m_levelRuntime.getActivatedGoalBgm();
+            soundManager.playBGM(
+                completionBgm.empty() ? "course_clear" : completionBgm,
+                false);
             Game::getInstance().pushState(
                 std::make_unique<VictoryState>(heroScreenPosition));
             return;
@@ -345,8 +362,7 @@ void PlayingState::quickLoad() {
     const MapTheme activeTheme = m_levelRuntime.getWorld()
                                      .blockThemePalette()
                                      .getActiveTheme();
-    game.getSoundManager().playBGM(
-        activeTheme == MapTheme::Underground ? "underground" : "ground");
+    game.getSoundManager().playBGM(getThemeBgm(activeTheme));
 
     // A loaded save starts a fresh attempt from the restored HUD snapshot.
     m_lastCoinCount = hero->getCoin();

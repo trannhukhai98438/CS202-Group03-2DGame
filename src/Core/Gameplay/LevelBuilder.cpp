@@ -4,6 +4,7 @@
 #include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Goal/Flag.h"
+#include "Entities/Goal/Princess.h"
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
@@ -105,8 +106,14 @@ bool LevelBuilder::build(GameWorld& world,
         world.levelManager().getObjectsByClass("Trigger", "end");
     for (const auto& trigger : endTriggers) {
         if (trigger.width <= 0.f || trigger.height <= 0.f) continue;
-        world.addGoal(std::make_unique<Flag>(sf::FloatRect(
-            trigger.x, trigger.y, trigger.width, trigger.height)));
+
+        const sf::FloatRect triggerBounds(
+            trigger.x, trigger.y, trigger.width, trigger.height);
+        if (trigger.getProperty("goal") == "princess") {
+            world.addGoal(std::make_unique<Princess>(triggerBounds));
+        } else {
+            world.addGoal(std::make_unique<Flag>(triggerBounds));
+        }
         hasGoalTrigger = true;
     }
 

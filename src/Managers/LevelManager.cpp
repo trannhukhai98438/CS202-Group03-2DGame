@@ -37,7 +37,7 @@ bool LevelManager::loadLevel(
 
     // 3. Load Object Tileset Texture
     //
-    // 1-1.tmj:
+    // Current map schema:
     // object.tsx -> firstgid = 925
     //
     // object.tsx references the separate object tileset image.
@@ -79,10 +79,10 @@ bool LevelManager::buildMapMesh() {
     m_vertices.setPrimitiveType(sf::Quads);
 
     // -------------------------------------------------------------------------
-    // Reset object/Flag mesh
+    // Reset object mesh
     // -------------------------------------------------------------------------
-    m_flagVertices.clear();
-    m_flagVertices.setPrimitiveType(sf::Quads);
+    m_objectVertices.clear();
+    m_objectVertices.setPrimitiveType(sf::Quads);
 
     if (m_currentMap.tileWidth == 0
         || m_currentMap.tileHeight == 0) {
@@ -118,7 +118,7 @@ bool LevelManager::buildMapMesh() {
     // 1. Count quads separately
     // -------------------------------------------------------------------------
     std::size_t totalQuads = 0;
-    std::size_t totalFlagQuads = 0;
+    std::size_t totalObjectQuads = 0;
 
     for (const auto& layer : m_currentMap.tileLayers) {
         if (!layer.visible) {
@@ -130,8 +130,8 @@ bool LevelManager::buildMapMesh() {
                 continue;
             }
 
-            if (layer.name == FLAG_LAYER_NAME) {
-                ++totalFlagQuads;
+            if (gid >= OBJECT_FIRST_GID) {
+                ++totalObjectQuads;
             } else {
                 ++totalQuads;
             }
@@ -140,10 +140,10 @@ bool LevelManager::buildMapMesh() {
 
     // Resize once to avoid repeated reallocations.
     m_vertices.resize(totalQuads * 4);
-    m_flagVertices.resize(totalFlagQuads * 4);
+    m_objectVertices.resize(totalObjectQuads * 4);
 
     std::size_t vertexIndex = 0;
-    std::size_t flagVertexIndex = 0;
+    std::size_t objectVertexIndex = 0;
 
     // -------------------------------------------------------------------------
     // 2. Populate vertex buffers
@@ -152,9 +152,6 @@ bool LevelManager::buildMapMesh() {
         if (!layer.visible) {
             continue;
         }
-
-        const bool isFlagLayer =
-            layer.name == FLAG_LAYER_NAME;
 
         for (int y = 0; y < layer.height; ++y) {
             for (int x = 0; x < layer.width; ++x) {
@@ -180,10 +177,14 @@ bool LevelManager::buildMapMesh() {
                 float posY = static_cast<float>(y * tileHeight);
 
                 // =============================================================
-                // FLAG LAYER
+                // OBJECT TILESET
                 // =============================================================
-                if (isFlagLayer) {
-                    posX += 16.f;
+                if (globalGid >= OBJECT_FIRST_GID) {
+                    // Existing flag maps use a half-tile visual alignment.
+                    // Other static objects keep their exact Tiled position.
+                    if (layer.name == FLAG_LAYER_NAME) {
+                        posX += 16.f;
+                    }
                     // object.tsx starts at firstgid 925.
                     //
                     // Examples:
@@ -192,14 +193,14 @@ bool LevelManager::buildMapMesh() {
                     // GID 926 -> local tile 1
                     // GID 927 -> local tile 2
                     //
-                    // Your TMJ contains Flag GIDs such as:
-                    // 1005, etc.
+                    // This applies to static object GIDs such as the Flag and
+                    // the two Princess tiles.
                     const int localTileIndex =
                         globalGid - OBJECT_FIRST_GID;
 
                     if (localTileIndex < 0) {
                         std::cerr
-                            << "[LevelManager] WARNING: Flag GID "
+                            << "[LevelManager] WARNING: Object GID "
                             << globalGid
                             << " is smaller than object firstgid "
                             << OBJECT_FIRST_GID
@@ -223,48 +224,48 @@ bool LevelManager::buildMapMesh() {
                             tv * tileHeight);
 
                     // Position
-                    m_flagVertices[flagVertexIndex + 0].position =
+                    m_objectVertices[objectVertexIndex + 0].position =
                         sf::Vector2f(
                             posX,
                             posY);
 
-                    m_flagVertices[flagVertexIndex + 1].position =
+                    m_objectVertices[objectVertexIndex + 1].position =
                         sf::Vector2f(
                             posX + tileWidth,
                             posY);
 
-                    m_flagVertices[flagVertexIndex + 2].position =
+                    m_objectVertices[objectVertexIndex + 2].position =
                         sf::Vector2f(
                             posX + tileWidth,
                             posY + tileHeight);
 
-                    m_flagVertices[flagVertexIndex + 3].position =
+                    m_objectVertices[objectVertexIndex + 3].position =
                         sf::Vector2f(
                             posX,
                             posY + tileHeight);
 
                     // Texture coordinates
-                    m_flagVertices[flagVertexIndex + 0].texCoords =
+                    m_objectVertices[objectVertexIndex + 0].texCoords =
                         sf::Vector2f(
                             texX,
                             texY);
 
-                    m_flagVertices[flagVertexIndex + 1].texCoords =
+                    m_objectVertices[objectVertexIndex + 1].texCoords =
                         sf::Vector2f(
                             texX + tileWidth,
                             texY);
 
-                    m_flagVertices[flagVertexIndex + 2].texCoords =
+                    m_objectVertices[objectVertexIndex + 2].texCoords =
                         sf::Vector2f(
                             texX + tileWidth,
                             texY + tileHeight);
 
-                    m_flagVertices[flagVertexIndex + 3].texCoords =
+                    m_objectVertices[objectVertexIndex + 3].texCoords =
                         sf::Vector2f(
                             texX,
                             texY + tileHeight);
 
-                    flagVertexIndex += 4;
+                    objectVertexIndex += 4;
 
                     continue;
                 }
@@ -356,10 +357,10 @@ void LevelManager::draw(
     target.draw(m_vertices, states);
 
     // -------------------------------------------------------------------------
-    // Draw Flag layer from object.png
+    // Draw static map objects from object.png
     // -------------------------------------------------------------------------
     states.texture = &m_objectTexture;
-    target.draw(m_flagVertices, states);
+    target.draw(m_objectVertices, states);
 }
 
 // --- TILE QUERY IMPLEMENTATION ----------------------------------------------

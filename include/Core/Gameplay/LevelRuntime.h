@@ -58,6 +58,7 @@ public:
     float getActiveRegionBottom() const;
     bool syncActiveRegionToHero();
     bool hasActivatedGoal() const;
+    std::string getActivatedGoalBgm() const;
     bool isReady() const;
 
     const std::string& getMapPath() const { return m_mapPath; }

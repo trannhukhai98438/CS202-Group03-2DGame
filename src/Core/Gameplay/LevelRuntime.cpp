@@ -506,6 +506,15 @@ bool LevelRuntime::hasActivatedGoal() const {
     return false;
 }
 
+std::string LevelRuntime::getActivatedGoalBgm() const {
+    for (const auto& goal : m_world.goals()) {
+        if (goal && goal->isActivated()) {
+            return goal->getCompletionBgm();
+        }
+    }
+    return {};
+}
+
 bool LevelRuntime::isReady() const {
     return m_ready;
 }

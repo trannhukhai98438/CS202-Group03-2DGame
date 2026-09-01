@@ -6,6 +6,8 @@
 #include <iostream>
 
 GameOverState::GameOverState() {
+	Game::getInstance().getSoundManager().playBGM("game_over", false);
+
 	if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
 		std::cerr << "Error loading game-over font\n";
 	}
