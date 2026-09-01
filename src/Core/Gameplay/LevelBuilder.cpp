@@ -182,13 +182,5 @@ bool LevelBuilder::build(GameWorld& world,
         world.addEnemy(std::move(enemy));
     }
 
-    // Spawn a Witch near the beginning for easy testing
-    auto testWitch = EnemyFactory::createEnemy(
-        EnemyType::Witch, 450.f, 350.f, 150.f,
-        spawnCallback);
-    if (testWitch) {
-        world.addEnemy(std::move(testWitch));
-    }
-
     return world.hero() != nullptr;
 }

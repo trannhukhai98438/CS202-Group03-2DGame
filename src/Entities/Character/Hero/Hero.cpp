@@ -65,7 +65,10 @@ void Hero::update(float deltatime){
 
 void Hero::render(sf::RenderWindow& window){
     float renderScale = spriteRenderScale;
-    if (specialSpriteRenderScale > 0.f && form
+    if (smallSpriteRenderScale > 0.f && form
+        && form->getForm() == "Small") {
+        renderScale = smallSpriteRenderScale;
+    } else if (specialSpriteRenderScale > 0.f && form
         && form->getForm() == "Fire") {
         renderScale = specialSpriteRenderScale;
     }

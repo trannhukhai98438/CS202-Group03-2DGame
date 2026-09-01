@@ -3,21 +3,18 @@
 MarioFireball::MarioFireball(float startX, float startY, float velocityX)
     : Projectile(startX, startY, velocityX, 0.0f, ProjectileFaction::Hero, 1),
       animator(sprite), lifetime(4.0f) {
-    shape.setSize({16.0f, 16.0f});
+    shape.setSize({18.0f, 18.0f});
     shape.setFillColor(sf::Color(255, 110, 0));
 
-    sf::Image image;
-    if (image.loadFromFile("assets/textures/FireMario.png")) {
-        // FireMario.png uses this blue as its sprite-sheet background.
-        image.createMaskFromColor(sf::Color(0, 41, 140));
-        texture.loadFromImage(image);
-        texture.setSmooth(false);
+    if (texture.loadFromFile("assets/textures/FireMario.png")) {
+        texture.setSmooth(true);
         sprite.setTexture(texture);
+        sprite.setScale(0.24f, 0.24f);
         animator.addAnimation("Fireball", Animation({
-            sf::IntRect(172, 72, 16, 32),
-            sf::IntRect(190, 72, 16, 32),
-            sf::IntRect(208, 72, 16, 32)
-        }, 0.08f));
+            sf::IntRect(250, 446, 91, 75),
+            sf::IntRect(379, 438, 75, 90),
+            sf::IntRect(491, 442, 91, 79)
+        }, 0.07f));
         animator.playAnimation("Fireball", 0.0f);
     }
 

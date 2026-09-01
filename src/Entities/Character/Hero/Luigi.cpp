@@ -5,43 +5,51 @@
 
 Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     : Hero(x, y, std::move(spawnCallback)) {
-    baseTexturePath = "assets/textures/luigi.png";
-	specialTexturePath = "assets/textures/FireMario.png";
+    baseTexturePath = "assets/textures/Luigi.png";
+	specialTexturePath = "assets/textures/KitsuneLuigi.png";
+    spriteRenderScale = 0.285f;
+    smallSpriteRenderScale = 0.142f;
+    specialSpriteRenderScale = 0.285f;
     
-    // Small Form
-    animator.addAnimation("SmallIdle", Animation({{0, 8, 16, 16}}, 0.15f));
-    animator.addAnimation("SmallRun", Animation({{20, 8, 16, 16}, {38, 8, 16, 16}, {56, 8, 16, 16}}, 0.1f));
-    animator.addAnimation("SmallSlide", Animation({{76, 8, 16, 16}}, 0.15f));
-    animator.addAnimation("SmallJump", Animation({{96, 8, 16, 16}}, 0.15f));
-    animator.addAnimation("SmallDead", Animation({{116, 8, 16, 16}}, 0.15f));
-    animator.addAnimation("SmallFly", Animation({{136, 8, 16, 16}, {154, 8, 16, 16}, {174, 8, 16, 16}, {192, 8, 16, 16}, {210, 8, 16, 16}, {228, 8, 16, 16}, {246, 8, 16, 16}}, 0.1f));
+    // Small Form (Base Luigi.png)
+    animator.addAnimation("SmallIdle", Animation({{27, 56, 118, 227}}, 0.15f));
+    animator.addAnimation("SmallRun", Animation({{166, 56, 141, 227}, {329, 56, 145, 227}, {499, 56, 168, 227}}, 0.1f));
+    animator.addAnimation("SmallSlide", Animation({{683, 56, 168, 227}}, 0.15f));
+    animator.addAnimation("SmallJump", Animation({{860, 47, 141, 236}}, 0.15f));
+    animator.addAnimation("SmallDead", Animation({{761, 415, 227, 107}}, 0.15f));
+    animator.addAnimation("SmallFly", Animation({{860, 47, 141, 236}}, 0.15f));
 
-    // Giant Form
-    animator.addAnimation("GiantIdle", Animation({{0, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("GiantRun", Animation({{20, 32, 16, 32}, {38, 32, 16, 32}, {56, 32, 16, 32}}, 0.1f));
-    animator.addAnimation("GiantSlide", Animation({{76, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("GiantJump", Animation({{96, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("GiantSit", Animation({{116, 40, 16, 24}}, 0.15f));
-    animator.addAnimation("GiantFly", Animation({{136, 31, 16, 32}, {154, 31, 16, 32}, {174, 31, 16, 32}, {192, 31, 16, 32}, {210, 31, 16, 32}, {228, 31, 16, 32}, {246, 31, 16, 32}, {264, 31, 16, 32}}, 0.1f));
+    // Giant Form (Enlarged Base Luigi.png)
+    animator.addAnimation("GiantIdle", Animation({{27, 56, 118, 227}}, 0.15f));
+    animator.addAnimation("GiantRun", Animation({{166, 56, 141, 227}, {329, 56, 145, 227}, {499, 56, 168, 227}}, 0.1f));
+    animator.addAnimation("GiantSlide", Animation({{683, 56, 168, 227}}, 0.15f));
+    animator.addAnimation("GiantJump", Animation({{860, 47, 141, 236}}, 0.15f));
+    animator.addAnimation("GiantSit", Animation({{49, 280, 165, 242}}, 0.15f));
+    animator.addAnimation("GiantFly", Animation({{860, 47, 141, 236}}, 0.15f));
 
-    // Fire Form (uses Giant coords + Fire Special)
-    animator.addAnimation("FireIdle", Animation({{0, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("FireRun", Animation({{20, 32, 16, 32}, {38, 32, 16, 32}, {56, 32, 16, 32}}, 0.1f));
-    animator.addAnimation("FireSlide", Animation({{76, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("FireJump", Animation({{96, 32, 16, 32}}, 0.15f));
-    animator.addAnimation("FireSit", Animation({{116, 40, 16, 24}}, 0.15f));
-    animator.addAnimation("FireFly", Animation({{136, 31, 16, 32}, {154, 31, 16, 32}, {174, 31, 16, 32}, {192, 31, 16, 32}, {210, 31, 16, 32}, {228, 31, 16, 32}, {246, 31, 16, 32}, {264, 31, 16, 32}}, 0.1f));
-    animator.addAnimation("FireSpecial", Animation({{136, 72, 16, 32}, {154, 72, 16, 32}}, 0.15f));
+    // Fire Form (Kitsune Fox Luigi - Stage 2 Upgraded form from KitsuneLuigi.png)
+    animator.addAnimation("FireIdle", Animation({{19, 39, 171, 221}}, 0.15f));
+    animator.addAnimation("FireRun", Animation({
+        {202, 39, 161, 221}, // Step 1: Left foot forward
+        {395, 36, 198, 221}, // Step 2: Passing center
+        {608, 36, 198, 223}  // Step 3: Right foot forward
+    }, 0.10f));
+    animator.addAnimation("FireSlide", Animation({{608, 36, 198, 223}}, 0.15f));
+    animator.addAnimation("FireJump", Animation({{839, 18, 152, 226}}, 0.15f));
+    animator.addAnimation("FireSit", Animation({{30, 362, 158, 181}}, 0.15f));
+    animator.addAnimation("FireFly", Animation({{234, 330, 237, 156}}, 0.15f));
+    animator.addAnimation("FireSpecial", Animation({
+        {514, 325, 279, 217}, // Pose 8: 360-degree green wind tail spin
+        {820, 294, 177, 250}  // Pose 9: Water magic cast / throw
+    }, 0.15f));
 
     // Growth / Shrink
-    animator.addAnimation("SmallGrow", Animation({{0, 88, 16, 16}, {18, 80, 16, 24}, {36, 72, 16, 32}}, 0.15f));
-    animator.addAnimation("GiantShrink", Animation({{56, 72, 16, 32}, {74, 72, 16, 32}, {92, 88, 16, 16}, {110, 88, 16, 16}}, 0.15f));
+    animator.addAnimation("SmallGrow", Animation({{27, 56, 118, 227}, {49, 280, 165, 242}, {27, 56, 118, 227}}, 0.15f));
+    animator.addAnimation("GiantShrink", Animation({{49, 280, 165, 242}, {27, 56, 118, 227}, {49, 280, 165, 242}}, 0.15f));
 
     setForm(std::make_unique<SmallForm>());
     setState(std::make_unique<IdleState>());
-    sf::Vector2f size=shape.getSize();
-    sprite.setOrigin(size.x/2.0f,size.y);
-    setPosition(x,y);
+    setPosition(x, y);
 }
 
 std::unique_ptr<Projectile> Luigi::createSpecialProjectile() const {

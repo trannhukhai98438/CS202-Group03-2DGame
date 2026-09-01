@@ -65,18 +65,21 @@ CharacterSelectState::CharacterSelectState() {
     }
 
     m_cards[0].sprite.setTexture(m_marioTexture);
+    m_cards[0].sprite.setTextureRect({28, 68, 94, 164});
+    m_cards[0].sprite.setOrigin(47.f, 82.f);
+    m_cards[0].sprite.setScale(0.85f, 0.85f);
+    m_cards[0].sprite.setPosition(xPositions[0], 295.f);
+
     m_cards[1].sprite.setTexture(m_luigiTexture);
+    m_cards[1].sprite.setTextureRect({27, 56, 118, 227});
+    m_cards[1].sprite.setOrigin(59.f, 113.5f);
+    m_cards[1].sprite.setScale(0.68f, 0.68f);
+    m_cards[1].sprite.setPosition(xPositions[1], 295.f);
+
 	m_cards[2].sprite.setTexture(m_flashTexture);
-	for (std::size_t i = 0; i < 2; ++i) {
-        auto& sprite = m_cards[i].sprite;
-        sprite.setTextureRect({0, 8, 16, 16});
-        sprite.setOrigin(8.f, 8.f);
-        sprite.setScale(9.f, 9.f);
-        sprite.setPosition(xPositions[i], 295.f);
-    }
-	m_cards[2].sprite.setTextureRect({15, 52, 104, 113});
-	m_cards[2].sprite.setOrigin(52.f, 56.5f);
-	m_cards[2].sprite.setScale(0.95f, 0.95f);
+	m_cards[2].sprite.setTextureRect({85, 20, 149, 192});
+	m_cards[2].sprite.setOrigin(74.5f, 96.f);
+	m_cards[2].sprite.setScale(0.80f, 0.80f);
 	m_cards[2].sprite.setPosition(xPositions[2], 295.f);
 
     m_confirmButton.setSize({270.f, 62.f});

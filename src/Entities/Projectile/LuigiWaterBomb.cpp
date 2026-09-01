@@ -7,18 +7,18 @@ LuigiWaterBomb::LuigiWaterBomb(float startX, float startY,
                  ProjectileFaction::Hero, 1),
       phase(Phase::Flying), lifetime(4.0f), impactEffectTimer(0.18f),
       damageWindowOpen(false) {
-    shape.setSize({24.0f, 24.0f});
+    shape.setSize({26.0f, 26.0f});
     shape.setFillColor(sf::Color(50, 170, 255));
 
     if (bombTexture.loadFromFile("assets/textures/LuigiWaterBomb.png")) {
-        bombTexture.setSmooth(false);
+        bombTexture.setSmooth(true);
         bombSprite.setTexture(bombTexture);
-        configureSprite(bombSprite, bombTexture, 24.0f, 24.0f);
+        configureSprite(bombSprite, bombTexture, 32.0f, 32.0f);
     }
     if (splashTexture.loadFromFile("assets/textures/LuigiWaterSplash.png")) {
-        splashTexture.setSmooth(false);
+        splashTexture.setSmooth(true);
         splashSprite.setTexture(splashTexture);
-        configureSprite(splashSprite, splashTexture, 80.0f, 24.0f);
+        configureSprite(splashSprite, splashTexture, 110.0f, 38.0f);
     }
 
     setPosition({startX, startY});
