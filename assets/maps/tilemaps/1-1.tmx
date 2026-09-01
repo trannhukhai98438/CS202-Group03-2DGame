@@ -8,7 +8,7 @@
  <imagelayer id="4" name="Image" visible="0" locked="1" mode="screen">
   <image source="../resources/1-1.png" width="6752" height="960"/>
  </imagelayer>
- <objectgroup id="6" name="Trigger">
+ <objectgroup id="6" name="Trigger" visible="0" locked="1">
   <object id="116" name="A" type="pipe_in" x="1824" y="224" width="64" height="64">
    <properties>
     <property name="direction" value="down"/>
