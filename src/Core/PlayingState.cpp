@@ -324,11 +324,8 @@ void PlayingState::update(sf::Time dt) {
         m_defeatDelayRemaining -= deltaTime;
         if (m_defeatDelayRemaining <= 0.0f) {
 			if (m_hudManager->getLives() > 0) {
-				std::string worldName = (m_levelPath == "assets/maps/levels/boss_arena.tmj")
-					? "BOSS: THORKING"
-					: "WORLD 1-1";
 				Game::getInstance().changeState(
-					std::make_unique<TransitionState>(m_hudManager, m_levelPath, worldName));
+					std::make_unique<TransitionState>(m_hudManager, m_levelPath, "WORLD 1-1"));
 			} else {
 				Game::getInstance().changeState(
 					std::make_unique<GameOverState>());
