@@ -1,5 +1,7 @@
 #include "Hero.h"
 #include "SmallForm.h"
+#include "GiantForm.h"
+#include "FireForm.h"
 #include "IdleState.h"
 #include "DeadState.h"
 #include "Item.h"
@@ -99,6 +101,16 @@ void Hero::render(sf::RenderWindow& window){
     window.draw(sprite);
 }
 
+void Hero::setForm(const std::string& newForm) {
+    if (newForm == "SmallForm" || newForm == "Small") {
+        setForm(std::make_unique<SmallForm>());
+    } else if (newForm == "GiantForm" || newForm == "Giant" || newForm == "SuperForm" || newForm == "Super") {
+        setForm(std::make_unique<GiantForm>());
+    } else if (newForm == "FireForm" || newForm == "Fire") {
+        setForm(std::make_unique<FireForm>());
+    }
+}
+
 void Hero::setForm(std::unique_ptr<HeroForm> newForm){
     // An override belongs to the old form's texture coordinates and must not
     // survive a texture/form swap.
@@ -143,8 +155,20 @@ void Hero::setInvincible(float duration, bool starman) {
     isStarman = starman;
 }
 
+float Hero::getInvincibleTimer() const {
+    return invincibleTimer;
+}
+
+bool Hero::getIsStarman() const {
+    return isStarman;
+}
+
 int Hero::getCoin() const{
     return coin;
+}
+
+void Hero::setCoin(int newCoin) {
+    coin = newCoin;
 }
 
 void Hero::collectCoin(){
@@ -152,6 +176,9 @@ void Hero::collectCoin(){
 }
 
 void Hero::takedamage() {
+    if (getStateName() == "Cheer") {
+        return;
+    }
     if (invincibleTimer > 0.f) {
         return; // Ignore damage during I-frames
     }
@@ -179,8 +206,12 @@ bool Hero::isDead() const {
     return hp <= 0 || !isAlive;
 }
 
-int Hero::getHp(){
+int Hero::getHp() const {
     return hp;
+}
+
+void Hero::setHp(int newHp) {
+    hp = newHp;
 }
 
 void Hero::setSize(float x, float y){

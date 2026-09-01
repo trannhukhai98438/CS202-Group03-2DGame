@@ -39,12 +39,15 @@ void Coin::spawnAsGroundCoin() {
 }
 
 std::unique_ptr<Item> Coin::clone(Hero* hero) const {
-    // Center the 8px wide coin horizontally in the 16px wide block (+4 offset)
-    auto newCoin = std::make_unique<Coin>(position.x + 4.f, position.y);
+    auto newCoin = std::make_unique<Coin>(position.x, position.y);
     // Auto-collect: award coin immediately when block is hit
     hero->collectCoin(); // direct call — avoids const violation (clone() is const)
     newCoin->m_alreadyCollected = true; // prevent double-count if CollisionSystem later detects overlap
     return newCoin;
+}
+
+std::string Coin::getItemType() const {
+    return "Coin";
 }
 
 void Coin::update(float deltatime){

@@ -50,6 +50,8 @@ public:
         }
     }
 
+    std::string getProjectileType() const override { return "BossFire"; }
+
     void setPosition(const sf::Vector2f& pos) override {
         Projectile::setPosition(pos);
         fireSprite.setPosition(position.x + shape.getSize().x * 0.5f,
@@ -153,6 +155,8 @@ public:
             window.draw(shape);
         }
     }
+
+    std::string getProjectileType() const override { return "BossMeteor"; }
 
     void setPosition(const sf::Vector2f& pos) override {
         Projectile::setPosition(pos);

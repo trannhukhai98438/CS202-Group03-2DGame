@@ -28,6 +28,7 @@ public:
 	FlashThunder(float startX, float startY, float velocityX);
 	void update(float deltaTime) override;
 	void render(sf::RenderWindow& window) override;
+	std::string getProjectileType() const override { return "FlashThunder"; }
 	float getGravityAcceleration() const override { return 0.f; }
 	bool usesWorldPhysics() const override { return phase == Phase::Flying; }
 	void onSolidCollision(SideType side,

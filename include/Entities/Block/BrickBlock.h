@@ -4,9 +4,12 @@
 #include <array>
 #include <cmath>
 
+class BlockThemePalette;
+enum class MapTheme;
+
 class BrickBlock : public Block {
 public:
-    BrickBlock(float x, float y);
+    BrickBlock(float x, float y, const BlockThemePalette& themePalette);
     ~BrickBlock() = default;
 
     void update(float deltatime) override;
@@ -19,6 +22,12 @@ public:
     bool isSolid() const override { return !isDestroyed; }
 
 private:
+    void syncThemeTexture();
+
+    const BlockThemePalette& themePalette;
+    MapTheme boundTheme;
+    bool hasBoundTheme;
+
     bool  isDestroyed;   // true when Giant/Fire has destroyed the brick
 
     // --- Particles (Giant/Fire destruction) ---

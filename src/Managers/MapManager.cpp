@@ -1,8 +1,26 @@
 #include "Managers/MapManager.hpp"
+#include <cctype>
 #include <exception>
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+
+MapTheme MapManager::parseTheme(const std::string& value) {
+    std::string normalized;
+    normalized.reserve(value.size());
+
+    for (const unsigned char character : value) {
+        if (std::isspace(character) || character == '-'
+            || character == '_') {
+            continue;
+        }
+        normalized.push_back(static_cast<char>(std::tolower(character)));
+    }
+
+    if (normalized == "overworld") return MapTheme::Overworld;
+    if (normalized == "underground") return MapTheme::Underground;
+    return MapTheme::Unspecified;
+}
 
 void MapManager::parseCustomProperties(const nlohmann::json& objJson, MapObject& outObj) {
     if (!objJson.contains("properties")
@@ -33,6 +51,8 @@ void MapManager::parseCustomProperties(const nlohmann::json& objJson, MapObject&
             outObj.direction = textValue;
         } else if (propName == "contain") {
             outObj.contain = textValue;
+        } else if (propName == "theme") {
+            outObj.theme = parseTheme(textValue);
         } else if (propName == "count"
                    || propName == "number"
                    || propName == "quantity") {

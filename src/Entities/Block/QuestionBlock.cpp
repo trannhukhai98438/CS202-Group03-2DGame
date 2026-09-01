@@ -32,14 +32,11 @@ void QuestionBlock::render(sf::RenderWindow& window) {
 std::unique_ptr<Item> QuestionBlock::hit(Hero* hero) {
     if (isHit) return nullptr;
 
-    isHit = true;
-    animator.playAnimation("EmptyBrick", 0.f);
-
-    if (hiddenItemPrototype) {
-        std::unique_ptr<Item> spawnedItem = hiddenItemPrototype->clone(hero);
-        spawnedItem->spawn();
-        return spawnedItem;
+    std::unique_ptr<Item> spawnedItem = releaseHiddenItem(hero);
+    if (!hasHiddenItems()) {
+        isHit = true;
+        animator.playAnimation("EmptyBrick", 0.f);
     }
 
-    return nullptr;
+    return spawnedItem;
 }

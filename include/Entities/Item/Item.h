@@ -17,8 +17,12 @@ public:
     
     virtual std::unique_ptr<Item> clone(Hero* hero) const = 0;
 
+    virtual std::string getItemType() const = 0;
+
     bool isCollected() const;
     virtual void getCollected(Hero* hero)=0;
+    void setActive(bool active) { isActive = active; }
+    bool getIsActive() const { return isActive; }
 
     sf::FloatRect getBounds() const;
     sf::RectangleShape& getHitbox();

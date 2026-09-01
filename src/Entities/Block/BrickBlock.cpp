@@ -1,14 +1,17 @@
 #include "Entities/Block/BrickBlock.h"
 #include "Entities/Character/Hero/Hero.h"
+#include "Gameplay/BlockThemePalette.h"
 
-BrickBlock::BrickBlock(float x, float y)
+BrickBlock::BrickBlock(float x, float y,
+                       const BlockThemePalette& themePalette)
     : Block(x, y),
+      themePalette(themePalette),
+      boundTheme(MapTheme::Unspecified),
+      hasBoundTheme(false),
       isDestroyed(false),
       hasParticles(false)
 {
-    if (texture.loadFromFile("assets/textures/Brick.png")) {
-        sprite.setTexture(texture);
-    }
+    syncThemeTexture();
 
     std::vector<sf::IntRect> brickFrames;
     brickFrames.push_back(sf::IntRect(1, 1, 16, 16));
@@ -24,6 +27,19 @@ BrickBlock::BrickBlock(float x, float y)
     }, 0.2f));
 
     animator.playAnimation("Brick", 0.f);
+}
+
+void BrickBlock::syncThemeTexture() {
+    const MapTheme activeTheme = themePalette.getActiveTheme();
+    if (hasBoundTheme && activeTheme == boundTheme) return;
+
+    if (const sf::Texture* themedTexture =
+            themePalette.getTexture(BlockVisual::Brick)) {
+        sprite.setTexture(*themedTexture);
+    }
+
+    boundTheme = activeTheme;
+    hasBoundTheme = true;
 }
 
 // ---------------------------------------------------------------
@@ -56,6 +72,10 @@ void BrickBlock::update(float deltatime) {
 
 // ---------------------------------------------------------------
 void BrickBlock::render(sf::RenderWindow& window) {
+    // Pipe travel is resolved after block updates, so synchronize here as
+    // well to apply the destination theme in the same rendered frame.
+    syncThemeTexture();
+
     if (isDestroyed) {
         if (hasParticles) {
             // Particle frames are 8x8 native; set origin to their centre (4,4)
@@ -77,7 +97,11 @@ void BrickBlock::render(sf::RenderWindow& window) {
 
 // ---------------------------------------------------------------
 std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
-    if (isDestroyed) return nullptr;
+    if (isDestroyed || !hero) return nullptr;
+
+    if (hasHiddenItems()) {
+        return releaseHiddenItem(hero);
+    }
 
     std::string form = hero->getFormName();
     if (form == "Giant" || form == "Fire") {
@@ -101,5 +125,5 @@ std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
         // SmallForm: brick is indestructible, do nothing
     }
 
-    return nullptr; // BrickBlock never spawns items
+    return nullptr;
 }

@@ -18,6 +18,9 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("SmallJump", Animation({{860, 47, 141, 236}}, 0.15f));
     animator.addAnimation("SmallDead", Animation({{761, 415, 227, 107}}, 0.15f));
     animator.addAnimation("SmallFly", Animation({{860, 47, 141, 236}}, 0.15f));
+    animator.addAnimation("SmallCheer", Animation({
+        {27, 56, 118, 227}, {860, 47, 141, 236}
+    }, 0.12f));
 
     // Giant Form (Enlarged Base Luigi.png)
     animator.addAnimation("GiantIdle", Animation({{27, 56, 118, 227}}, 0.15f));
@@ -26,6 +29,9 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("GiantJump", Animation({{860, 47, 141, 236}}, 0.15f));
     animator.addAnimation("GiantSit", Animation({{49, 280, 165, 242}}, 0.15f));
     animator.addAnimation("GiantFly", Animation({{860, 47, 141, 236}}, 0.15f));
+    animator.addAnimation("GiantCheer", Animation({
+        {27, 56, 118, 227}, {860, 47, 141, 236}
+    }, 0.12f));
 
     // Fire Form (Kitsune Fox Luigi - Stage 2 Upgraded form from KitsuneLuigi.png)
     animator.addAnimation("FireIdle", Animation({{19, 39, 171, 221}}, 0.15f));
@@ -38,6 +44,9 @@ Luigi::Luigi(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("FireJump", Animation({{839, 18, 152, 226}}, 0.15f));
     animator.addAnimation("FireSit", Animation({{30, 362, 158, 181}}, 0.15f));
     animator.addAnimation("FireFly", Animation({{234, 330, 237, 156}}, 0.15f));
+    animator.addAnimation("FireCheer", Animation({
+        {19, 39, 171, 221}, {839, 18, 152, 226}
+    }, 0.12f));
     animator.addAnimation("FireSpecial", Animation({
         {514, 325, 279, 217}, // Pose 8: 360-degree green wind tail spin
         {820, 294, 177, 250}  // Pose 9: Water magic cast / throw

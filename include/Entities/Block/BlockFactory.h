@@ -10,8 +10,20 @@ enum class BlockType {
     None
 };
 
+class BlockThemePalette;
+
 class BlockFactory {
 public:
+    explicit BlockFactory(const BlockThemePalette& themePalette);
+
     // hiddenItem defaults to None, useful for BrickBlocks or empty QuestionBlocks
-    static std::unique_ptr<Block> createBlock(BlockType type, float x, float y, ItemType hiddenItem = ItemType::None);
+    std::unique_ptr<Block> createBlock(
+        BlockType type,
+        float x,
+        float y,
+        ItemType hiddenItem = ItemType::None,
+        int itemCount = 1) const;
+
+private:
+    const BlockThemePalette& themePalette;
 };

@@ -76,6 +76,13 @@ void HUDManager::setLives(int lives) {
     updateTextStrings();
 }
 
+void HUDManager::restoreProgress(int score, int coins, int lives) {
+    m_score = score;
+    m_coins = coins;
+    m_lives = lives;
+    updateTextStrings();
+}
+
 int HUDManager::loseLife() {
     if (m_lives > 0) {
         --m_lives;

@@ -18,6 +18,7 @@ Mario::Mario(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("SmallJump", Animation({{614, 28, 120, 185}}, 0.15f));
     animator.addAnimation("SmallDead", Animation({{851, 164, 156, 66}}, 0.15f));
     animator.addAnimation("SmallFly", Animation({{614, 28, 120, 185}}, 0.15f));
+    animator.addAnimation("SmallCheer", Animation({{614, 28, 120, 185}}, 0.15f));
 
     // Giant Form
     animator.addAnimation("GiantIdle", Animation({{28, 68, 94, 164}}, 0.15f));
@@ -26,6 +27,7 @@ Mario::Mario(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("GiantJump", Animation({{614, 28, 120, 185}}, 0.15f));
     animator.addAnimation("GiantSit", Animation({{752, 102, 90, 128}}, 0.15f));
     animator.addAnimation("GiantFly", Animation({{614, 28, 120, 185}}, 0.15f));
+    animator.addAnimation("GiantCheer", Animation({{614, 28, 120, 185}}, 0.15f));
 
     // Fire Form
     animator.addAnimation("FireIdle", Animation({{39, 41, 109, 166}}, 0.15f));
@@ -34,6 +36,7 @@ Mario::Mario(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("FireJump", Animation({{652, 33, 122, 171}}, 0.15f));
     animator.addAnimation("FireSit", Animation({{859, 73, 92, 135}}, 0.15f));
     animator.addAnimation("FireFly", Animation({{652, 33, 122, 171}}, 0.15f));
+    animator.addAnimation("FireCheer", Animation({{652, 33, 122, 171}}, 0.15f));
     animator.addAnimation("FireSpecial", Animation({{728, 233, 183, 159}}, 0.15f));
 
     // Growth / Shrink

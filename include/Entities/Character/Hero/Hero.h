@@ -15,7 +15,7 @@ using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>
 class Hero : public Character {
 protected:
     std::unique_ptr<HeroForm> form;   // Small / Giant / Fire
-    std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Fly / Grow / Shrink
+    std::unique_ptr<HeroState> state; // Idle / Run / Jump / Sit / Slide / Dead / Cheer / Grow / Shrink
     std::string baseTexturePath;
 	std::string specialTexturePath;
 	float spriteRenderScale{2.f};
@@ -41,11 +41,13 @@ public:
     void takedamage();
     void takeDamage(int damage) override;
     void die() override;
+    void setForm(const std::string& newForm);
     void setForm(std::unique_ptr<HeroForm> newForm);
     void setState(std::unique_ptr<HeroState> newState);
     std::string getStateName() const;
     std::string getFormName() const;
     bool specialAbility();
+    virtual std::string getHeroType() const = 0;
     virtual float getSpecialCooldown() const = 0;
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
@@ -54,10 +56,14 @@ public:
     void onSideCollision(Character* attacker) override;
     void collectItem(Item* item);
     
+    float getInvincibleTimer() const;
+    bool getIsStarman() const;
     void collectCoin();
     int getCoin() const;
+    void setCoin(int newCoin);
     bool isDead() const;
-    int getHp();
+    int getHp() const;
+    void setHp(int newHp);
     void setSize(float x, float y);
     void setPosition(float x, float y);
 };

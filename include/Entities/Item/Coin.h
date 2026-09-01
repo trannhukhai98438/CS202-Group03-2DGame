@@ -12,6 +12,7 @@ public:
     void spawn() override;        // bounce-up animation (spawned from block)
     void spawnAsGroundCoin();      // activate in-place (floating coin from map)
     std::unique_ptr<Item> clone(Hero* hero) const override;
+    std::string getItemType() const override;
 
     void getCollected(Hero* hero) override;
 

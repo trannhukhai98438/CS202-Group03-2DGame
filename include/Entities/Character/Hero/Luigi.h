@@ -7,5 +7,6 @@ protected:
 public:
     Luigi(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
     ~Luigi()=default;
+    std::string getHeroType() const override { return "Luigi"; }
     float getSpecialCooldown() const override { return 3.0f; }
 };

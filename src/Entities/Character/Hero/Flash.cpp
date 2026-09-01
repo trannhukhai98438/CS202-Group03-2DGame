@@ -44,6 +44,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	animator.addAnimation("SmallJump", baseJump);
 	animator.addAnimation("SmallDead", baseSit);
 	animator.addAnimation("SmallFly", baseFly);
+	animator.addAnimation("SmallCheer", baseFly);
 
     // Giant Form (Flash.png enlarged)
     animator.addAnimation("GiantIdle", baseIdle);
@@ -52,6 +53,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
     animator.addAnimation("GiantJump", baseJump);
     animator.addAnimation("GiantSit", baseSit);
     animator.addAnimation("GiantFly", baseFly);
+	animator.addAnimation("GiantCheer", baseFly);
 
     // Fire/Thunder Form - Upgraded Stage 2 (thunderflash2.png)
 	const Animation thunderIdle({{50, 20, 149, 220}}, 0.15f);
@@ -61,13 +63,13 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 	const Animation thunderSit({{524, 280, 201, 228}}, 0.15f);
 	const Animation thunderFly({{45, 280, 159, 228}}, 0.15f);
 	const Animation thunderSpecial({{204, 280, 341, 228}}, 0.15f);
-
 	if (thunderTextureAvailable) {
 		animator.addAnimation("FireIdle", thunderIdle);
 		animator.addAnimation("FireRun", thunderRun);
 		animator.addAnimation("FireSlide", thunderSlide);
 		animator.addAnimation("FireJump", thunderJump);
 		animator.addAnimation("FireSit", thunderSit);
+		animator.addAnimation("FireCheer", thunderFly);
 		animator.addAnimation("FireFly", thunderFly);
 		animator.addAnimation("FireSpecial", thunderSpecial);
 	} else {
@@ -78,6 +80,7 @@ Flash::Flash(float x, float y, ProjectileSpawnCallback spawnCallback)
 		animator.addAnimation("FireJump", baseJump);
 		animator.addAnimation("FireSit", baseSit);
 		animator.addAnimation("FireFly", baseFly);
+		animator.addAnimation("FireCheer", baseFly);
 		animator.addAnimation("FireSpecial", baseSpecial);
 	}
 

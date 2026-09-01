@@ -7,5 +7,6 @@ protected:
 public:
     Mario(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
     ~Mario()=default;
+    std::string getHeroType() const override { return "Mario"; }
     float getSpecialCooldown() const override { return 2.0f; }
 };
