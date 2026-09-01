@@ -543,6 +543,8 @@ void PlayingState::quickLoad() {
 
     const HeroType savedHeroType = parseHeroType(saveData.hero.heroType);
     Game::getInstance().setSelectedHero(savedHeroType);
+    Game::getInstance().setSelectedLevel(
+        saveData.mapPath, getWorldName(saveData.mapPath));
     m_levelPath = saveData.mapPath;
 
     m_levelRuntime.reload(

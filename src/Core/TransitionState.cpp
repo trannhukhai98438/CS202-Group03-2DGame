@@ -9,7 +9,10 @@
 #include <utility>
 
 TransitionState::TransitionState()
-	: TransitionState(std::make_shared<HUDManager>(), "assets/maps/levels/1-1.tmj", "WORLD 1-1") {
+	: TransitionState(
+		std::make_shared<HUDManager>(),
+		Game::getInstance().getSelectedLevelPath(),
+		Game::getInstance().getSelectedWorldName()) {
 }
 
 TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager,
