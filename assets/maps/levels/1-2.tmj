@@ -46,12 +46,6 @@
                  "name":"A",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"underground"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -83,12 +77,6 @@
                  "name":"B",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"underground"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -120,12 +108,6 @@
                  "name":"C",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"underground"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -157,12 +139,6 @@
                  "name":"D",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"overworld"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -218,6 +194,78 @@
                  "width":224,
                  "x":4896,
                  "y":480
+                }, 
+                {
+                 "height":480,
+                 "id":316,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"overworld"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":512,
+                 "x":0,
+                 "y":0
+                }, 
+                {
+                 "height":480,
+                 "id":321,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":5664,
+                 "x":0,
+                 "y":480
+                }, 
+                {
+                 "height":480,
+                 "id":322,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":512,
+                 "x":3072,
+                 "y":960
+                }, 
+                {
+                 "height":480,
+                 "id":323,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"overworld"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":1120,
+                 "x":5024,
+                 "y":0
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -2127,7 +2175,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":298,
+ "nextobjectid":324,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

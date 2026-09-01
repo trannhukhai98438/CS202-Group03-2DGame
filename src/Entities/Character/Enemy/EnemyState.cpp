@@ -7,8 +7,8 @@ void PatrolState::update(Enemy& enemy, float deltaTime) {
     enemy.applyAnimation();
 }
 
-SquishedState::SquishedState(float duration, float fadeTime) 
-    : timer(duration), fadeDuration(fadeTime) {}
+SquishedState::SquishedState(float duration, float fadeTime, float initialTimer) 
+    : timer(initialTimer > 0.0f ? initialTimer : duration), fadeDuration(fadeTime) {}
 
 void SquishedState::onEnter(Enemy& enemy) {
     enemy.getSprite().setColor(sf::Color(255, 255, 255, 255));

@@ -36,7 +36,10 @@ PipeDirection parsePipeDirection(std::string direction) {
 
 LevelRuntime::LevelRuntime(const std::string& mapPath,
                            const std::string& tilesetPath,
-                           HeroType heroType) {
+                           HeroType heroType)
+    : m_mapPath(mapPath)
+    , m_tilesetPath(tilesetPath)
+{
     LevelBuilder builder;
     m_ready = builder.build(m_world, mapPath, tilesetPath, heroType);
     if (m_ready) {
@@ -48,6 +51,9 @@ LevelRuntime::LevelRuntime(const std::string& mapPath,
 void LevelRuntime::reload(const std::string& mapPath,
                           const std::string& tilesetPath,
                           HeroType heroType) {
+    m_mapPath = mapPath;
+    m_tilesetPath = tilesetPath;
+
     m_pipeRoutes.clear();
     m_pipeCooldownRemaining = 0.0f;
     m_activeRegionBottom = 720.0f;

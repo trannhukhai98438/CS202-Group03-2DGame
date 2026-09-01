@@ -33,6 +33,10 @@ std::unique_ptr<Item> Mushroom::clone(Hero* hero) const {
     return std::make_unique<Mushroom>(position.x, position.y);
 }
 
+std::string Mushroom::getItemType() const {
+    return "Mushroom";
+}
+
 void Mushroom::update(float deltatime) {
     if (!isActive) return;
 

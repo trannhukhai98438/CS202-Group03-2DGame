@@ -6,6 +6,8 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <vector>
+#include <set>
+#include <utility>
 
 class Block;
 class Enemy;
@@ -56,6 +58,10 @@ public:
     void addProjectile(std::unique_ptr<Projectile> projectile);
     void addGoal(std::unique_ptr<LevelGoal> goal);
 
+    void addDestroyedBlock(int tx, int ty) { m_destroyedBlocks.insert({tx, ty}); }
+    const std::set<std::pair<int, int>>& getDestroyedBlocks() const { return m_destroyedBlocks; }
+    void setDestroyedBlocks(const std::set<std::pair<int, int>>& blocks) { m_destroyedBlocks = blocks; }
+
     void removeInactiveEntities();
 
     void clear();
@@ -70,4 +76,5 @@ private:
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
     std::vector<std::unique_ptr<LevelGoal>> m_goals;
     std::vector<sf::RectangleShape> m_mapColliders;
+    std::set<std::pair<int, int>> m_destroyedBlocks;
 };

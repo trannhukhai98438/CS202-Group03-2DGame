@@ -30,6 +30,7 @@ public:
 
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
+    std::string getProjectileType() const override { return "LuigiWaterBomb"; }
     float getGravityAcceleration() const override;
     bool usesWorldPhysics() const override;
     void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) override;

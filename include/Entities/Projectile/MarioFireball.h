@@ -19,6 +19,7 @@ public:
 
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
+    std::string getProjectileType() const override { return "MarioFireball"; }
     float getGravityAcceleration() const override { return 980.0f; }
     bool usesWorldPhysics() const override { return !isExploding; }
     void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) override;

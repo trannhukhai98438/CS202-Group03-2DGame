@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="192" height="45" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="298">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="192" height="45" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="324">
  <editorsettings>
   <export target="../levels/1-2.tmj" format="json"/>
  </editorsettings>
@@ -15,9 +15,6 @@
    </properties>
   </object>
   <object id="267" name="A" type="pipe_out" x="96" y="576">
-   <properties>
-    <property name="theme" value="underground"/>
-   </properties>
    <point/>
   </object>
   <object id="268" name="B" type="pipe_in" x="3296" y="736" width="64" height="64">
@@ -26,9 +23,6 @@
    </properties>
   </object>
   <object id="269" name="B" type="pipe_out" x="3136" y="1056">
-   <properties>
-    <property name="theme" value="underground"/>
-   </properties>
    <point/>
   </object>
   <object id="271" name="C" type="pipe_in" x="3456" y="1312" width="32" height="64">
@@ -37,9 +31,6 @@
    </properties>
   </object>
   <object id="272" name="C" type="pipe_out" x="3712" y="832">
-   <properties>
-    <property name="theme" value="underground"/>
-   </properties>
    <point/>
   </object>
   <object id="273" name="D" type="pipe_in" x="5280" y="736" width="32" height="64">
@@ -48,9 +39,6 @@
    </properties>
   </object>
   <object id="274" name="D" type="pipe_out" x="5152" y="352">
-   <properties>
-    <property name="theme" value="overworld"/>
-   </properties>
    <point/>
   </object>
   <object id="276" type="end" x="5696" y="0" width="32" height="416"/>
@@ -59,6 +47,26 @@
   </object>
   <object id="286" type="platform_despawn" x="4416" y="928" width="224" height="32"/>
   <object id="287" type="platform_despawn" x="4896" y="480" width="224" height="32"/>
+  <object id="316" type="playable_region" x="0" y="0" width="512" height="480">
+   <properties>
+    <property name="theme" value="overworld"/>
+   </properties>
+  </object>
+  <object id="321" type="playable_region" x="0" y="480" width="5664" height="480">
+   <properties>
+    <property name="theme" value="underground"/>
+   </properties>
+  </object>
+  <object id="322" type="playable_region" x="3072" y="960" width="512" height="480">
+   <properties>
+    <property name="theme" value="underground"/>
+   </properties>
+  </object>
+  <object id="323" type="playable_region" x="5024" y="0" width="1120" height="480">
+   <properties>
+    <property name="theme" value="overworld"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="4" name="Spawner" visible="0" locked="1">
   <object id="243" type="goomba" x="480" y="896">

@@ -31,6 +31,10 @@ std::unique_ptr<Item> Flower::clone(Hero* hero) const {
     return std::make_unique<Flower>(position.x, position.y);
 }
 
+std::string Flower::getItemType() const {
+    return "Flower";
+}
+
 void Flower::update(float deltatime) {
     if (!isActive) return;
 

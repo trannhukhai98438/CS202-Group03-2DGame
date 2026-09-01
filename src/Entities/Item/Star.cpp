@@ -32,6 +32,10 @@ std::unique_ptr<Item> Star::clone(Hero* hero) const {
     return std::make_unique<Star>(position.x, position.y);
 }
 
+std::string Star::getItemType() const {
+    return "Star";
+}
+
 void Star::update(float deltatime) {
     if (!isActive) return;
 

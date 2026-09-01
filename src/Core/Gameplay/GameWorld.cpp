@@ -8,7 +8,7 @@
 #include "Entities/Item/Item.h"
 
 #include <algorithm>
-#include <utility>
+#include <cmath>
 
 GameWorld::GameWorld() {
     m_blockThemePalette.load();
@@ -112,6 +112,18 @@ void GameWorld::addGoal(std::unique_ptr<LevelGoal> goal) {
 }
 
 void GameWorld::removeInactiveEntities() {
+    const int tileW = m_levelManager.getTileWidth() > 0 ? m_levelManager.getTileWidth() : 32;
+    const int tileH = m_levelManager.getTileHeight() > 0 ? m_levelManager.getTileHeight() : 32;
+
+    for (const auto& block : m_blocks) {
+        if (block && !block->getIsActive()) {
+            sf::Vector2f pos = block->getPosition();
+            int tx = static_cast<int>(std::round(pos.x / tileW));
+            int ty = static_cast<int>(std::round(pos.y / tileH));
+            m_destroyedBlocks.insert({tx, ty});
+        }
+    }
+
     m_blocks.erase(
         std::remove_if(m_blocks.begin(), m_blocks.end(),
                        [](const std::unique_ptr<Block>& block) {

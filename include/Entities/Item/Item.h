@@ -17,6 +17,8 @@ public:
     
     virtual std::unique_ptr<Item> clone(Hero* hero) const = 0;
 
+    virtual std::string getItemType() const = 0;
+
     bool isCollected() const;
     virtual void getCollected(Hero* hero)=0;
 

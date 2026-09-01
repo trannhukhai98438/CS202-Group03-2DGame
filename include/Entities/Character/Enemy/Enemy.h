@@ -16,9 +16,11 @@ protected:
     int health;
     MoveDirection currentDir;
     float startX;
+    float patrolRange;
     float patrolLeftBound;
     float patrolRightBound;
     float m_spriteOffsetY = 0.0f;
+    float stateTimer = 0.0f;
     std::unique_ptr<EnemyState> currentState;
 
 public:
@@ -31,6 +33,13 @@ public:
     void changeState(std::unique_ptr<EnemyState> newState);
     EnemyState* getCurrentState() const { return currentState.get(); }
     std::string getStateName() const { return currentState ? currentState->getName() : "None"; }
+
+    float getStateTimer() const { 
+        if (auto* squished = dynamic_cast<SquishedState*>(currentState.get())) {
+            return squished->getTimer();
+        }
+        return stateTimer; 
+    }
 
     void update(float deltaTime) override {
         if (!isAlive) return;

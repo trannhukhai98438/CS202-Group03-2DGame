@@ -51,6 +51,9 @@ public:
     bool hasActivatedGoal() const;
     bool isReady() const;
 
+    const std::string& getMapPath() const { return m_mapPath; }
+    const std::string& getTilesetPath() const { return m_tilesetPath; }
+
 private:
     struct PipeRoute {
         sf::FloatRect entrance;
@@ -64,6 +67,9 @@ private:
     bool isAlignedWithPipe(const sf::FloatRect& heroBounds,
                            const PipeRoute& route) const;
     float detectActiveRegionBottom() const;
+
+    std::string m_mapPath;
+    std::string m_tilesetPath;
 
     GameWorld m_world;
     WorldPhysicsSystem m_worldPhysics;
