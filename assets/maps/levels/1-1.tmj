@@ -19,7 +19,6 @@
         {
          "draworder":"topdown",
          "id":6,
-         "locked":true,
          "name":"Trigger",
          "objects":[
                 {
@@ -46,12 +45,6 @@
                  "name":"A",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"underground"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -83,12 +76,6 @@
                  "name":"B",
                  "opacity":1,
                  "point":true,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"overworld"
-                        }],
                  "rotation":0,
                  "type":"pipe_out",
                  "visible":true,
@@ -122,44 +109,44 @@
                  "y":416
                 }, 
                 {
-                 "height":32,
-                 "id":126,
+                 "height":480,
+                 "id":132,
                  "name":"",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"overworld"
+                        }],
                  "rotation":0,
-                 "type":"death_zone",
+                 "type":"playable_region",
                  "visible":true,
-                 "width":64,
-                 "x":2208,
-                 "y":448
+                 "width":6752,
+                 "x":0,
+                 "y":0
                 }, 
                 {
-                 "height":32,
-                 "id":127,
+                 "height":480,
+                 "id":134,
                  "name":"",
                  "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
                  "rotation":0,
-                 "type":"death_zone",
+                 "type":"playable_region",
                  "visible":true,
-                 "width":96,
-                 "x":2752,
-                 "y":448
-                }, 
-                {
-                 "height":32,
-                 "id":128,
-                 "name":"",
-                 "opacity":1,
-                 "rotation":0,
-                 "type":"death_zone",
-                 "visible":true,
-                 "width":64,
-                 "x":4896,
-                 "y":448
+                 "width":512,
+                 "x":1536,
+                 "y":480
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }, 
@@ -1600,7 +1587,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":129,
+ "nextobjectid":135,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
