@@ -19,6 +19,7 @@ MapTheme MapManager::parseTheme(const std::string& value) {
 
     if (normalized == "overworld") return MapTheme::Overworld;
     if (normalized == "underground") return MapTheme::Underground;
+    if (normalized == "castle") return MapTheme::Castle;
     return MapTheme::Unspecified;
 }
 

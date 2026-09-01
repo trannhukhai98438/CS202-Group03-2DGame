@@ -6,7 +6,8 @@
 enum class MapTheme {
     Unspecified,
     Overworld,
-    Underground
+    Underground,
+    Castle
 };
 
 // Represents a single tile layer parsed from Tiled JSON
