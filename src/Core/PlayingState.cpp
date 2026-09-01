@@ -89,11 +89,9 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager)
                   << std::endl;
     }
 
-    const Game& game = Game::getInstance();
-    m_soundManager.setBGMVolume(game.getThemeMusicVolume());
-    m_soundManager.setSFXVolume(game.getSfxVolume());
-    m_soundManager.loadAllSFX();
-    m_soundManager.playBGM("ground");
+    Game& game = Game::getInstance();
+    m_levelRuntime.setSoundManager(&game.getSoundManager());
+    game.getSoundManager().playBGM("ground", true);
 }
 
 PlayingState::~PlayingState() = default;
@@ -110,6 +108,7 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         // --- Pause Game (TAB Key) ---
         if (event.key.code == sf::Keyboard::Tab) {
+            Game::getInstance().getSoundManager().playSFX("pause");
             Game::getInstance().pushState(std::make_unique<PausedState>());
             return;
         }
@@ -128,6 +127,11 @@ void PlayingState::processEvents(sf::Event& event) {
 
 void PlayingState::update(sf::Time dt) {
     const float deltaTime = dt.asSeconds();
+    Hero* hero = m_levelRuntime.getHero();
+    if (!hero) {
+        updateTimer(deltaTime);
+        return;
+    }
 
     const PipeDirection heldPipeDirection = getHeldPipeDirection();
     if (m_latchedPipeDirection != PipeDirection::None
@@ -142,21 +146,49 @@ void PlayingState::update(sf::Time dt) {
 
     const LevelUpdateResult levelUpdate =
         m_levelRuntime.update(deltaTime, requestedPipeDirection);
+
     if (!m_defeatPending && levelUpdate.scoreDelta > 0) {
         m_hudManager->addScore(levelUpdate.scoreDelta);
     }
     if (levelUpdate.travelledThroughPipe) {
         m_latchedPipeDirection = requestedPipeDirection;
-        m_soundManager.playSFX("pipe");
-        const bool isUnderground =
-            m_levelRuntime.getActiveRegionBottom() > CAMERA_HEIGHT;
-        m_soundManager.playBGM(isUnderground ? "underground" : "ground");
+        Game::getInstance().getSoundManager().playSFX("pipe");
+
+        const bool starmanActive = hero->getIsStarman() && hero->getInvincibleTimer() > 0.0f;
+        if (!starmanActive) {
+            const MapTheme activeTheme =
+                m_levelRuntime.getWorld()
+                    .blockThemePalette()
+                    .getActiveTheme();
+
+            Game::getInstance().getSoundManager().playBGM(
+                activeTheme == MapTheme::Underground
+                    ? "underground"
+                    : "ground",
+                true);
+        }
     }
 
-    Hero* hero = m_levelRuntime.getHero();
-    if (!hero) {
-        updateTimer(deltaTime);
-        return;
+    const bool starmanActive = hero->getIsStarman() && hero->getInvincibleTimer() > 0.0f;
+    if (starmanActive && !m_invincibilityBgmActive) {
+        Game::getInstance().getSoundManager().stopBGM();
+        Game::getInstance().getSoundManager().playBGM("invincibility", true);
+        m_invincibilityBgmActive = true;
+    } else if (!starmanActive && m_invincibilityBgmActive) {
+        Game::getInstance().getSoundManager().stopBGM();
+
+        const MapTheme activeTheme =
+            m_levelRuntime.getWorld()
+                .blockThemePalette()
+                .getActiveTheme();
+
+        Game::getInstance().getSoundManager().playBGM(
+            activeTheme == MapTheme::Underground
+                ? "underground"
+                : "ground",
+            true);
+
+        m_invincibilityBgmActive = false;
     }
 
     const int currentCoins = hero->getCoin();
@@ -164,7 +196,7 @@ void PlayingState::update(sf::Time dt) {
         const int difference = currentCoins - m_lastCoinCount;
         m_hudManager->addCoin(difference);
         m_hudManager->addScore(100 * difference);
-        m_soundManager.playSFX("coin");
+        Game::getInstance().getSoundManager().playSFX("coin");
         m_lastCoinCount = currentCoins;
     }
 
@@ -205,6 +237,9 @@ void PlayingState::update(sf::Time dt) {
                 heroScreenPosition.x, 48.f, 1232.f);
             heroScreenPosition.y = std::clamp(
                 heroScreenPosition.y, 48.f, 672.f);
+            m_invincibilityBgmActive = false;
+            Game::getInstance().getSoundManager().stopBGM();
+            Game::getInstance().getSoundManager().playBGM("course_clear", false);
             Game::getInstance().pushState(
                 std::make_unique<VictoryState>(heroScreenPosition));
             return;
@@ -225,6 +260,9 @@ void PlayingState::update(sf::Time dt) {
             m_attemptStartCoins,
             m_attemptStartLives);
         m_hudManager->loseLife();
+        m_invincibilityBgmActive = false;
+        Game::getInstance().getSoundManager().stopBGM();
+        Game::getInstance().getSoundManager().playBGM("player_down", false);
         m_defeatPending = true;
         m_defeatDelayRemaining = DEFEAT_DELAY_SECONDS;
     } else if (m_defeatPending) {
@@ -260,7 +298,6 @@ void PlayingState::render(sf::RenderWindow& window) {
 
 void PlayingState::quickSave() {
     SaveManager saveManager;
-    GameWorld& world = m_levelRuntime.getWorld();
 
     saveManager.saveToFile(
         "savegame.json",
@@ -273,18 +310,22 @@ void PlayingState::quickSave() {
 
 void PlayingState::quickLoad() {
     SaveManager saveManager;
+    Game& game = Game::getInstance();
+
     if (!saveManager.loadFromFile("savegame.json", m_levelRuntime.getWorld())) return;
 
     m_levelRuntime.reload(
         saveManager.getSaveData().mapPath,
         saveManager.getSaveData().tilesetPath,
-        Game::getInstance().getSelectedHero()
+        game.getSelectedHero()
     );
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot reload saved level.\n";
         return;
     }
+
+    m_levelRuntime.setSoundManager(&game.getSoundManager());
 
     if (!saveManager.applySaveToWorld(
             m_levelRuntime.getWorld(), *m_hudManager)) {
@@ -304,7 +345,7 @@ void PlayingState::quickLoad() {
     const MapTheme activeTheme = m_levelRuntime.getWorld()
                                      .blockThemePalette()
                                      .getActiveTheme();
-    m_soundManager.playBGM(
+    game.getSoundManager().playBGM(
         activeTheme == MapTheme::Underground ? "underground" : "ground");
 
     // A loaded save starts a fresh attempt from the restored HUD snapshot.
@@ -317,6 +358,7 @@ void PlayingState::quickLoad() {
     m_victoryDelayRemaining = 0.0f;
     m_defeatPending = false;
     m_defeatDelayRemaining = 0.0f;
+    m_invincibilityBgmActive = false;
 
     const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
     const float levelEnd = m_levelRuntime.getWorldWidth();

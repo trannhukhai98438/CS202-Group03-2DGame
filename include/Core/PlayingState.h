@@ -3,7 +3,6 @@
 #include "Core/State.h"
 #include "Gameplay/LevelRuntime.h"
 #include "Managers/HUDManager.hpp"
-#include "Managers/SoundManager.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
@@ -26,12 +25,12 @@ private:
     sf::View m_camera;
     std::shared_ptr<HUDManager> m_hudManager;
     LevelRuntime m_levelRuntime;
-    SoundManager m_soundManager;
     int m_lastCoinCount{0};
     int m_attemptStartScore{0};
     int m_attemptStartCoins{0};
     int m_attemptStartLives{0};
     PipeDirection m_latchedPipeDirection{PipeDirection::None};
+    bool m_invincibilityBgmActive{false};
 
     bool m_victoryPending{false};
     float m_victoryDelayRemaining{0.0f};

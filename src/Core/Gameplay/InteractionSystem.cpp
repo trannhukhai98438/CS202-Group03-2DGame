@@ -30,9 +30,13 @@ int InteractionSystem::resolveHeroItems(GameWorld& world) {
             if (m_physics.checkCollision(hero->getHitbox(), item->getHitbox())
                 != SideType::None) {
                 hero->collectItem(item.get());
+                if (SoundManager* sm = world.getSoundManager())
+                    sm->playSFX("powerup");
             }
         } else if (hero->getBounds().intersects(item->getBounds())) {
             hero->collectItem(item.get());
+            if (SoundManager* sm = world.getSoundManager())
+                sm->playSFX("powerup");
         }
     }
     return 0;
@@ -60,6 +64,10 @@ int InteractionSystem::resolveSpinningShells(GameWorld& world) {
             otherEnemy->changeState(
                 std::make_unique<FlippingDeathState>(-300.0f));
             scoreDelta += 200;
+
+            if (SoundManager* sm = world.getSoundManager()) {
+                sm->playSFX("kick");
+            }
         }
     }
     return scoreDelta;
@@ -83,7 +91,11 @@ int InteractionSystem::resolveHeroEnemies(GameWorld& world) {
         }
 
         int scoreEarned = hero->interactWith(enemy.get());
-        if (scoreEarned > 0) scoreDelta += scoreEarned;
+        if (scoreEarned > 0) {
+            scoreDelta += scoreEarned;
+            if (SoundManager* sm = world.getSoundManager())
+                sm->playSFX("stomp");
+        }
     }
     return scoreDelta;
 }
@@ -132,6 +144,8 @@ int InteractionSystem::resolveProjectileTargets(GameWorld& world,
             resolvedTargets.insert(enemy.get());
             if (projectile.onHitTarget(*enemy)) {
                 scoreDelta += enemy->getScoreValue();
+                if (SoundManager* sm = world.getSoundManager())
+                    sm->playSFX("kick");
             }
         }
     }
@@ -145,7 +159,12 @@ int InteractionSystem::resolveHeroGoals(GameWorld& world) {
 
     for (auto& goal : world.goals()) {
         GoalResult result = goal->tryActivate(*hero);
-        if (result.activated) return result.scoreAwarded;
+        if (result.activated) {
+            if (SoundManager* sm = world.getSoundManager())
+                sm->playSFX("flagpole");
+
+            return result.scoreAwarded;
+        }
     }
     return 0;
 }

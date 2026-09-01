@@ -2,8 +2,18 @@
 
 #include <algorithm>
 
-Game::Game() : m_window(sf::VideoMode(1280, 720), "Super Mario - Custom Engine", sf::Style::Titlebar | sf::Style::Close)
-{
+Game::Game() : m_window(sf::VideoMode(1280, 720), "Super Mario - Custom Engine", sf::Style::Titlebar | sf::Style::Close) {
+	m_soundManager.setBGMVolume(m_themeMusicVolume);
+    m_soundManager.setSFXVolume(m_sfxVolume);
+    m_soundManager.loadAllSFX();
+}
+
+SoundManager& Game::getSoundManager() {
+    return m_soundManager;
+}
+
+const SoundManager& Game::getSoundManager() const {
+    return m_soundManager;
 }
 
 void Game::run() {
@@ -111,11 +121,13 @@ void Game::clearStatesAndChange(std::unique_ptr<State> state) {
 }
 
 void Game::setThemeMusicVolume(float volume) {
-	m_themeMusicVolume = std::clamp(volume, 0.0f, 100.0f);
+    m_themeMusicVolume = std::clamp(volume, 0.0f, 100.0f);
+    m_soundManager.setBGMVolume(m_themeMusicVolume);
 }
 
 void Game::setSfxVolume(float volume) {
-	m_sfxVolume = std::clamp(volume, 0.0f, 100.0f);
+    m_sfxVolume = std::clamp(volume, 0.0f, 100.0f);
+    m_soundManager.setSFXVolume(m_sfxVolume);
 }
 
 void Game::applyPendingStateAction() {

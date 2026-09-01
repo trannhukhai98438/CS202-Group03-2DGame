@@ -8,7 +8,9 @@
 #include <memory>
 
 #include "Entities/Character/Character.h"
+
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"
+
 
 using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>;
 
@@ -36,6 +38,9 @@ public:
 	std::string getSpecialTexturePath() const;
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
+
+    std::function<void(const std::string&)> playSFXCallback;
+    void playSFX(const std::string& name);
 
     void takeDamage(int damage) override;
     void die() override;

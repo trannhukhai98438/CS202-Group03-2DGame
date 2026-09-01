@@ -98,6 +98,12 @@ void Hero::render(sf::RenderWindow& window){
     window.draw(sprite);
 }
 
+void Hero::playSFX(const std::string& name) {
+    if (playSFXCallback) {
+        playSFXCallback(name);
+    }
+}
+
 void Hero::setForm(const std::string& newForm) {
     if (newForm == "SmallForm" || newForm == "Small") {
         setForm(std::make_unique<SmallForm>());

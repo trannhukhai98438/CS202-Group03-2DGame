@@ -4,6 +4,7 @@
 #include <memory>
 #include "Core/State.h"
 #include "Entities/Character/Hero/HeroFactory.h"
+#include "Managers/SoundManager.hpp"
 
 class Game {
 private:
@@ -17,6 +18,8 @@ private:
 
 	Game();
 	sf::RenderWindow m_window;
+
+	SoundManager m_soundManager;
 
 	const sf::Time TimePerFrame = sf::seconds(1.f / 60.f);
 	std::vector<std::unique_ptr<State>> m_states; // State stack
@@ -40,6 +43,9 @@ public:
 		static Game instance;
 		return instance;
 	}
+
+	SoundManager& getSoundManager();
+    const SoundManager& getSoundManager() const;
 
 	void run();
 	void pushState(std::unique_ptr<State> state);

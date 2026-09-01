@@ -60,6 +60,8 @@ MainMenuState::MainMenuState() {
 	m_statusText.setCharacterSize(18);
 	m_statusText.setFillColor(sf::Color::White);
 	m_statusText.setPosition(640.f, 605.f);
+
+	Game::getInstance().getSoundManager().playBGM("name_entry", true);
 }
 
 void MainMenuState::processEvents(sf::Event& event) {

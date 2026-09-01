@@ -42,7 +42,7 @@
                         {
                          "name":"theme",
                          "type":"string",
-                         "value":"underground"
+                         "value":"castle"
                         }],
                  "rotation":0,
                  "type":"playable_region",
@@ -60,7 +60,7 @@
                         {
                          "name":"theme",
                          "type":"string",
-                         "value":"underground"
+                         "value":"castle"
                         }],
                  "rotation":0,
                  "type":"boss_arena",
@@ -78,7 +78,7 @@
                         {
                          "name":"theme",
                          "type":"string",
-                         "value":"underground"
+                         "value":"castle"
                         }],
                  "rotation":0,
                  "type":"playable_region",

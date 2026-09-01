@@ -12,6 +12,11 @@ void JumpState::enter(Hero* hero){
     // ledge keeps the vertical velocity produced by the physics step.
     if (entry == AirEntry::Jumped) {
         hero->setVelocity(hero->getVelocity().x, PhysicsConstants::JUMP_FORCE);
+        if (hero->getFormName() == "Small") {
+            hero->playSFX("jump_small");
+        } else {
+            hero->playSFX("jump_super");
+        }
     }
     hero->setGrounded(false); // CollisionSystem will set true on landing
 }
