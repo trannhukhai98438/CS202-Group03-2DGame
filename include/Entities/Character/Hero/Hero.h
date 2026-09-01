@@ -45,6 +45,7 @@ public:
     std::string getStateName() const;
     std::string getFormName() const;
     bool specialAbility();
+    virtual std::string getHeroType() const = 0;
     virtual float getSpecialCooldown() const = 0;
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
@@ -53,6 +54,8 @@ public:
     void onSideCollision(Character* attacker) override;
     void collectItem(Item* item);
     
+    float getInvincibleTimer() const;
+    bool getIsStarman() const;
     void collectCoin();
     int getCoin() const;
     void setCoin(int newCoin);

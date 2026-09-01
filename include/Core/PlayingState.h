@@ -17,6 +17,9 @@ public:
     void render(sf::RenderWindow& window) override;
 
 private:
+    void quickSave();
+    void quickLoad();
+
     static constexpr float DEFEAT_DELAY_SECONDS = 2.0f;
     bool updateTimer(float deltaTime);
 

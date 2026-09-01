@@ -27,10 +27,13 @@ private:
     float timer;
     float fadeDuration;
 public:
-    SquishedState(float duration = 0.6f, float fadeTime = 0.3f);
+    SquishedState(float duration = 0.6f, float fadeTime = 0.3f, float initialTimer = 0.0f);
     void onEnter(Enemy& enemy) override;
     void update(Enemy& enemy, float deltaTime) override;
     std::string getName() const override { return "Squished"; }
+
+    float getTimer() const { return timer; }
+    void setTimer(float t) { timer = t; }
 };
 
 class ShellState : public EnemyState {

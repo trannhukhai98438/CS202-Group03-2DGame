@@ -47,6 +47,10 @@ std::unique_ptr<Item> Coin::clone(Hero* hero) const {
     return newCoin;
 }
 
+std::string Coin::getItemType() const {
+    return "Coin";
+}
+
 void Coin::update(float deltatime){
     if (!isActive) return;
 

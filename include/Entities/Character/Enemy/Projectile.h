@@ -28,6 +28,8 @@ public:
     virtual void update(float deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) = 0;
 
+    virtual std::string getProjectileType() const = 0;
+
     virtual float getGravityAcceleration() const { return 0.0f; }
     virtual bool usesWorldPhysics() const { return true; }
     virtual void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) = 0;

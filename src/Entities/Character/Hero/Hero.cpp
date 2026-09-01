@@ -99,11 +99,11 @@ void Hero::render(sf::RenderWindow& window){
 }
 
 void Hero::setForm(const std::string& newForm) {
-    if (newForm == "SmallForm") {
+    if (newForm == "SmallForm" || newForm == "Small") {
         setForm(std::make_unique<SmallForm>());
-    } else if (newForm == "GiantForm") {
+    } else if (newForm == "GiantForm" || newForm == "Giant" || newForm == "SuperForm" || newForm == "Super") {
         setForm(std::make_unique<GiantForm>());
-    } else if (newForm == "FireForm") {
+    } else if (newForm == "FireForm" || newForm == "Fire") {
         setForm(std::make_unique<FireForm>());
     }
 }
@@ -150,6 +150,14 @@ std::string Hero::getFormName() const {
 void Hero::setInvincible(float duration, bool starman) {
     invincibleTimer = duration;
     isStarman = starman;
+}
+
+float Hero::getInvincibleTimer() const {
+    return invincibleTimer;
+}
+
+bool Hero::getIsStarman() const {
+    return isStarman;
 }
 
 int Hero::getCoin() const{

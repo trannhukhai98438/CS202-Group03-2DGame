@@ -108,74 +108,20 @@ bool PlayingState::updateTimer(float deltaTime) {
 
 void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
-
         // --- Pause Game (TAB Key) ---
         if (event.key.code == sf::Keyboard::Tab) {
             Game::getInstance().pushState(std::make_unique<PausedState>());
             return;
         }
-
-        // ==========================================
-        // F5: QUICK SAVE
-        // ==========================================
+        // --- Save Game (F5) ---
         if (event.key.code == sf::Keyboard::F5) {
-            std::cout << "\n[QuickSave] Saving game state..." << std::endl;
-
-            SaveManager saveManager;
-            GameWorld& world = m_levelRuntime.getWorld();
-
-            const bool success = saveManager.saveToFile(
-                "savegame.json",
-                "assets/maps/levels/1-1.tmj",
-                "assets/maps/resources/tileset.png",
-                world.hero(),
-                world.enemies(),
-                world.blocks(),
-                *m_hudManager
-            );
-
-            if (success) {
-                std::cout << "[QuickSave] Game saved successfully!" << std::endl;
-            } else {
-                std::cerr << "[QuickSave] Failed to save game!" << std::endl;
-            }
+            quickSave();
+            return;
         }
-
-        // ==========================================
-        // F9: QUICK LOAD
-        // ==========================================
+        // --- Load Game (F9) ---
         if (event.key.code == sf::Keyboard::F9) {
-            std::cout << "\n[QuickLoad] Loading saved game state..." << std::endl;
-
-            SaveManager saveManager;
-
-            if (saveManager.loadFromFile("savegame.json")) {
-                
-                // 1. Reset the level runtime to its default state
-                m_levelRuntime.reload(
-                    "assets/maps/levels/1-1.tmj",
-                    "assets/maps/resources/tileset.png",
-                    Game::getInstance().getSelectedHero()
-                );
-
-                // 2. Overlay saved state onto GameWorld and HUDManager
-                const bool applied = saveManager.applySaveToWorld(
-                    m_levelRuntime.getWorld(),
-                    *m_hudManager
-                );
-
-                if (applied) {
-                    // Sync local coin tracking state inside PlayingState
-                    if (Hero* hero = m_levelRuntime.getHero()) {
-                        m_lastCoinCount = hero->getCoin();
-                    }
-                    std::cout << "[QuickLoad] Game loaded successfully!" << std::endl;
-                } else {
-                    std::cerr << "[QuickLoad] Failed to apply save data to GameWorld!" << std::endl;
-                }
-            } else {
-                std::cerr << "[QuickLoad] Failed to read save file!" << std::endl;
-            }
+            quickLoad();
+            return;
         }
     }
 }
@@ -310,4 +256,45 @@ void PlayingState::render(sf::RenderWindow& window) {
     m_levelRuntime.renderWorld(window);
     window.draw(*m_hudManager);
     window.setView(window.getDefaultView());
+}
+
+void PlayingState::quickSave() {
+    SaveManager saveManager;
+    GameWorld& world = m_levelRuntime.getWorld();
+
+    saveManager.saveToFile(
+        "savegame.json",
+        m_levelRuntime.getMapPath(),
+        m_levelRuntime.getTilesetPath(),
+        m_levelRuntime.getWorld(),
+        *m_hudManager
+    );
+}
+
+void PlayingState::quickLoad() {
+    SaveManager saveManager;
+    if (!saveManager.loadFromFile("savegame.json", m_levelRuntime.getWorld())) return;
+
+    m_levelRuntime.reload(
+        saveManager.getSaveData().mapPath,
+        saveManager.getSaveData().tilesetPath,
+        Game::getInstance().getSelectedHero()
+    );
+
+    if (saveManager.applySaveToWorld(m_levelRuntime.getWorld(), *m_hudManager)) {
+        if (Hero* hero = m_levelRuntime.getHero()) {
+            m_lastCoinCount = hero->getCoin();
+
+            m_levelRuntime.update(0.0f, PipeDirection::None);
+
+            const float halfScreenWidth = CAMERA_WIDTH * 0.5f;
+            const float levelEnd = m_levelRuntime.getWorldWidth();
+            const float cameraX = std::clamp(hero->getPosition().x,
+                                              halfScreenWidth,
+                                              levelEnd - halfScreenWidth);
+            const float cameraY = getCameraY(m_levelRuntime.getActiveRegionBottom());
+
+            m_camera.setCenter(std::round(cameraX), std::round(cameraY));
+        }
+    }
 }

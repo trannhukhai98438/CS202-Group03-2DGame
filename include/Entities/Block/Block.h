@@ -20,6 +20,8 @@ public:
     sf::FloatRect getBounds() const;
     sf::RectangleShape& getHitbox();
 
+    sf::Vector2f getPosition() const { return position; }
+
     // Scene checks this to know when to remove block from the world.
     // Analogous to !isActive in Item. Default: never remove (QuestionBlock stays forever).
     virtual bool getIsActive() const { return isActive; }
@@ -29,6 +31,7 @@ public:
     virtual bool isSolid() const { return true; }
     virtual bool canBeHitFromBelow() const { return isSolid(); }
 
+    void setIsActive(bool active) { isActive = active; }
     bool getIsHit() const { return isHit; }
     void setIsHit(bool hit) { isHit = hit; }
 

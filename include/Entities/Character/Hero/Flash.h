@@ -11,5 +11,6 @@ public:
 	Flash(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
 	~Flash() = default;
 	void loadTexture(const std::string& path) override;
+	std::string getHeroType() const override { return "Flash"; }
 	float getSpecialCooldown() const override { return 2.5f; }
 };
