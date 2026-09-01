@@ -10,6 +10,7 @@
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Entities/Item/Item.h"
 #include "Entities/Item/ItemFactory.h"
+#include "Entities/Item/Coin.h"
 #include "Entities/Character/Enemy/Projectile.h"
 #include "Entities/Projectile/ProjectileFactory.h"
 #include "Core/Gameplay/GameWorld.h"
@@ -338,6 +339,7 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
 
         if (newHero) {
             newHero->setForm(m_saveData.hero.formName);
+            newHero->setPosition(m_saveData.hero.posX, m_saveData.hero.posY);
             newHero->setCoin(m_saveData.hero.coin);
             newHero->setHp(m_saveData.hero.hp);
             newHero->setInvincible(m_saveData.hero.invincibleTimer, m_saveData.hero.isStarman);
@@ -416,6 +418,9 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
         } else if (eData.type == "Witch" || eData.type == "witch") {
             eType = EnemyType::Witch;
             speed = 150.f;
+        } else if (eData.type == "ThorKing" || eData.type == "thorking" || eData.type == "thor_king") {
+            eType = EnemyType::ThorKing;
+            speed = 150.f;
         }
 
         auto enemy = EnemyFactory::createEnemy(eType, eData.posX, eData.posY, speed, spawnCallback);
@@ -443,6 +448,10 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
     for (const auto& iData : m_saveData.activeItems) {
         auto item = ItemFactory::createItem(iData.type, iData.posX, iData.posY);
         if (item) {
+            item->setActive(true);
+            if (auto* coin = dynamic_cast<Coin*>(item.get())) {
+                coin->spawnAsGroundCoin();
+            }
             world.addItem(std::move(item));
         }
     }

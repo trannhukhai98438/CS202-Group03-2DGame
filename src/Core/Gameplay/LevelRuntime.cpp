@@ -13,12 +13,14 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <iostream>
 #include <string>
+#include <utility>
 
 namespace {
 constexpr float PIPE_ALIGNMENT_EPSILON = 2.0f;
 constexpr float PIPE_COOLDOWN_SECONDS = 0.3f;
-constexpr float SURFACE_DEATH_PLANE = 720.0f;
+constexpr float REGION_EDGE_EPSILON = 0.001f;
 
 PipeDirection parsePipeDirection(std::string direction) {
     std::transform(direction.begin(), direction.end(), direction.begin(),
@@ -43,8 +45,9 @@ LevelRuntime::LevelRuntime(const std::string& mapPath,
     LevelBuilder builder;
     m_ready = builder.build(m_world, mapPath, tilesetPath, heroType);
     if (m_ready) {
+        cachePlayableRegions();
         cachePipeRoutes();
-        m_activeRegionBottom = detectActiveRegionBottom();
+        syncActiveRegionToHero();
     }
 }
 
@@ -54,9 +57,11 @@ void LevelRuntime::reload(const std::string& mapPath,
     m_mapPath = mapPath;
     m_tilesetPath = tilesetPath;
 
+    m_playableRegions.clear();
     m_pipeRoutes.clear();
     m_pipeCooldownRemaining = 0.0f;
-    m_activeRegionBottom = 720.0f;
+    m_activeRegionIndex = INVALID_REGION_INDEX;
+    m_activeRegionBottom = 0.0f;
     m_ready = false;
 
     m_world.clear();
@@ -65,8 +70,9 @@ void LevelRuntime::reload(const std::string& mapPath,
     m_ready = builder.build(m_world, mapPath, tilesetPath, heroType);
 
     if (m_ready) {
+        cachePlayableRegions();
         cachePipeRoutes();
-        m_activeRegionBottom = detectActiveRegionBottom();
+        syncActiveRegionToHero();
     }
 }
 
@@ -77,6 +83,26 @@ LevelUpdateResult LevelRuntime::update(float deltaTime,
 
     m_pipeCooldownRemaining = std::max(
         0.0f, m_pipeCooldownRemaining - deltaTime);
+
+    // Snapshot each enemy's room before movement. Looking the room up after
+    // it crosses a shared edge could incorrectly attach a falling surface
+    // enemy to an underground room below it.
+    std::vector<std::pair<Enemy*, float>> enemyFallBoundaries;
+    enemyFallBoundaries.reserve(m_world.enemies().size());
+    for (const auto& enemy : m_world.enemies()) {
+        if (!enemy || !enemy->getIsAlive()) continue;
+
+        const std::string state = enemy->getStateName();
+        if (state == "FlippingDeath" || state == "Squished") continue;
+
+        const sf::FloatRect bounds = enemy->getBounds();
+        const float centerX = bounds.left + bounds.width * 0.5f;
+        const float feet = bounds.top + bounds.height;
+        const std::size_t regionIndex = findPlayableRegionAt(
+            centerX, feet - REGION_EDGE_EPSILON);
+        enemyFallBoundaries.emplace_back(
+            enemy.get(), getRegionBottom(regionIndex));
+    }
 
     if (Hero* hero = m_world.hero()) {
         // DeadState owns its death motion, so it must keep receiving updates.
@@ -103,17 +129,30 @@ LevelUpdateResult LevelRuntime::update(float deltaTime,
     // already been snapped exactly onto the pipe mouth. A successful travel
     // changes the active room before its death plane is evaluated below.
     result.travelledThroughPipe = tryTravelThroughPipe(pipeDirection);
+    if (!result.travelledThroughPipe) {
+        syncActiveRegionFromHeroMovement();
+    }
 
     Hero* hero = m_world.hero();
     if (hero && !hero->isDead()) {
         const sf::FloatRect heroBounds = hero->getBounds();
         const float heroFeet = heroBounds.top + heroBounds.height;
-        const float deathPlane = std::max(
-            SURFACE_DEATH_PLANE, m_activeRegionBottom);
-        if (heroFeet > deathPlane) {
-            // Preserve the original visible surface fall while extending the
-            // boundary for rooms that reach below the surface viewport.
+        if (heroFeet > m_activeRegionBottom) {
             hero->die();
+        }
+    }
+
+    for (const auto& [enemy, regionBottom] : enemyFallBoundaries) {
+        if (!enemy || !enemy->getIsAlive()) continue;
+
+        const std::string state = enemy->getStateName();
+        if (state == "FlippingDeath" || state == "Squished") continue;
+
+        const sf::FloatRect enemyBounds = enemy->getBounds();
+        const float enemyFeet = enemyBounds.top + enemyBounds.height;
+        if (enemyFeet > regionBottom) {
+            enemy->changeState(std::make_unique<FlippingDeathState>(
+                std::max(0.0f, enemy->getVelocity().y)));
         }
     }
 
@@ -137,7 +176,9 @@ void LevelRuntime::renderWorld(sf::RenderWindow& window) {
     window.draw(m_world.levelManager());
 
     for (auto& block : m_world.blocks()) {
-        block->render(window);
+        if (block && isInsideActiveRegion(block->getBounds())) {
+            block->render(window);
+        }
     }
     for (auto& item : m_world.items()) {
         item->render(window);
@@ -169,6 +210,78 @@ float LevelRuntime::getActiveRegionBottom() const {
     return m_activeRegionBottom;
 }
 
+bool LevelRuntime::syncActiveRegionToHero() {
+    const Hero* hero = m_world.hero();
+    if (!hero) {
+        setActiveRegion(INVALID_REGION_INDEX);
+        return false;
+    }
+
+    const sf::FloatRect bounds = hero->getBounds();
+    const float centerX = bounds.left + bounds.width * 0.5f;
+    const float feet = bounds.top + bounds.height;
+    const std::size_t regionIndex = findPlayableRegionAt(
+        centerX, feet - REGION_EDGE_EPSILON);
+
+    if (regionIndex == INVALID_REGION_INDEX) {
+        setActiveRegion(INVALID_REGION_INDEX);
+        std::cerr << "[LevelRuntime] WARNING: Hero is not inside a unique "
+                  << "Trigger/playable_region; using map bounds.\n";
+        return false;
+    }
+
+    setActiveRegion(regionIndex);
+    return true;
+}
+
+void LevelRuntime::cachePlayableRegions() {
+    m_playableRegions.clear();
+    const auto regions = m_world.levelManager().getObjectsByClass(
+        "Trigger", "playable_region");
+
+    for (const MapObject& region : regions) {
+        if (region.width <= 0.0f || region.height <= 0.0f) {
+            std::cerr << "[LevelRuntime] WARNING: Ignoring playable_region "
+                      << region.id << " with invalid dimensions.\n";
+            continue;
+        }
+        if (region.theme == MapTheme::Unspecified) {
+            std::cerr << "[LevelRuntime] WARNING: playable_region "
+                      << region.id
+                      << " has no valid theme; Overworld will be used.\n";
+        }
+        m_playableRegions.push_back(region);
+    }
+
+    for (std::size_t first = 0; first < m_playableRegions.size(); ++first) {
+        const MapObject& firstRegion = m_playableRegions[first];
+        const sf::FloatRect firstBounds(
+            firstRegion.x, firstRegion.y,
+            firstRegion.width, firstRegion.height);
+
+        for (std::size_t second = first + 1;
+             second < m_playableRegions.size(); ++second) {
+            const MapObject& secondRegion = m_playableRegions[second];
+            const sf::FloatRect secondBounds(
+                secondRegion.x, secondRegion.y,
+                secondRegion.width, secondRegion.height);
+            if (firstBounds.intersects(secondBounds)) {
+                std::cerr << "[LevelRuntime] WARNING: playable_region "
+                          << firstRegion.id << " overlaps region "
+                          << secondRegion.id
+                          << "; points in the overlap are ambiguous.\n";
+            }
+        }
+    }
+
+    if (m_playableRegions.empty()) {
+        std::cerr << "[LevelRuntime] WARNING: No valid "
+                  << "Trigger/playable_region found; using map bounds.\n";
+    }
+
+    setActiveRegion(INVALID_REGION_INDEX);
+}
+
 void LevelRuntime::cachePipeRoutes() {
     const LevelManager& level = m_world.levelManager();
     const auto entrances = level.getObjectsByClass("Trigger", "pipe_in");
@@ -180,11 +293,20 @@ void LevelRuntime::cachePipeRoutes() {
         const PipeDirection direction = parsePipeDirection(entrance.direction);
         if (!destination || direction == PipeDirection::None) continue;
 
+        const std::size_t destinationRegionIndex = findPlayableRegionAt(
+            destination->x, destination->y);
+        if (destinationRegionIndex == INVALID_REGION_INDEX) {
+            std::cerr << "[LevelRuntime] WARNING: pipe_out '"
+                      << destination->name
+                      << "' is not inside a unique playable_region.\n";
+        }
+
         m_pipeRoutes.push_back({
             sf::FloatRect(entrance.x, entrance.y,
                           entrance.width, entrance.height),
             sf::Vector2f(destination->x, destination->y),
-            direction
+            direction,
+            destinationRegionIndex
         });
     }
 }
@@ -234,7 +356,11 @@ bool LevelRuntime::tryTravelThroughPipe(PipeDirection direction) {
             hero->setState(std::make_unique<JumpState>(AirEntry::Fell));
         }
 
-        m_activeRegionBottom = detectActiveRegionBottom();
+        if (route.destinationRegionIndex != INVALID_REGION_INDEX) {
+            setActiveRegion(route.destinationRegionIndex);
+        } else {
+            syncActiveRegionToHero();
+        }
         m_pipeCooldownRemaining = PIPE_COOLDOWN_SECONDS;
         return true;
     }
@@ -283,45 +409,94 @@ bool LevelRuntime::isAlignedWithPipe(const sf::FloatRect& heroBounds,
     return false;
 }
 
-float LevelRuntime::detectActiveRegionBottom() const {
+std::size_t LevelRuntime::findPlayableRegionAt(float worldX,
+                                                float worldY) const {
+    std::size_t match = INVALID_REGION_INDEX;
+
+    for (std::size_t index = 0; index < m_playableRegions.size(); ++index) {
+        const MapObject& region = m_playableRegions[index];
+        const bool containsPoint =
+            worldX >= region.x
+            && worldX < region.x + region.width
+            && worldY >= region.y
+            && worldY < region.y + region.height;
+        if (!containsPoint) continue;
+
+        if (match != INVALID_REGION_INDEX) {
+            return INVALID_REGION_INDEX;
+        }
+        match = index;
+    }
+
+    return match;
+}
+
+void LevelRuntime::setActiveRegion(std::size_t regionIndex) {
+    m_activeRegionIndex = regionIndex;
+    m_activeRegionBottom = getRegionBottom(regionIndex);
+
+    MapTheme theme = MapTheme::Overworld;
+    if (regionIndex < m_playableRegions.size()
+        && m_playableRegions[regionIndex].theme != MapTheme::Unspecified) {
+        theme = m_playableRegions[regionIndex].theme;
+    }
+    m_world.blockThemePalette().setActiveTheme(theme);
+}
+
+bool LevelRuntime::syncActiveRegionFromHeroMovement() {
     const Hero* hero = m_world.hero();
-    const LevelManager& level = m_world.levelManager();
-    if (!hero || level.getTileWidth() <= 0 || level.getTileHeight() <= 0
-        || level.getMapWidthTiles() <= 0 || level.getMapHeightTiles() <= 0) {
-        return m_activeRegionBottom;
+    if (!hero || hero->isDead()
+        || m_activeRegionIndex >= m_playableRegions.size()) {
+        return false;
     }
 
     const sf::FloatRect heroBounds = hero->getBounds();
-    const float heroCenterX = heroBounds.left + heroBounds.width * 0.5f;
-    const float heroFeet = heroBounds.top + heroBounds.height;
-    const int tileWidth = level.getTileWidth();
-    const int tileHeight = level.getTileHeight();
-
-    const int tileX = std::clamp(
-        static_cast<int>(std::floor(heroCenterX / tileWidth)),
-        0,
-        level.getMapWidthTiles() - 1);
-    int tileY = std::clamp(
-        static_cast<int>(std::floor(heroFeet / tileHeight)),
-        0,
-        level.getMapHeightTiles() - 1);
-
-    // Locate the floor directly below the spawn point, then include every
-    // contiguous solid tile beneath it. A blank row separates this room from
-    // any vertically stacked room in the same TMJ.
-    while (tileY < level.getMapHeightTiles()
-           && !level.isSolidAtTile(tileX, tileY)) {
-        ++tileY;
-    }
-    if (tileY >= level.getMapHeightTiles()) {
-        return m_activeRegionBottom;
-    }
-    while (tileY + 1 < level.getMapHeightTiles()
-           && level.isSolidAtTile(tileX, tileY + 1)) {
-        ++tileY;
+    const float centerX = heroBounds.left + heroBounds.width * 0.5f;
+    const float centerY = heroBounds.top + heroBounds.height * 0.5f;
+    const std::size_t nextRegionIndex = findPlayableRegionAt(
+        centerX, centerY);
+    if (nextRegionIndex == INVALID_REGION_INDEX
+        || nextRegionIndex == m_activeRegionIndex) {
+        return false;
     }
 
-    return static_cast<float>((tileY + 1) * tileHeight);
+    // Direct movement may cross between side-by-side regions. Vertically
+    // stacked rooms only touch at an edge, so rejecting them here prevents a
+    // pit fall from being mistaken for entering the room below. Pipe travel
+    // switches stacked rooms explicitly via its destination region.
+    const MapObject& currentRegion =
+        m_playableRegions[m_activeRegionIndex];
+    const MapObject& nextRegion = m_playableRegions[nextRegionIndex];
+    const float verticalOverlap = std::min(
+        currentRegion.y + currentRegion.height,
+        nextRegion.y + nextRegion.height)
+        - std::max(currentRegion.y, nextRegion.y);
+    if (verticalOverlap <= 0.0f) return false;
+
+    setActiveRegion(nextRegionIndex);
+    return true;
+}
+
+bool LevelRuntime::isInsideActiveRegion(const sf::FloatRect& bounds) const {
+    if (m_activeRegionIndex >= m_playableRegions.size()) return true;
+
+    const MapObject& region = m_playableRegions[m_activeRegionIndex];
+    const float centerX = bounds.left + bounds.width * 0.5f;
+    const float centerY = bounds.top + bounds.height * 0.5f;
+    return centerX >= region.x
+        && centerX < region.x + region.width
+        && centerY >= region.y
+        && centerY < region.y + region.height;
+}
+
+float LevelRuntime::getRegionBottom(std::size_t regionIndex) const {
+    if (regionIndex < m_playableRegions.size()) {
+        const MapObject& region = m_playableRegions[regionIndex];
+        return region.y + region.height;
+    }
+
+    return static_cast<float>(
+        m_world.levelManager().getMapHeightPixels());
 }
 
 bool LevelRuntime::hasActivatedGoal() const {

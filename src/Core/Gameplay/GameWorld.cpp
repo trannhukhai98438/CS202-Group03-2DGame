@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <cmath>
 
-GameWorld::GameWorld() = default;
+GameWorld::GameWorld() {
+    m_blockThemePalette.load();
+}
 GameWorld::~GameWorld() = default;
 
 LevelManager& GameWorld::levelManager() {
@@ -19,6 +21,14 @@ LevelManager& GameWorld::levelManager() {
 
 const LevelManager& GameWorld::levelManager() const {
     return m_levelManager;
+}
+
+BlockThemePalette& GameWorld::blockThemePalette() {
+    return m_blockThemePalette;
+}
+
+const BlockThemePalette& GameWorld::blockThemePalette() const {
+    return m_blockThemePalette;
 }
 
 Hero* GameWorld::hero() {
@@ -151,4 +161,5 @@ void GameWorld::clear() {
     m_projectiles.clear();
     m_goals.clear();
     m_mapColliders.clear();
+    m_destroyedBlocks.clear();
 }

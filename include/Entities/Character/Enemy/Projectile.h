@@ -44,6 +44,7 @@ public:
     sf::FloatRect getBounds() const { return shape.getGlobalBounds(); }
     int getDamage() const { return damage; }
     ProjectileFaction getFaction() const { return faction; }
+    void setFaction(ProjectileFaction owner) { faction = owner; }
 
     sf::Vector2f getPosition() const { return position; }
     virtual void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }

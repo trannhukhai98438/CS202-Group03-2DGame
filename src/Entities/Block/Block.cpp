@@ -30,6 +30,13 @@ std::unique_ptr<Item> Block::releaseHiddenItem(Hero* hero) {
         return nullptr;
     }
 
+    const sf::FloatRect blockBounds = getBounds();
+    const sf::FloatRect itemBounds = spawnedItem->getBounds();
+    const sf::Vector2f itemPosition = spawnedItem->getPosition();
+    spawnedItem->setPosition(
+        blockBounds.left + (blockBounds.width - itemBounds.width) * 0.5f,
+        itemPosition.y);
+
     spawnedItem->spawn();
     --hiddenItemCount;
     if (hiddenItemCount == 0) {

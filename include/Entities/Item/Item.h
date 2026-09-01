@@ -21,6 +21,8 @@ public:
 
     bool isCollected() const;
     virtual void getCollected(Hero* hero)=0;
+    void setActive(bool active) { isActive = active; }
+    bool getIsActive() const { return isActive; }
 
     sf::FloatRect getBounds() const;
     sf::RectangleShape& getHitbox();

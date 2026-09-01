@@ -2,6 +2,7 @@
 #include "Entities/Projectile/MarioFireball.h"
 #include "Entities/Projectile/LuigiWaterBomb.h"
 #include "Entities/Projectile/FlashThunder.h"
+#include "Entities/Character/Enemy/Potion.h"
 
 std::unique_ptr<Projectile> ProjectileFactory::createProjectile(
     const std::string& typeStr, 
@@ -11,21 +12,21 @@ std::unique_ptr<Projectile> ProjectileFactory::createProjectile(
     float vy,
     ProjectileFaction faction) 
 {
-    if (typeStr == "MarioFireball" || typeStr == "Fireball") {
-        auto proj = std::make_unique<MarioFireball>(x, y, vx);
-        proj->setVelocity(vx, vy);
-        return proj;
-    }
-    if (typeStr == "LuigiWaterBomb" || typeStr == "WaterBomb") {
-        auto proj = std::make_unique<LuigiWaterBomb>(x, y, vx, vy);
-        proj->setVelocity(vx, vy);
-        return proj;
-    }
-    if (typeStr == "FlashThunder") {
-        auto proj = std::make_unique<FlashThunder>(x, y, vx);
-        proj->setVelocity(vx, vy);
-        return proj;
+    std::unique_ptr<Projectile> projectile;
+
+    if (typeStr == "MarioFireball" || typeStr == "Fireball" || typeStr == "fireball") {
+        projectile = std::make_unique<MarioFireball>(x, y, vx);
+    } else if (typeStr == "LuigiWaterBomb" || typeStr == "WaterBomb" || typeStr == "waterbomb") {
+        projectile = std::make_unique<LuigiWaterBomb>(x, y, vx, vy);
+    } else if (typeStr == "FlashThunder" || typeStr == "flashthunder") {
+        projectile = std::make_unique<FlashThunder>(x, y, vx);
+    } else if (typeStr == "Potion" || typeStr == "potion") {
+        projectile = std::make_unique<Potion>(x, y, vx, vy);
     }
 
-    return nullptr;
+    if (!projectile) return nullptr;
+
+    projectile->setVelocity(vx, vy);
+    projectile->setFaction(faction);
+    return projectile;
 }

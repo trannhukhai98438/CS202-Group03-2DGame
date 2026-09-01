@@ -10,6 +10,9 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemy(EnemyType type, float x, float 
             return std::make_unique<Koopa>(x, y, patrolRange);
         case EnemyType::Witch:
             return std::make_unique<Witch>(x, y, patrolRange, spawnCallback);
+        case EnemyType::ThorKing:
+            // ThorKing is not implemented yet in the codebase
+            return nullptr;
         default:
             return nullptr;
     }
@@ -25,6 +28,8 @@ std::unique_ptr<Enemy> EnemyFactory::createEnemyFromString(const std::string& ty
         return createEnemy(EnemyType::Koopa, x, y, patrolRange);
     } else if (lowerType == "witch") {
         return createEnemy(EnemyType::Witch, x, y, patrolRange);
+    } else if (lowerType == "thorking" || lowerType == "thor_king") {
+        return createEnemy(EnemyType::ThorKing, x, y, patrolRange);
     }
     return nullptr;
 }

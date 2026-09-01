@@ -3,6 +3,12 @@
 #include <vector>
 #include <unordered_map>
 
+enum class MapTheme {
+    Unspecified,
+    Overworld,
+    Underground
+};
+
 // Represents a single tile layer parsed from Tiled JSON
 struct TileLayer {
     std::string name;
@@ -30,7 +36,7 @@ struct MapObject {
     std::string targetMap;
     std::string direction{ "down" };
     std::string contain{ "none" };
-    std::string theme{ "overworld" };
+    MapTheme theme{ MapTheme::Unspecified };
     int count{ 1 };
 
     std::string getProperty(const std::string& key,

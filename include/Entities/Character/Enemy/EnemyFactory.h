@@ -12,7 +12,8 @@
 enum class EnemyType {
     Goomba,
     Koopa,
-    Witch
+    Witch,
+    ThorKing
 };
 
 class EnemyFactory {
