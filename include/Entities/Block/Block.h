@@ -20,6 +20,8 @@ public:
     sf::FloatRect getBounds() const;
     sf::RectangleShape& getHitbox();
 
+    sf::Vector2f getPosition() const { return position; }
+
     // Scene checks this to know when to remove block from the world.
     // Analogous to !isActive in Item. Default: never remove (QuestionBlock stays forever).
     virtual bool getIsActive() const { return isActive; }
@@ -28,6 +30,15 @@ public:
     // remain active while its particles finish, without remaining solid.
     virtual bool isSolid() const { return true; }
     virtual bool canBeHitFromBelow() const { return isSolid(); }
+
+    // Returns the current velocity of this block.
+    // Stationary blocks return {0, 0}; moving blocks (e.g. Lifter) override this
+    // so the physics system can carry riders at the platform's speed.
+    virtual sf::Vector2f getVelocity() const { return {0.f, 0.f}; }
+
+    void setIsActive(bool active) { isActive = active; }
+    bool getIsHit() const { return isHit; }
+    void setIsHit(bool hit) { isHit = hit; }
 
 protected:
     bool hasHiddenItems() const;

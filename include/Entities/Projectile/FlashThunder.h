@@ -17,8 +17,8 @@ private:
 	bool damageWindowOpen{false};
 	std::unordered_set<const Character*> hitTargets;
 	const std::array<sf::IntRect, 4> impactFrames{{
-		{1190, 638, 70, 68}, {1288, 628, 89, 88},
-		{1404, 614, 93, 108}, {1521, 614, 105, 107}
+		{455, 280, 90, 228}, {455, 280, 90, 228},
+		{455, 280, 90, 228}, {455, 280, 90, 228}
 	}};
 
 	void enterImpact();
@@ -28,6 +28,7 @@ public:
 	FlashThunder(float startX, float startY, float velocityX);
 	void update(float deltaTime) override;
 	void render(sf::RenderWindow& window) override;
+	std::string getProjectileType() const override { return "FlashThunder"; }
 	float getGravityAcceleration() const override { return 0.f; }
 	bool usesWorldPhysics() const override { return phase == Phase::Flying; }
 	void onSolidCollision(SideType side,

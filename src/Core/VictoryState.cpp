@@ -1,14 +1,17 @@
 #include "Core/VictoryState.h"
 
 #include "Core/Game.h"
+#include "Core/LevelCatalog.h"
 #include "Core/MainMenuState.h"
 #include "Core/TransitionState.h"
+#include "Managers/HUDManager.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 namespace {
 constexpr char VICTORY_TITLE[] = "VICTORY!";
@@ -28,8 +31,12 @@ float easeOutCubic(float value) {
 }
 }
 
-VictoryState::VictoryState(sf::Vector2f launchPosition)
-	: m_launchPosition(launchPosition) {
+VictoryState::VictoryState(sf::Vector2f launchPosition,
+                           std::shared_ptr<HUDManager> hudManager)
+	: m_hudManager(std::move(hudManager)),
+	  m_launchPosition(launchPosition),
+	  m_hasNextLevel(LevelCatalog::nextAfter(
+	      Game::getInstance().getSelectedLevelPath()) != nullptr) {
 	if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
 		std::cerr << "ERROR: Failed to load victory font!\n";
 	}
@@ -230,7 +237,22 @@ void VictoryState::activateButton(int index) {
 		return;
 	}
 	if (index == 2) {
-		setStatusText("COMING SOON");
+		Game& game = Game::getInstance();
+		const LevelCatalog::LevelDefinition* nextLevel =
+			LevelCatalog::nextAfter(game.getSelectedLevelPath());
+		if (!nextLevel) {
+			setStatusText("NO NEXT LEVEL AVAILABLE");
+			return;
+		}
+
+		if (!m_hudManager) {
+			m_hudManager = std::make_shared<HUDManager>();
+		}
+		m_hudManager->setWorld(nextLevel->hudWorldName);
+		m_hudManager->resetTimer();
+		game.setSelectedLevel(nextLevel->mapPath, nextLevel->worldName);
+		game.clearStatesAndChange(std::make_unique<TransitionState>(
+			m_hudManager, nextLevel->mapPath, nextLevel->worldName));
 	}
 }
 
@@ -240,6 +262,14 @@ void VictoryState::updateButtonAppearance() {
 	for (std::size_t i = 0; i < m_buttons.size(); ++i) {
 		const bool selected = static_cast<int>(i) == activeButton;
 		auto& button = m_buttons[i];
+		if (i == 2 && !m_hasNextLevel) {
+			button.shape.setFillColor(sf::Color(55, 55, 65, 210));
+			button.shape.setOutlineColor(selected
+				? sf::Color(255, 220, 55)
+				: sf::Color(135, 135, 145));
+			button.label.setFillColor(sf::Color(160, 160, 170));
+			continue;
+		}
 		button.shape.setFillColor(selected
 			? sf::Color(245, 195, 45, 235)
 			: sf::Color(20, 35, 65, 210));

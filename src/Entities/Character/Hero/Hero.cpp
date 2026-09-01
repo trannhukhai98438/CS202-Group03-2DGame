@@ -1,5 +1,7 @@
 #include "Hero.h"
 #include "SmallForm.h"
+#include "GiantForm.h"
+#include "FireForm.h"
 #include "IdleState.h"
 #include "DeadState.h"
 #include "Item.h"
@@ -65,7 +67,10 @@ void Hero::update(float deltatime){
 
 void Hero::render(sf::RenderWindow& window){
     float renderScale = spriteRenderScale;
-    if (specialSpriteRenderScale > 0.f && form
+    if (smallSpriteRenderScale > 0.f && form
+        && form->getForm() == "Small") {
+        renderScale = smallSpriteRenderScale;
+    } else if (specialSpriteRenderScale > 0.f && form
         && form->getForm() == "Fire") {
         renderScale = specialSpriteRenderScale;
     }
@@ -94,6 +99,16 @@ void Hero::render(sf::RenderWindow& window){
 
     // window.draw(hitbox); // Un-comment for hitbox debugging
     window.draw(sprite);
+}
+
+void Hero::setForm(const std::string& newForm) {
+    if (newForm == "SmallForm" || newForm == "Small") {
+        setForm(std::make_unique<SmallForm>());
+    } else if (newForm == "GiantForm" || newForm == "Giant" || newForm == "SuperForm" || newForm == "Super") {
+        setForm(std::make_unique<GiantForm>());
+    } else if (newForm == "FireForm" || newForm == "Fire") {
+        setForm(std::make_unique<FireForm>());
+    }
 }
 
 void Hero::setForm(std::unique_ptr<HeroForm> newForm){
@@ -140,15 +155,27 @@ void Hero::setInvincible(float duration, bool starman) {
     isStarman = starman;
 }
 
+float Hero::getInvincibleTimer() const {
+    return invincibleTimer;
+}
+
+bool Hero::getIsStarman() const {
+    return isStarman;
+}
+
 int Hero::getCoin() const{
     return coin;
+}
+
+void Hero::setCoin(int newCoin) {
+    coin = newCoin;
 }
 
 void Hero::collectCoin(){
     ++coin;
 }
 
-void Hero::takeDamage(int damage){
+void Hero::takedamage() {
     if (getStateName() == "Cheer") {
         return;
     }
@@ -158,6 +185,11 @@ void Hero::takeDamage(int damage){
     if (form) {
         form->takedamage(this);
     }
+}
+
+void Hero::takeDamage(int damage) {
+    if (damage <= 0) return;
+    takedamage();
 }
 
 void Hero::die(){
@@ -174,8 +206,12 @@ bool Hero::isDead() const {
     return hp <= 0 || !isAlive;
 }
 
-int Hero::getHp(){
+int Hero::getHp() const {
     return hp;
+}
+
+void Hero::setHp(int newHp) {
+    hp = newHp;
 }
 
 void Hero::setSize(float x, float y){

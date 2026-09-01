@@ -1,26 +1,41 @@
 #include "Gameplay/LevelBuilder.h"
 
 #include "Entities/Block/BlockFactory.h"
+#include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Goal/Flag.h"
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
 #include <algorithm>
+#include <cctype>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <utility>
 
 namespace {
 ItemType getBlockItemType(const std::string& itemName, ItemType fallback) {
-    if (itemName == "coin") {
+    std::string lower = itemName;
+    std::transform(
+        lower.begin(),
+        lower.end(),
+        lower.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::tolower(character));
+        });
+
+    if (lower == "coin") {
         return ItemType::Coin;
     }
-    if (itemName == "star") {
+    if (lower == "star") {
         return ItemType::Star;
     }
-    if (itemName == "mushroom" || itemName == "flower") {
+    if (lower == "mushroom" || lower == "flower" || lower == "powerup" || lower == "powerupprototype") {
         return ItemType::PowerUpPrototype;
+    }
+    if (lower == "none" || lower.empty()) {
+        return ItemType::None;
     }
     return fallback;
 }
@@ -104,7 +119,7 @@ bool LevelBuilder::build(GameWorld& world,
 
     // Spawn Interactive blocks, ground coins and goals from the map object
     // layer. Tile objects use their bottom edge as Tiled's Y coordinate.
-    BlockFactory blockFactory;
+    BlockFactory blockFactory(world.blockThemePalette());
     const auto objects =
         world.levelManager().getObjectsFromLayer("Interactive");
     for (const auto& object : objects) {
@@ -114,15 +129,16 @@ bool LevelBuilder::build(GameWorld& world,
             : object.y;
 
         const std::string& type = object.className;
-        if (type == "brick") {
+        if (type == "brick" || type == "Brick") {
+            const std::string item = getContainedItem(object, "none");
+            const ItemType defaultType = (item == "none" || item.empty()) ? ItemType::None : ItemType::Coin;
             world.addBlock(blockFactory.createBlock(
                 BlockType::Brick,
                 worldX,
                 worldY,
-                getBlockItemType(
-                    getContainedItem(object, "none"), ItemType::None),
+                getBlockItemType(item, defaultType),
                 std::max(0, object.count)));
-        } else if (type == "question") {
+        } else if (type == "question" || type == "Question") {
             const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Question,
@@ -130,18 +146,19 @@ bool LevelBuilder::build(GameWorld& world,
                 worldY,
                 getBlockItemType(item, ItemType::Coin),
                 std::max(0, object.count)));
-        } else if (type == "invisible") {
+        } else if (type == "invisible" || type == "Invisible") {
             const std::string item = getContainedItem(object, "coin");
             world.addBlock(blockFactory.createBlock(
                 BlockType::Invisible,
                 worldX,
                 worldY,
-                getBlockItemType(item, ItemType::Coin)));
-        } else if (type == "coin") {
+                getBlockItemType(item, ItemType::Coin),
+                std::max(0, object.count)));
+        } else if (type == "coin" || type == "Coin") {
             auto coin = std::make_unique<Coin>(worldX, worldY);
             coin->spawnAsGroundCoin();
             world.addItem(std::move(coin));
-        } else if (type == "flag" && !hasGoalTrigger) {
+        } else if ((type == "flag" || type == "Flag") && !hasGoalTrigger) {
             const sf::FloatRect triggerBounds(
                 worldX,
                 worldY,
@@ -153,19 +170,91 @@ bool LevelBuilder::build(GameWorld& world,
 
     const auto enemySpawners =
         world.levelManager().getObjectsFromLayer("Spawner");
+    const auto lifterBoundaries =
+        world.levelManager().getObjectsByClass(
+            "Trigger", "platform_despawn");
     for (const auto& spawner : enemySpawners) {
+        const bool isUpLifter = spawner.className == "platform_up";
+        const bool isDownLifter = spawner.className == "platform_down";
+        if (isUpLifter || isDownLifter) {
+            if (spawner.width <= 0.0f || spawner.height <= 0.0f) {
+                std::cerr << "[LevelBuilder] WARNING: Lifter "
+                          << spawner.id << " has invalid dimensions."
+                          << std::endl;
+                continue;
+            }
+
+            const MapObject* matchedBoundary = nullptr;
+            float closestDistance = -1.0f;
+            bool hasAmbiguousBoundary = false;
+
+            for (const auto& boundary : lifterBoundaries) {
+                if (boundary.width <= 0.0f) continue;
+
+                const float horizontalOverlap = std::min(
+                    spawner.x + spawner.width,
+                    boundary.x + boundary.width)
+                    - std::max(spawner.x, boundary.x);
+                if (horizontalOverlap <= 0.0f) continue;
+
+                const float verticalOffset = boundary.y - spawner.y;
+                if ((isUpLifter && verticalOffset >= 0.0f)
+                    || (isDownLifter && verticalOffset <= 0.0f)) {
+                    continue;
+                }
+
+                const float distance = std::abs(verticalOffset);
+                if (closestDistance < 0.0f
+                    || distance < closestDistance - 0.001f) {
+                    matchedBoundary = &boundary;
+                    closestDistance = distance;
+                    hasAmbiguousBoundary = false;
+                } else if (std::abs(distance - closestDistance) <= 0.001f) {
+                    hasAmbiguousBoundary = true;
+                }
+            }
+
+            if (!matchedBoundary || hasAmbiguousBoundary) {
+                std::cerr << "[LevelBuilder] WARNING: Cannot resolve a unique "
+                          << "boundary for Lifter " << spawner.id << '.'
+                          << std::endl;
+                continue;
+            }
+
+            const float topBoundary =
+                std::min(spawner.y, matchedBoundary->y);
+            const float bottomBoundary =
+                std::max(spawner.y, matchedBoundary->y);
+            world.addBlock(std::make_unique<Lifter>(
+                spawner.x,
+                spawner.y,
+                spawner.width,
+                spawner.height,
+                topBoundary,
+                bottomBoundary,
+                isUpLifter,
+                world.blockThemePalette()));
+            continue;
+        }
+
         std::unique_ptr<Enemy> enemy;
-        if (spawner.className == "goomba") {
+        if (spawner.className == "goomba" || spawner.className == "Goomba") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Goomba, spawner.x, spawner.y, 150.f,
                 spawnCallback);
-        } else if (spawner.className == "koopa") {
+        } else if (spawner.className == "koopa" || spawner.className == "Koopa") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Koopa, spawner.x, spawner.y, 200.f,
                 spawnCallback);
-        } else if (spawner.className == "witch") {
+        } else if (spawner.className == "witch" || spawner.className == "Witch") {
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Witch, spawner.x, spawner.y, 150.f,
+                spawnCallback);
+        } else if (spawner.className == "thorking"
+                   || spawner.className == "ThorKing"
+                   || spawner.className == "thor_king") {
+            enemy = EnemyFactory::createEnemy(
+                EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);
         }
         if (!enemy) continue;

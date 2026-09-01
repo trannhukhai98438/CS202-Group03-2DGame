@@ -108,6 +108,42 @@
                  "width":0,
                  "x":224,
                  "y":416
+                },
+                {
+                 "height":480,
+                 "id":132,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"overworld"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":6752,
+                 "x":0,
+                 "y":0
+                },
+                {
+                 "height":480,
+                 "id":134,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"theme",
+                         "type":"string",
+                         "value":"underground"
+                        }],
+                 "rotation":0,
+                 "type":"playable_region",
+                 "visible":true,
+                 "width":512,
+                 "x":1536,
+                 "y":480
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1552,7 +1588,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":123,
+ "nextobjectid":135,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

@@ -1,5 +1,6 @@
 #include "Flower.h"
 #include "Hero.h"
+#include "Entities/Character/Hero/HeroForm/FireForm.h"
 
 Flower::Flower(float x, float y) : Item(x, y), isSpawning(false), spawnStartY(y) {
     if (texture.loadFromFile("assets/textures/Flower.png")) {
@@ -29,6 +30,10 @@ void Flower::spawn() {
 
 std::unique_ptr<Item> Flower::clone(Hero* hero) const {
     return std::make_unique<Flower>(position.x, position.y);
+}
+
+std::string Flower::getItemType() const {
+    return "Flower";
 }
 
 void Flower::update(float deltatime) {

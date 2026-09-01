@@ -2,20 +2,36 @@
 #include "Entities/Character/Character.h"
 #include "Utilities/ThunderFlashTexture.h"
 
+#include <iostream>
+
 FlashThunder::FlashThunder(float startX, float startY, float velocityX)
 	: Projectile(startX, startY, velocityX, 0.f,
 	             ProjectileFaction::Hero, 1) {
-	shape.setSize({64.f, 20.f});
+	shape.setSize({32.f, 32.f});
 	shape.setFillColor(sf::Color(165, 70, 255));
-	if (const sf::Texture* thunderTexture = ThunderFlashTexture::get()) {
-		const sf::IntRect flyingFrame{1198, 495, 344, 93};
-		const float renderScale = 64.f / flyingFrame.width;
-		sprite.setTexture(*thunderTexture);
+	
+	// Since thunderflash2.png lacks a clear projectile sprite, we use the fireball texture
+	// from FireMario and tint it purple to look like a ball of lightning/plasma.
+	static sf::Texture staticTex;
+	static bool loaded = false;
+	if (!loaded) {
+		if (staticTex.loadFromFile("assets/textures/FireMario.png")) {
+			staticTex.setSmooth(true);
+			loaded = true;
+		}
+	}
+	
+	if (loaded) {
+		const sf::IntRect flyingFrame{250, 446, 91, 75};
+		const float renderScale = 40.f / flyingFrame.width;
+		sprite.setTexture(staticTex);
 		sprite.setTextureRect(flyingFrame);
 		sprite.setOrigin(flyingFrame.width * 0.5f,
 		                 flyingFrame.height * 0.5f);
 		sprite.setScale(velocityX < 0.f ? -renderScale : renderScale,
 		                renderScale);
+		// Tint it bright purple/white for lightning
+		sprite.setColor(sf::Color(220, 150, 255));
 	}
 	setPosition({startX, startY});
 }
@@ -87,14 +103,25 @@ void FlashThunder::enterImpact() {
 }
 
 void FlashThunder::applyImpactFrame() {
-	if (!sprite.getTexture() || impactFrame >= impactFrames.size()) return;
-	const sf::IntRect& frame = impactFrames[impactFrame];
+	// The texture is already loaded into sprite by the constructor.
+    // If not loaded, we just return.
+    if (!sprite.getTexture() || impactFrame >= impactFrames.size()) return;
+	
+    // We use the Mario Fireball impact frames since it's the same texture now.
+    // We tint it purple to match.
+    const std::array<sf::IntRect, 4> customImpactFrames{{
+        {181, 608, 116, 111}, {360, 605, 128, 126},
+        {523, 606, 124, 123}, {708, 626, 85, 87}
+    }};
+
+	const sf::IntRect& frame = customImpactFrames[impactFrame];
 	sprite.setTextureRect(frame);
 	sprite.setOrigin(frame.width * 0.5f, frame.height * 0.5f);
 	// One common scale preserves the sheet's intended progression from a
 	// small spark into the full-size final burst.
-	const float renderScale = 112.f / 113.f;
+	const float renderScale = 112.f / 128.f;
 	sprite.setScale(renderScale, renderScale);
+    sprite.setColor(sf::Color(220, 150, 255));
 	sprite.setPosition(position.x + shape.getSize().x * 0.5f,
 	                   position.y + shape.getSize().y * 0.5f);
 }

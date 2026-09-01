@@ -28,6 +28,8 @@ public:
     virtual void update(float deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) = 0;
 
+    virtual std::string getProjectileType() const = 0;
+
     virtual float getGravityAcceleration() const { return 0.0f; }
     virtual bool usesWorldPhysics() const { return true; }
     virtual void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) = 0;
@@ -42,6 +44,7 @@ public:
     sf::FloatRect getBounds() const { return shape.getGlobalBounds(); }
     int getDamage() const { return damage; }
     ProjectileFaction getFaction() const { return faction; }
+    void setFaction(ProjectileFaction owner) { faction = owner; }
 
     sf::Vector2f getPosition() const { return position; }
     virtual void setPosition(const sf::Vector2f& pos) { position = pos; shape.setPosition(pos); }

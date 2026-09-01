@@ -1,7 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <memory>
+#include <string>
+#include <vector>
 #include "Core/State.h"
 #include "Entities/Character/Hero/HeroFactory.h"
 
@@ -23,6 +24,8 @@ private:
 	PendingStateAction m_pendingStateAction{PendingStateAction::None};
 	std::unique_ptr<State> m_pendingState;
 	HeroType m_selectedHero{HeroType::Mario};
+	std::string m_selectedLevelPath{"assets/maps/levels/1-1.tmj"};
+	std::string m_selectedWorldName{"WORLD 1-1"};
 	float m_themeMusicVolume{80.0f};
 	float m_sfxVolume{100.0f};
 	bool m_tabKeyDown{false};
@@ -48,6 +51,13 @@ public:
 	void clearStatesAndChange(std::unique_ptr<State> state);
 	void setSelectedHero(HeroType heroType) { m_selectedHero = heroType; }
 	HeroType getSelectedHero() const { return m_selectedHero; }
+	void setSelectedLevel(std::string levelPath, std::string worldName);
+	const std::string& getSelectedLevelPath() const {
+		return m_selectedLevelPath;
+	}
+	const std::string& getSelectedWorldName() const {
+		return m_selectedWorldName;
+	}
 	void setThemeMusicVolume(float volume);
 	float getThemeMusicVolume() const { return m_themeMusicVolume; }
 	void setSfxVolume(float volume);

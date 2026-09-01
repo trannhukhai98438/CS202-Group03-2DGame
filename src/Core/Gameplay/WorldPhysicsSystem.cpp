@@ -22,6 +22,45 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
     Hero* hero = world.hero();
     if (!hero || hero->isDead()) return;
 
+    // ── Platform carry ────────────────────────────────────────────────────────
+    // When the hero is grounded, the state machine (e.g. IdleState) sets only a
+    // small gravity nudge for velocity.y (~GRAVITY*dt ≈ 25 px/s).  A downward
+    // Lifter moves at 80 px/s, so the hero cannot keep up through velocity alone
+    // and falls behind each frame, causing the grounded flag to flicker.
+    //
+    // Fix: before capturing oldPosition, pre-move the hero in *position space*
+    // by the platform's per-frame displacement.  This bypasses the velocity
+    // system entirely, so IdleState's overwrite cannot undo it.
+    if (hero->getGrounded()) {
+        const sf::FloatRect heroBounds = hero->getBounds();
+        const float heroBottom = heroBounds.top + heroBounds.height;
+        for (const auto& block : world.blocks()) {
+            if (!block->getIsActive() || !block->isSolid()) continue;
+            const sf::Vector2f bv = block->getVelocity();
+            if (bv.y <= 0.f) continue;   // only carry for downward-moving platforms
+
+            const sf::FloatRect bb = block->getBounds();
+            // gap = how far the platform's top has moved below the hero's feet.
+            // After block->update() the lifter is already at its new position,
+            // so gap == bv.y * deltaTime when the hero was flush last frame.
+            // We close exactly this gap (not bv.y*dt again, which would overshoot).
+            const float gap = bb.top - heroBottom;
+            constexpr float rideEpsilon = 8.f;   // generous enough for low frame-rates
+            const bool ridingThisBlock =
+                gap > 0.f && gap <= rideEpsilon &&
+                heroBounds.left + heroBounds.width > bb.left &&
+                heroBounds.left < bb.left + bb.width;
+
+            if (ridingThisBlock) {
+                const sf::Vector2f pos = hero->getPosition();
+                // Snap hero down by exactly the gap, keeping it flush with the platform.
+                hero->setPosition(pos.x, pos.y + gap);
+                break;
+            }
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     sf::Vector2f oldPosition = hero->getPosition();
     sf::Vector2f velocity = hero->getVelocity();
 
@@ -398,11 +437,6 @@ void WorldPhysicsSystem::resolveItems(GameWorld& world, float deltaTime) {
 
 void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
     for (auto& enemy : world.enemies()) {
-        // Preserve the existing out-of-world cleanup threshold.
-        if (enemy->getPosition().y > 800.0f) {
-            enemy->die();
-        }
-
         if (!enemy->getIsAlive()
             || enemy->getStateName() == "FlippingDeath"
             || enemy->getStateName() == "Squished") {
@@ -444,6 +478,7 @@ void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
         }
         if (hitWall) {
             enemy->flipDirection();
+            enemy->notifyWallHit();
         }
 
         enemy->setPosition(sf::Vector2f(

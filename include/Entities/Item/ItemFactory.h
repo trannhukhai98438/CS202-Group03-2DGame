@@ -12,4 +12,5 @@ enum class ItemType {
 class ItemFactory {
 public:
     static std::unique_ptr<Item> createItem(ItemType type, float x, float y);
+    static std::unique_ptr<Item> createItem(const std::string& typeStr, float x, float y);
 };

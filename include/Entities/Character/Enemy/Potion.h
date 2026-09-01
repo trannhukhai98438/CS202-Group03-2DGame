@@ -21,6 +21,7 @@ public:
 
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
+    std::string getProjectileType() const override { return "Potion"; }
     float getGravityAcceleration() const override { return isPuddle ? 0.0f : gravity; }
     bool usesWorldPhysics() const override { return !isPuddle; }
     void onSolidCollision(SideType side, const sf::FloatRect& solidBounds) override;

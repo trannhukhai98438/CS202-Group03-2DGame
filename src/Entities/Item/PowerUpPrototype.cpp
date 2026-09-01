@@ -13,3 +13,7 @@ std::unique_ptr<Item> PowerUpPrototype::clone(Hero* hero) const {
         return std::make_unique<Flower>(position.x, position.y);
     }
 }
+
+std::string PowerUpPrototype::getItemType() const {
+    return "PowerUpPrototype";
+}

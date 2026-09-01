@@ -81,17 +81,7 @@ void Enemy::onSideCollision(Character* attacker) {
 }
 
 sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numCols, float targetHeight, int numRows) {
-    sf::Image img;
-    if (img.loadFromFile(texturePath)) {
-        for (unsigned int y = 0; y < img.getSize().y; ++y) {
-            for (unsigned int x = 0; x < img.getSize().x; ++x) {
-                sf::Color c = img.getPixel(x, y);
-                if (c.r > 190 && c.g > 190 && c.b > 190) {
-                    img.setPixel(x, y, sf::Color::Transparent);
-                }
-            }
-        }
-        texture.loadFromImage(img);
+    if (texture.loadFromFile(texturePath)) {
         sprite.setTexture(texture);
         
         sf::Vector2u texSize = texture.getSize();
@@ -100,22 +90,6 @@ sf::Vector2i Enemy::loadSpriteTexture(const std::string& texturePath, int numCol
         
         float scale = targetHeight / static_cast<float>(frameHeight);
         sprite.setScale(scale, scale);
-
-        int bottomPadding = 0;
-        for (int y = frameHeight - 1; y >= 0; --y) {
-            bool found = false;
-            for (unsigned int x = 0; x < img.getSize().x; ++x) {
-                if (img.getPixel(x, y).a > 0) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found) {
-                bottomPadding = frameHeight - 1 - y;
-                break;
-            }
-        }
-        setSpriteOffsetY(static_cast<float>(bottomPadding) * scale);
         
         return sf::Vector2i(frameWidth, frameHeight);
     }

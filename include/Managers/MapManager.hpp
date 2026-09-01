@@ -12,6 +12,8 @@ public:
     bool loadMap(const std::string& filePath, MapData& outMapData);
 
 private:
+    static MapTheme parseTheme(const std::string& value);
+
     // Helper function to parse object custom properties (e.g., targetMap, direction, enemyType)
     void parseCustomProperties(const nlohmann::json& objJson, MapObject& outObj);
 };
