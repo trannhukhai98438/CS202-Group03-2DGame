@@ -98,14 +98,14 @@ CS202-Group03-2DGame/
 - CMake 3.14 or newer.
 - A C++17-compatible compiler.
 - Git and an Internet connection for the first configuration, because CMake fetches SFML 2.6.1 automatically.
-- On Windows, a 64-bit MinGW-w64 toolchain is recommended. The current configuration has been verified with MinGW Makefiles.
+- On Windows, a 64-bit MinGW-w64 toolchain is recommended. The commands below target the MSYS2 UCRT64 MinGW toolchain and include the required `_setjmp` linker compatibility mapping for SFML 2.6.1.
 
 ### Build from the Repository Root
 
 This is the recommended workflow for development and CI:
 
 ```powershell
-cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--defsym,_setjmp=__intrinsic_setjmp"
 cmake --build build --parallel 4
 ```
 
@@ -120,7 +120,7 @@ build/Project-2DGame/Custom2DPlatformer.exe
 The child CMake project can also be configured independently:
 
 ```powershell
-cmake -S Project-2DGame -B build-game -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake -S Project-2DGame -B build-game -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release "-DCMAKE_EXE_LINKER_FLAGS=-Wl,--defsym,_setjmp=__intrinsic_setjmp"
 cmake --build build-game --parallel 4
 ```
 
@@ -131,6 +131,8 @@ build-game/Custom2DPlatformer.exe
 ```
 
 Use a different build directory for each configuration mode. Do not reuse the same CMake cache for both the repository root and `Project-2DGame` as the source directory.
+
+The `CMAKE_EXE_LINKER_FLAGS` argument resolves the `_setjmp` symbol mismatch encountered with the UCRT MinGW compiler. It may be omitted when using MSVC or a different MinGW runtime that does not require this compatibility mapping.
 
 ### Running
 
