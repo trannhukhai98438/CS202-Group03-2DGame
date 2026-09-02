@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/State.h"
-#include "Managers/SoundManager.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <array>
@@ -42,7 +41,6 @@ private:
     std::array<VolumeSlider, 2> m_sliders;
     sf::RectangleShape m_backButton;
     sf::Text m_backText;
-    SoundManager m_previewSoundManager;
 
     int m_selectedControl{0};
     int m_hoveredSlider{-1};

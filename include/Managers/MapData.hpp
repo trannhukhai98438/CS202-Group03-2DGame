@@ -6,7 +6,8 @@
 enum class MapTheme {
     Unspecified,
     Overworld,
-    Underground
+    Underground,
+    Castle
 };
 
 // Represents a single tile layer parsed from Tiled JSON
@@ -15,7 +16,14 @@ struct TileLayer {
     int width{ 0 };   // Layer width in tiles
     int height{ 0 };  // Layer height in tiles
     bool visible{ true };
+    float offsetX{ 0.0f };
+    float offsetY{ 0.0f };
     std::vector<int> data; // 1D grid array storing Tile IDs
+};
+
+struct TilesetReference {
+    int firstGid{ 0 };
+    std::string source;
 };
 
 // Represents a single object parsed from Tiled Object Group (Interactive, Spawner, Trigger)
@@ -60,6 +68,7 @@ struct MapData {
     int tileWidth{ 0 };  // Single tile width in pixels (e.g., 32)
     int tileHeight{ 0 }; // Single tile height in pixels (e.g., 32)
 
+    std::vector<TilesetReference> tilesets;
     std::vector<TileLayer> tileLayers;
     std::vector<ObjectLayer> objectLayers;
 

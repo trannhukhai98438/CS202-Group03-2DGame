@@ -26,13 +26,22 @@ int InteractionSystem::resolveHeroItems(GameWorld& world) {
     if (!hero || hero->isDead()) return 0;
 
     for (auto& item : world.items()) {
-        if (item->isColliable()) {
-            if (m_physics.checkCollision(hero->getHitbox(), item->getHitbox())
-                != SideType::None) {
-                hero->collectItem(item.get());
+        if (!item || !item->getIsActive()) continue;
+
+        const bool intersectsHero = item->isColliable()
+            ? m_physics.checkCollision(hero->getHitbox(), item->getHitbox())
+                != SideType::None
+            : hero->getBounds().intersects(item->getBounds());
+        if (!intersectsHero) continue;
+
+        hero->collectItem(item.get());
+        if (!item->getIsActive()) {
+            const std::string collectionSfx = item->getCollectionSfx();
+            if (!collectionSfx.empty()) {
+                if (SoundManager* sm = world.getSoundManager()) {
+                    sm->playSFX(collectionSfx);
+                }
             }
-        } else if (hero->getBounds().intersects(item->getBounds())) {
-            hero->collectItem(item.get());
         }
     }
     return 0;
@@ -60,6 +69,10 @@ int InteractionSystem::resolveSpinningShells(GameWorld& world) {
             otherEnemy->changeState(
                 std::make_unique<FlippingDeathState>(-300.0f));
             scoreDelta += 200;
+
+            if (SoundManager* sm = world.getSoundManager()) {
+                sm->playSFX("kick");
+            }
         }
     }
     return scoreDelta;
@@ -83,7 +96,11 @@ int InteractionSystem::resolveHeroEnemies(GameWorld& world) {
         }
 
         int scoreEarned = hero->interactWith(enemy.get());
-        if (scoreEarned > 0) scoreDelta += scoreEarned;
+        if (scoreEarned > 0) {
+            scoreDelta += scoreEarned;
+            if (SoundManager* sm = world.getSoundManager())
+                sm->playSFX("stomp");
+        }
     }
     return scoreDelta;
 }
@@ -132,6 +149,8 @@ int InteractionSystem::resolveProjectileTargets(GameWorld& world,
             resolvedTargets.insert(enemy.get());
             if (projectile.onHitTarget(*enemy)) {
                 scoreDelta += enemy->getScoreValue();
+                if (SoundManager* sm = world.getSoundManager())
+                    sm->playSFX("kick");
             }
         }
     }
@@ -145,7 +164,16 @@ int InteractionSystem::resolveHeroGoals(GameWorld& world) {
 
     for (auto& goal : world.goals()) {
         GoalResult result = goal->tryActivate(*hero);
-        if (result.activated) return result.scoreAwarded;
+        if (result.activated) {
+            const std::string activationSfx = goal->getActivationSfx();
+            if (!activationSfx.empty()) {
+                if (SoundManager* sm = world.getSoundManager()) {
+                    sm->playSFX(activationSfx);
+                }
+            }
+
+            return result.scoreAwarded;
+        }
     }
     return 0;
 }

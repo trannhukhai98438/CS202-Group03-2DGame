@@ -225,6 +225,11 @@ bool LevelRuntime::syncActiveRegionToHero() {
 
     if (regionIndex == INVALID_REGION_INDEX) {
         setActiveRegion(INVALID_REGION_INDEX);
+        const MapTheme fallbackTheme = findFallbackThemeAt(
+            centerX, feet - REGION_EDGE_EPSILON);
+        if (fallbackTheme != MapTheme::Unspecified) {
+            m_world.blockThemePalette().setActiveTheme(fallbackTheme);
+        }
         std::cerr << "[LevelRuntime] WARNING: Hero is not inside a unique "
                   << "Trigger/playable_region; using map bounds.\n";
         return false;
@@ -431,6 +436,24 @@ std::size_t LevelRuntime::findPlayableRegionAt(float worldX,
     return match;
 }
 
+MapTheme LevelRuntime::findFallbackThemeAt(float worldX,
+                                            float worldY) const {
+    const auto bossArenas = m_world.levelManager()
+                                .getMapData()
+                                .getObjectsByClass("boss_arena");
+    for (const MapObject& arena : bossArenas) {
+        const bool containsPoint =
+            worldX >= arena.x
+            && worldX < arena.x + arena.width
+            && worldY >= arena.y
+            && worldY < arena.y + arena.height;
+        if (containsPoint && arena.theme != MapTheme::Unspecified) {
+            return arena.theme;
+        }
+    }
+    return MapTheme::Unspecified;
+}
+
 void LevelRuntime::setActiveRegion(std::size_t regionIndex) {
     m_activeRegionIndex = regionIndex;
     m_activeRegionBottom = getRegionBottom(regionIndex);
@@ -512,6 +535,15 @@ bool LevelRuntime::hasActivatedGoal() const {
         if (goal && goal->isActivated()) return true;
     }
     return false;
+}
+
+std::string LevelRuntime::getActivatedGoalBgm() const {
+    for (const auto& goal : m_world.goals()) {
+        if (goal && goal->isActivated()) {
+            return goal->getCompletionBgm();
+        }
+    }
+    return {};
 }
 
 bool LevelRuntime::isReady() const {

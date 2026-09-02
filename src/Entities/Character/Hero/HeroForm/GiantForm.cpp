@@ -30,5 +30,6 @@ std::string GiantForm::getForm(){
 void GiantForm::takedamage(Hero* hero) {
     // Giant hit → play Shrink animation → transition to SmallForm
     // ShrinkState::enter() handles: lock velocity, reset timer, setInvincible(2.0f)
+    hero->playSFX("powerdown");
     hero->setState(std::make_unique<ShrinkState>());
 }

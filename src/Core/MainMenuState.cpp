@@ -67,6 +67,8 @@ MainMenuState::MainMenuState() {
 		statusBounds.left + statusBounds.width / 2.f,
 		statusBounds.top + statusBounds.height / 2.f);
 	m_statusText.setPosition(640.f, 605.f);
+
+	Game::getInstance().getSoundManager().playBGM("name_entry", true);
 }
 
 void MainMenuState::processEvents(sf::Event& event) {

@@ -2,11 +2,9 @@
 
 #include "Entities/Goal/LevelGoal.h"
 
-class Flag final : public LevelGoal {
+class Princess final : public LevelGoal {
 public:
-    Flag(const sf::FloatRect& triggerBounds,
-         int minimumScore = 100,
-         int maximumScore = 1000);
+    explicit Princess(const sf::FloatRect& triggerBounds);
 
     GoalResult tryActivate(const Hero& hero) override;
     sf::FloatRect getTriggerBounds() const override;
@@ -15,8 +13,8 @@ public:
     std::string getCompletionBgm() const override;
 
 private:
+    static constexpr int SCORE_AWARD = 500;
+
     sf::FloatRect m_triggerBounds;
     bool m_activated{false};
-    int m_minimumScore;
-    int m_maximumScore;
 };

@@ -109,6 +109,8 @@ std::unique_ptr<Item> BrickBlock::hit(Hero* hero) {
         isDestroyed = true;
         hasParticles = true;
 
+        hero->playSFX("break_block");
+
         // Block hitbox is 32x32; position = top-left corner.
         // Use centre of hitbox so the explosion is symmetric.
         float cx = position.x + 16.f;

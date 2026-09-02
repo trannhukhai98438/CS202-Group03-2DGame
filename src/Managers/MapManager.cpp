@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <utility>
 
 MapTheme MapManager::parseTheme(const std::string& value) {
     std::string normalized;
@@ -19,6 +20,7 @@ MapTheme MapManager::parseTheme(const std::string& value) {
 
     if (normalized == "overworld") return MapTheme::Overworld;
     if (normalized == "underground") return MapTheme::Underground;
+    if (normalized == "castle") return MapTheme::Castle;
     return MapTheme::Unspecified;
 }
 
@@ -87,6 +89,17 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
     outMapData.tileWidth = mapJson.value("tilewidth", 32);
     outMapData.tileHeight = mapJson.value("tileheight", 32);
 
+    if (mapJson.contains("tilesets") && mapJson["tilesets"].is_array()) {
+        for (const auto& tilesetJson : mapJson["tilesets"]) {
+            TilesetReference tileset;
+            tileset.firstGid = tilesetJson.value("firstgid", 0);
+            tileset.source = tilesetJson.value("source", "");
+            if (tileset.firstGid > 0 && !tileset.source.empty()) {
+                outMapData.tilesets.push_back(std::move(tileset));
+            }
+        }
+    }
+
     if (mapJson.contains("layers") && mapJson["layers"].is_array()) {
         for (const auto& layerJson : mapJson["layers"]) {
             std::string layerType = layerJson.value("type", "");
@@ -98,6 +111,8 @@ bool MapManager::loadMap(const std::string& filePath, MapData& outMapData) {
                 layer.width = layerJson.value("width", 0);
                 layer.height = layerJson.value("height", 0);
                 layer.visible = layerJson.value("visible", true);
+                layer.offsetX = layerJson.value("offsetx", 0.0f);
+                layer.offsetY = layerJson.value("offsety", 0.0f);
 
                 if (layerJson.contains("data") && layerJson["data"].is_array()) {
                     layer.data = layerJson["data"].get<std::vector<int>>();

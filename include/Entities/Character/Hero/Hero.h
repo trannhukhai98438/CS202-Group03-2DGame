@@ -8,7 +8,9 @@
 #include <memory>
 
 #include "Entities/Character/Character.h"
+
 class Item; // forward declaration — full definition in Hero.cpp via #include "Item.h"
+
 
 using ProjectileSpawnCallback = std::function<void(std::unique_ptr<Projectile>)>;
 
@@ -39,6 +41,8 @@ public:
     void render(sf::RenderWindow& window) override;
 
     void takedamage();
+    std::function<void(const std::string&)> playSFXCallback;
+    void playSFX(const std::string& name);
     void takeDamage(int damage) override;
     void die() override;
     void setForm(const std::string& newForm);
@@ -49,6 +53,7 @@ public:
     bool specialAbility();
     virtual std::string getHeroType() const = 0;
     virtual float getSpecialCooldown() const = 0;
+    virtual std::string getSpecialAbilitySfx() const { return {}; }
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
     int interactWith(Character* other) override;

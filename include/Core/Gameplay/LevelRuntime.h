@@ -5,6 +5,7 @@
 #include "Gameplay/InteractionSystem.h"
 #include "Gameplay/WorldPhysicsSystem.h"
 #include "Managers/MapData.hpp"
+#include "Managers/SoundManager.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <cstddef>
@@ -37,6 +38,12 @@ public:
     void reload(const std::string& mapPath,
                 const std::string& tilesetPath,
                 HeroType heroType);
+    
+    void setSoundManager(SoundManager* sm) {
+        m_soundManager = sm;
+        m_world.setSoundManager(sm);
+    }
+    SoundManager* getSoundManager() const { return m_soundManager; }
 
     LevelUpdateResult update(float deltaTime,
                              PipeDirection pipeDirection = PipeDirection::None);
@@ -51,6 +58,7 @@ public:
     float getActiveRegionBottom() const;
     bool syncActiveRegionToHero();
     bool hasActivatedGoal() const;
+    std::string getActivatedGoalBgm() const;
     bool isReady() const;
 
     const std::string& getMapPath() const { return m_mapPath; }
@@ -73,6 +81,7 @@ private:
     bool isAlignedWithPipe(const sf::FloatRect& heroBounds,
                            const PipeRoute& route) const;
     std::size_t findPlayableRegionAt(float worldX, float worldY) const;
+    MapTheme findFallbackThemeAt(float worldX, float worldY) const;
     void setActiveRegion(std::size_t regionIndex);
     bool syncActiveRegionFromHeroMovement();
     bool isInsideActiveRegion(const sf::FloatRect& bounds) const;
@@ -80,6 +89,8 @@ private:
 
     std::string m_mapPath;
     std::string m_tilesetPath;
+
+    SoundManager* m_soundManager = nullptr;
 
     GameWorld m_world;
     WorldPhysicsSystem m_worldPhysics;

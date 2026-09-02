@@ -5,6 +5,7 @@ void MapData::clear() {
     height = 0;
     tileWidth = 32;
     tileHeight = 32;
+    tilesets.clear();
     tileLayers.clear();
     objectLayers.clear();
 }

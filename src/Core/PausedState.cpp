@@ -7,6 +7,8 @@
 #include <memory>
 
 PausedState::PausedState() {
+    Game::getInstance().getSoundManager().pauseBGM();
+
     if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
         std::cerr << "ERROR: Failed to load font!\n";
     }
@@ -126,6 +128,7 @@ void PausedState::selectButton(int index) {
 
 void PausedState::activateButton(int index) {
 	if (index == 0) {
+		Game::getInstance().getSoundManager().resumeBGM();
 		Game::getInstance().popState();
 		return;
 	}
