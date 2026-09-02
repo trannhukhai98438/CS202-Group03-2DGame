@@ -5,8 +5,10 @@
 #include <array>
 #include <iostream>
 #include <memory>
+#include <utility>
 
-PausedState::PausedState() {
+PausedState::PausedState(std::function<bool()> onSave)
+    : m_onSave(std::move(onSave)) {
     Game::getInstance().getSoundManager().pauseBGM();
 
     if (!m_font.loadFromFile("assets/fonts/SuperMario256.ttf")) {
@@ -27,8 +29,8 @@ PausedState::PausedState() {
 	                      titleBounds.top + titleBounds.height / 2.f);
 	m_pauseText.setPosition(640.f, 205.f);
 
-	const std::array<const char*, 2> labels = {
-		"CONTINUE", "RETURN TO MENU"
+	const std::array<const char*, 3> labels = {
+		"CONTINUE", "SAVE", "RETURN TO MENU"
 	};
 	for (std::size_t i = 0; i < m_buttons.size(); ++i) {
 		auto& button = m_buttons[i];
@@ -46,6 +48,11 @@ PausedState::PausedState() {
 		                       bounds.top + bounds.height / 2.f);
 		button.label.setPosition(button.shape.getPosition());
 	}
+
+	m_saveStatusText.setFont(m_font);
+	m_saveStatusText.setCharacterSize(20);
+	m_saveStatusText.setFillColor(sf::Color(235, 235, 235));
+	m_saveStatusText.setPosition(640.f, 535.f);
 	updateButtonAppearance();
 }
 
@@ -115,6 +122,7 @@ void PausedState::render(sf::RenderWindow& window) {
 		window.draw(button.shape);
 		window.draw(button.label);
 	}
+	window.draw(m_saveStatusText);
 }
 
 void PausedState::selectButton(int index) {
@@ -133,6 +141,18 @@ void PausedState::activateButton(int index) {
 		return;
 	}
 	if (index == 1) {
+		const bool saved = m_onSave && m_onSave();
+		m_saveStatusText.setString(saved
+			? "PROGRESS SAVED" : "SAVE FAILED");
+		m_saveStatusText.setFillColor(saved
+			? sf::Color(135, 235, 165) : sf::Color(255, 135, 120));
+		const sf::FloatRect bounds = m_saveStatusText.getLocalBounds();
+		m_saveStatusText.setOrigin(
+			bounds.left + bounds.width / 2.f,
+			bounds.top + bounds.height / 2.f);
+		return;
+	}
+	if (index == 2) {
 		Game::getInstance().clearStatesAndChange(
 			std::make_unique<MainMenuState>());
 	}

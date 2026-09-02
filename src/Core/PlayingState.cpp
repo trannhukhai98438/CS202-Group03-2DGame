@@ -2,6 +2,7 @@
 
 #include "Core/Game.h"
 #include "Core/GameOverState.h"
+#include "Core/LevelCatalog.h"
 #include "Core/PausedState.h"
 #include "Core/TransitionState.h"
 #include "Core/VictoryState.h"
@@ -86,6 +87,10 @@ const char* getThemeBgm(MapTheme theme) {
 }
 
 std::string getWorldName(const std::string& levelPath) {
+    if (const auto* level = LevelCatalog::findByMapPath(levelPath)) {
+        return level->worldName;
+    }
+
     const std::size_t fileStart = levelPath.find_last_of("/\\");
     const std::size_t nameStart = fileStart == std::string::npos
         ? 0 : fileStart + 1;
@@ -96,9 +101,27 @@ std::string getWorldName(const std::string& levelPath) {
             : extensionStart - nameStart;
     return "WORLD " + levelPath.substr(nameStart, nameLength);
 }
+
+std::string getHudWorldName(const std::string& levelPath) {
+    if (const auto* level = LevelCatalog::findByMapPath(levelPath)) {
+        return level->hudWorldName;
+    }
+
+    const std::size_t fileStart = levelPath.find_last_of("/\\");
+    const std::size_t nameStart = fileStart == std::string::npos
+        ? 0 : fileStart + 1;
+    const std::size_t extensionStart = levelPath.find_last_of('.');
+    const std::size_t nameLength = extensionStart == std::string::npos
+        || extensionStart < nameStart
+            ? std::string::npos
+            : extensionStart - nameStart;
+    return levelPath.substr(nameStart, nameLength);
+}
 }
 
-PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager, const std::string& levelPath)
+PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager,
+                           const std::string& levelPath,
+                           bool resumeSavedProgress)
 	: m_hudManager(std::move(hudManager)),
 	  m_levelPath(levelPath),
 	  m_levelRuntime(levelPath,
@@ -114,6 +137,7 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager, const std::st
         CAMERA_WIDTH * 0.5f,
         getCameraY(m_levelRuntime.getActiveRegionBottom()));
     m_hudManager->init("assets/fonts/SuperMario256.ttf");
+    m_hudManager->setWorld(getHudWorldName(m_levelPath));
     m_attemptStartScore = m_hudManager->getScore();
     m_attemptStartCoins = m_hudManager->getCoins();
     m_attemptStartLives = m_hudManager->getLives();
@@ -125,7 +149,9 @@ PlayingState::PlayingState(std::shared_ptr<HUDManager> hudManager, const std::st
 
     Game& game = Game::getInstance();
     m_levelRuntime.setSoundManager(&game.getSoundManager());
-    syncRegionPresentation(true);
+    if (!resumeSavedProgress || !loadSavedProgress()) {
+        syncRegionPresentation(true);
+    }
 }
 
 PlayingState::~PlayingState() = default;
@@ -142,16 +168,8 @@ void PlayingState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::KeyPressed) {
         if (event.key.code == sf::Keyboard::Tab) {
             Game::getInstance().getSoundManager().playSFX("pause");
-            Game::getInstance().pushState(std::make_unique<PausedState>());
-            return;
-        }
-
-        if (event.key.code == sf::Keyboard::F5) {
-            quickSave();
-            return;
-        }
-        if (event.key.code == sf::Keyboard::F9) {
-            quickLoad();
+            Game::getInstance().pushState(std::make_unique<PausedState>(
+                [this]() { return saveProgress(); }));
             return;
         }
 
@@ -555,10 +573,16 @@ void PlayingState::render(sf::RenderWindow& window) {
     window.setView(window.getDefaultView());
 }
 
-void PlayingState::quickSave() {
+bool PlayingState::saveProgress() {
+    const Hero* hero = m_levelRuntime.getHero();
+    if (!hero || hero->isDead() || m_victoryPending || m_defeatPending) {
+        std::cerr << "[PlayingState] Cannot save during a level transition.\n";
+        return false;
+    }
+
     SaveManager saveManager;
-    saveManager.saveToFile(
-        "savegame.json",
+    return saveManager.saveToFile(
+        SaveManager::defaultSavePath(),
         m_levelRuntime.getMapPath(),
         m_levelRuntime.getTilesetPath(),
         m_levelRuntime.getWorld(),
@@ -566,16 +590,18 @@ void PlayingState::quickSave() {
     );
 }
 
-void PlayingState::quickLoad() {
+bool PlayingState::loadSavedProgress() {
     SaveManager saveManager;
     Game& game = Game::getInstance();
 
-    if (!saveManager.loadFromFile("savegame.json", m_levelRuntime.getWorld())) return;
+    if (!saveManager.loadFromFile(SaveManager::existingSavePath())) {
+        return false;
+    }
 
     const SaveData& saveData = saveManager.getSaveData();
     if (saveData.mapPath.empty() || saveData.tilesetPath.empty()) {
         std::cerr << "[PlayingState] ERROR: Save has no valid level paths.\n";
-        return;
+        return false;
     }
 
     const HeroType savedHeroType = parseHeroType(saveData.hero.heroType);
@@ -584,28 +610,32 @@ void PlayingState::quickLoad() {
         saveData.mapPath, getWorldName(saveData.mapPath));
     m_levelPath = saveData.mapPath;
 
-    m_levelRuntime.reload(
-        saveData.mapPath,
-        saveData.tilesetPath,
-        savedHeroType
-    );
+    if (m_levelRuntime.getMapPath() != saveData.mapPath
+        || m_levelRuntime.getTilesetPath() != saveData.tilesetPath) {
+        m_levelRuntime.reload(
+            saveData.mapPath,
+            saveData.tilesetPath,
+            savedHeroType
+        );
+    }
 
     if (!m_levelRuntime.isReady()) {
         std::cerr << "[PlayingState] ERROR: Cannot reload saved level.\n";
-        return;
+        return false;
     }
 
     m_levelRuntime.setSoundManager(&game.getSoundManager());
 
     if (!saveManager.applySaveToWorld(
             m_levelRuntime.getWorld(), *m_hudManager)) {
-        return;
+        return false;
     }
+    m_hudManager->setWorld(getHudWorldName(m_levelPath));
 
     Hero* hero = m_levelRuntime.getHero();
     if (!hero) {
         std::cerr << "[PlayingState] ERROR: Save did not restore a Hero.\n";
-        return;
+        return false;
     }
 
     // SaveManager replaces the Hero instance. Resolve its room before using
@@ -633,6 +663,7 @@ void PlayingState::quickLoad() {
     const float cameraY = getCameraY(
         m_levelRuntime.getActiveRegionBottom());
     m_camera.setCenter(std::round(cameraX), std::round(cameraY));
+    return true;
 }
 
 void PlayingState::syncRegionPresentation(bool forcePlayback) {

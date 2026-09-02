@@ -17,9 +17,11 @@ TransitionState::TransitionState()
 
 TransitionState::TransitionState(std::shared_ptr<HUDManager> hudManager,
                                  const std::string& levelPath,
-                                 const std::string& worldName)
+                                 const std::string& worldName,
+                                 bool resumeSavedProgress)
 	: m_hudManager(std::move(hudManager)),
 	  m_levelPath(levelPath),
+	  m_resumeSavedProgress(resumeSavedProgress),
 	  m_elapsedTime(sf::Time::Zero) {
 	if (!m_hudManager) {
 		m_hudManager = std::make_shared<HUDManager>();
@@ -46,7 +48,8 @@ void TransitionState::update(sf::Time dt) {
 	m_elapsedTime += dt;
 	if (m_elapsedTime.asSeconds() > 2.0f) { // After 2.0 seconds, transition to the PlayingState
 		Game::getInstance().changeState(
-			std::make_unique<PlayingState>(m_hudManager, m_levelPath));
+			std::make_unique<PlayingState>(
+				m_hudManager, m_levelPath, m_resumeSavedProgress));
 	}
 }
 

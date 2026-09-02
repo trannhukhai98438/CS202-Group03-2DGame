@@ -8,7 +8,10 @@
 
 class PlayingState : public State {
 public:
-    explicit PlayingState(std::shared_ptr<HUDManager> hudManager, const std::string& levelPath = "assets/maps/levels/1-1.tmj");
+    explicit PlayingState(
+        std::shared_ptr<HUDManager> hudManager,
+        const std::string& levelPath = "assets/maps/levels/1-1.tmj",
+        bool resumeSavedProgress = false);
     ~PlayingState() override;
 
     void processEvents(sf::Event& event) override;
@@ -16,8 +19,8 @@ public:
     void render(sf::RenderWindow& window) override;
 
 private:
-    void quickSave();
-    void quickLoad();
+    bool saveProgress();
+    bool loadSavedProgress();
     void syncRegionPresentation(bool forcePlayback = false);
 
     static constexpr float DEFEAT_DELAY_SECONDS = 2.0f;

@@ -3,6 +3,7 @@
 #include "Entities/Character/Enemy/Projectile.h"
 
 #include <SFML/Graphics.hpp>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include <memory>
@@ -94,13 +95,16 @@ class SaveManager {
 public:
     SaveManager() = default;
 
-    bool saveToFile(const std::string& filePath,
+    static std::filesystem::path defaultSavePath();
+    static std::filesystem::path existingSavePath();
+
+    bool saveToFile(const std::filesystem::path& filePath,
                 const std::string& mapPath,
                 const std::string& tilesetPath,
                 const GameWorld& world,
                 const HUDManager& hud);
 
-    bool loadFromFile(const std::string& filePath, GameWorld& world);
+    bool loadFromFile(const std::filesystem::path& filePath);
 
     bool applySaveToWorld(GameWorld& world, HUDManager& hud) const;
 
