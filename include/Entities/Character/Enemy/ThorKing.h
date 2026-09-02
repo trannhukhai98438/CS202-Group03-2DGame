@@ -9,6 +9,11 @@
 #include <functional>
 #include <memory>
 
+enum class BossSoundEvent {
+    Attack,
+    Defeated
+};
+
 class ThorKing : public Enemy {
 private:
     int   m_bossHp;          // 3 HP total
@@ -23,12 +28,18 @@ private:
     ThorKingPhysics  physics;
     ThorKingAnimator animatorComp;
     std::function<void(std::unique_ptr<Projectile>)> m_spawnCallback;
+    std::function<void(BossSoundEvent)> m_soundCallback;
+    bool m_pendingDieSound = false;
+    float m_dieSoundTimer = 0.0f;
+    const float DIE_SOUND_DELAY = 0.15f;
 
 public:
     ThorKing(float startX, float startY,
              std::function<void(std::unique_ptr<Projectile>)> spawnCallback,
              float patrolRange = 200.0f);
     ~ThorKing() override = default;
+
+    void setSoundCallback(std::function<void(BossSoundEvent)> soundCallback) { m_soundCallback = std::move(soundCallback); }
 
     // Overrides from Enemy / Character
     void update(float deltaTime) override;

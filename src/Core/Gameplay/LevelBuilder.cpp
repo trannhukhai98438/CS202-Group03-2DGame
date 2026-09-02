@@ -3,6 +3,7 @@
 #include "Entities/Block/BlockFactory.h"
 #include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Goal/Flag.h"
 #include "Entities/Goal/Princess.h"
 #include "Entities/Item/Coin.h"
@@ -267,6 +268,20 @@ bool LevelBuilder::build(GameWorld& world,
             enemy = EnemyFactory::createEnemy(
                 EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);
+            if (auto boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                boss->setSoundCallback([&world](BossSoundEvent event) {
+                    SoundManager* sm = world.getSoundManager();
+                    if (!sm) {
+                        return; // Hoặc log cảnh báo nếu vẫn null
+                    }
+
+                    if (event == BossSoundEvent::Attack) {
+                        sm->playSFX("bowser_fire");
+                    } else if (event == BossSoundEvent::Defeated) {
+                        sm->playSFX("bowser_falls");
+                    }
+                });
+            }
         }
         if (!enemy) continue;
 
