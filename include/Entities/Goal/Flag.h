@@ -11,6 +11,8 @@ public:
     GoalResult tryActivate(const Hero& hero) override;
     sf::FloatRect getTriggerBounds() const override;
     bool isActivated() const override;
+    std::string getActivationSfx() const override;
+    std::string getCompletionBgm() const override;
 
 private:
     sf::FloatRect m_triggerBounds;

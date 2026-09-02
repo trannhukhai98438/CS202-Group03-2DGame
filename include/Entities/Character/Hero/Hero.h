@@ -21,6 +21,7 @@ protected:
     std::string baseTexturePath;
 	std::string specialTexturePath;
 	float spriteRenderScale{2.f};
+	float smallSpriteRenderScale{0.f};
 	float specialSpriteRenderScale{0.f};
     std::string overrideAnim;
     float overrideTimer;
@@ -39,9 +40,9 @@ public:
     void update(float deltatime) override;
     void render(sf::RenderWindow& window) override;
 
+    void takedamage();
     std::function<void(const std::string&)> playSFXCallback;
     void playSFX(const std::string& name);
-
     void takeDamage(int damage) override;
     void die() override;
     void setForm(const std::string& newForm);
@@ -52,6 +53,7 @@ public:
     bool specialAbility();
     virtual std::string getHeroType() const = 0;
     virtual float getSpecialCooldown() const = 0;
+    virtual std::string getSpecialAbilitySfx() const { return {}; }
     void playOverrideAnimation(const std::string& animName, float duration);
     void setInvincible(float duration, bool starman = false);
     int interactWith(Character* other) override;

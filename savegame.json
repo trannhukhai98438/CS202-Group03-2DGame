@@ -1,0 +1,191 @@
+{
+    "activeItems": [],
+    "activeProjectiles": [],
+    "aliveEnemies": [
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 1676.6580810546875,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": -1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 1776.0009765625,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 3257.34033203125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 3321.34033203125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 2,
+            "isGrounded": true,
+            "posX": 3362.33935546875,
+            "posY": 368.0,
+            "stateTimer": 0.0,
+            "type": "Koopa",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 3737.34033203125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 3801.34033203125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 4025.34033203125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 4086.67333984375,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": -1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 4084.704345703125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": -1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 4130.697265625,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": -1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 5684.66943359375,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        },
+        {
+            "aiState": "Patrol",
+            "direction": 1,
+            "health": 1,
+            "isGrounded": true,
+            "posX": 5598.02392578125,
+            "posY": 384.0,
+            "stateTimer": 0.0,
+            "type": "Goomba",
+            "velX": 0.0,
+            "velY": 0.0
+        }
+    ],
+    "destroyedBlocks": [],
+    "hero": {
+        "coin": 20,
+        "formName": "Small",
+        "heroType": "Mario",
+        "hp": 1,
+        "invincibleTimer": -0.016589047387242317,
+        "isStarman": false,
+        "posX": 5088.0,
+        "posY": 384.0
+    },
+    "hitBlocks": [
+        {
+            "posX": 512.0,
+            "posY": 288.0
+        },
+        {
+            "posX": 672.0,
+            "posY": 288.0
+        }
+    ],
+    "hud": {
+        "coins": 20,
+        "lives": 2,
+        "remainingTime": 252.02838134765625,
+        "score": 2100
+    },
+    "mapPath": "assets/maps/levels/1-1.tmj",
+    "tilesetPath": "assets/maps/resources/tileset.png"
+}

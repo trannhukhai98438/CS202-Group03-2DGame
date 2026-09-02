@@ -2,20 +2,29 @@
 #include "Entities/Character/Character.h"
 #include "Utilities/ThunderFlashTexture.h"
 
+namespace {
+const sf::IntRect THUNDER_STRIKE_FRAME{772, 246, 210, 76};
+constexpr float STRIKE_RENDER_WIDTH = 96.f;
+constexpr std::size_t IMPACT_FRAME_COUNT = 4;
+}
+
 FlashThunder::FlashThunder(float startX, float startY, float velocityX)
 	: Projectile(startX, startY, velocityX, 0.f,
-	             ProjectileFaction::Hero, 1) {
-	shape.setSize({64.f, 20.f});
+	             ProjectileFaction::Hero, 1),
+	  travelsRight(velocityX >= 0.f) {
+	shape.setSize({64.f, 24.f});
 	shape.setFillColor(sf::Color(165, 70, 255));
+
 	if (const sf::Texture* thunderTexture = ThunderFlashTexture::get()) {
-		const sf::IntRect flyingFrame{1198, 495, 344, 93};
-		const float renderScale = 64.f / flyingFrame.width;
+		const float renderScale =
+			STRIKE_RENDER_WIDTH / THUNDER_STRIKE_FRAME.width;
 		sprite.setTexture(*thunderTexture);
-		sprite.setTextureRect(flyingFrame);
-		sprite.setOrigin(flyingFrame.width * 0.5f,
-		                 flyingFrame.height * 0.5f);
-		sprite.setScale(velocityX < 0.f ? -renderScale : renderScale,
+		sprite.setTextureRect(THUNDER_STRIKE_FRAME);
+		sprite.setOrigin(THUNDER_STRIKE_FRAME.width * 0.5f,
+		                 THUNDER_STRIKE_FRAME.height * 0.5f);
+		sprite.setScale(travelsRight ? renderScale : -renderScale,
 		                renderScale);
+		sprite.setColor(sf::Color::White);
 	}
 	setPosition({startX, startY});
 }
@@ -33,7 +42,7 @@ void FlashThunder::update(float deltaTime) {
 	while (frameTimer >= FRAME_DURATION && isAlive) {
 		frameTimer -= FRAME_DURATION;
 		++impactFrame;
-		if (impactFrame >= impactFrames.size()) {
+		if (impactFrame >= IMPACT_FRAME_COUNT) {
 			die();
 		} else {
 			applyImpactFrame();
@@ -81,20 +90,27 @@ void FlashThunder::enterImpact() {
 	damageWindowOpen = true;
 	impactFrame = 0;
 	frameTimer = 0.f;
-	shape.setSize({112.f, 112.f});
-	setPosition({center.x - 56.f, center.y - 56.f});
+	shape.setSize({120.f, 64.f});
+	setPosition({center.x - 60.f, center.y - 32.f});
 	applyImpactFrame();
 }
 
 void FlashThunder::applyImpactFrame() {
-	if (!sprite.getTexture() || impactFrame >= impactFrames.size()) return;
-	const sf::IntRect& frame = impactFrames[impactFrame];
-	sprite.setTextureRect(frame);
-	sprite.setOrigin(frame.width * 0.5f, frame.height * 0.5f);
-	// One common scale preserves the sheet's intended progression from a
-	// small spark into the full-size final burst.
-	const float renderScale = 112.f / 113.f;
-	sprite.setScale(renderScale, renderScale);
+	if (!sprite.getTexture() || impactFrame >= IMPACT_FRAME_COUNT) return;
+
+	const float progress = static_cast<float>(impactFrame)
+		/ static_cast<float>(IMPACT_FRAME_COUNT - 1);
+	const float baseScale =
+		STRIKE_RENDER_WIDTH / THUNDER_STRIKE_FRAME.width;
+	const float pulseScale = baseScale * (1.f + progress * 0.45f);
+	sprite.setTextureRect(THUNDER_STRIKE_FRAME);
+	sprite.setOrigin(THUNDER_STRIKE_FRAME.width * 0.5f,
+	                 THUNDER_STRIKE_FRAME.height * 0.5f);
+	sprite.setScale(travelsRight ? pulseScale : -pulseScale,
+	                pulseScale);
+	const sf::Uint8 alpha = static_cast<sf::Uint8>(
+		255.f - progress * 160.f);
+	sprite.setColor(sf::Color(255, 255, 255, alpha));
 	sprite.setPosition(position.x + shape.getSize().x * 0.5f,
 	                   position.y + shape.getSize().y * 0.5f);
 }

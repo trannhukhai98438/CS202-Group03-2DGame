@@ -58,6 +58,7 @@ public:
     float getActiveRegionBottom() const;
     bool syncActiveRegionToHero();
     bool hasActivatedGoal() const;
+    std::string getActivatedGoalBgm() const;
     bool isReady() const;
 
     const std::string& getMapPath() const { return m_mapPath; }
@@ -80,6 +81,7 @@ private:
     bool isAlignedWithPipe(const sf::FloatRect& heroBounds,
                            const PipeRoute& route) const;
     std::size_t findPlayableRegionAt(float worldX, float worldY) const;
+    MapTheme findFallbackThemeAt(float worldX, float worldY) const;
     void setActiveRegion(std::size_t regionIndex);
     bool syncActiveRegionFromHeroMovement();
     bool isInsideActiveRegion(const sf::FloatRect& bounds) const;

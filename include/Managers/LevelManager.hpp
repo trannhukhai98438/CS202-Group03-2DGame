@@ -11,20 +11,21 @@
 // Handles level rendering via SFML and provides query APIs for Physics & Game Logic
 class LevelManager : public sf::Drawable {
 private:
+    struct LayerMesh {
+        sf::VertexArray mainVertices;
+        sf::VertexArray objectVertices;
+    };
+
     MapManager m_mapManager;
     MapData m_currentMap;
 
-    // Main tileset
     sf::Texture m_tilesetTexture;
-    sf::VertexArray m_vertices; // Batch rendering mesh for normal map layers
-
-    // Object tileset
-    // Currently used by the Flag tile layer.
     sf::Texture m_objectTexture;
-    sf::VertexArray m_flagVertices;
-
-    // firstgid of object.tsx in 1-1.tmj
-    static constexpr int OBJECT_FIRST_GID = 925;
+    std::vector<LayerMesh> m_layerMeshes;
+    int m_mainFirstGid{1};
+    int m_objectFirstGid{0};
+    int m_objectLastGid{0};
+    bool m_hasObjectTileset{false};
 
     std::string m_collisionLayerName{ "Terrain" };
     std::string m_interactiveLayerName{ "Interactive" };

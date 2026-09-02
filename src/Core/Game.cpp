@@ -1,6 +1,7 @@
 #include "Core/Game.h"
 
 #include <algorithm>
+#include <utility>
 
 Game::Game() : m_window(sf::VideoMode(1280, 720), "Super Mario - Custom Engine", sf::Style::Titlebar | sf::Style::Close) {
 	m_soundManager.setBGMVolume(m_themeMusicVolume);
@@ -128,6 +129,12 @@ void Game::setThemeMusicVolume(float volume) {
 void Game::setSfxVolume(float volume) {
     m_sfxVolume = std::clamp(volume, 0.0f, 100.0f);
     m_soundManager.setSFXVolume(m_sfxVolume);
+}
+
+void Game::setSelectedLevel(std::string levelPath, std::string worldName) {
+	if (levelPath.empty() || worldName.empty()) return;
+	m_selectedLevelPath = std::move(levelPath);
+	m_selectedWorldName = std::move(worldName);
 }
 
 void Game::applyPendingStateAction() {

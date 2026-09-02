@@ -4,10 +4,12 @@
 #include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Goal/Flag.h"
+#include "Entities/Goal/Princess.h"
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -16,7 +18,13 @@
 namespace {
 ItemType getBlockItemType(const std::string& itemName, ItemType fallback) {
     std::string lower = itemName;
-    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    std::transform(
+        lower.begin(),
+        lower.end(),
+        lower.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::tolower(character));
+        });
 
     if (lower == "coin") {
         return ItemType::Coin;
@@ -105,8 +113,14 @@ bool LevelBuilder::build(GameWorld& world,
         world.levelManager().getObjectsByClass("Trigger", "end");
     for (const auto& trigger : endTriggers) {
         if (trigger.width <= 0.f || trigger.height <= 0.f) continue;
-        world.addGoal(std::make_unique<Flag>(sf::FloatRect(
-            trigger.x, trigger.y, trigger.width, trigger.height)));
+
+        const sf::FloatRect triggerBounds(
+            trigger.x, trigger.y, trigger.width, trigger.height);
+        if (trigger.getProperty("goal") == "princess") {
+            world.addGoal(std::make_unique<Princess>(triggerBounds));
+        } else {
+            world.addGoal(std::make_unique<Flag>(triggerBounds));
+        }
         hasGoalTrigger = true;
     }
 
@@ -243,7 +257,13 @@ bool LevelBuilder::build(GameWorld& world,
             enemy = EnemyFactory::createEnemy(
                 EnemyType::Witch, spawner.x, spawner.y, 150.f,
                 spawnCallback);
-        } else if (spawner.className == "thorking" || spawner.className == "ThorKing" || spawner.className == "thor_king") {
+        } else if (spawner.className == "thorking"
+                   || spawner.className == "ThorKing"
+                   || spawner.className == "thor_king"
+                   || spawner.className == "boss"
+                   || spawner.className == "Boss") {
+            // Level 1-3 uses the generic boss marker at the end of its
+            // dedicated boss_arena. ThorKing is the current level boss.
             enemy = EnemyFactory::createEnemy(
                 EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);

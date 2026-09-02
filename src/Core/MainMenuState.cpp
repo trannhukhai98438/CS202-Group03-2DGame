@@ -4,6 +4,7 @@
 #include "Core/TransitionState.h"
 #include "Core/CharacterSelectState.h"
 #include "Core/GuideState.h"
+#include "Core/LevelSelectState.h"
 #include "Core/SettingsState.h"
 #include <array>
 #include <iostream>
@@ -57,8 +58,14 @@ MainMenuState::MainMenuState() {
 	updateButtonAppearance();
 
 	m_statusText.setFont(m_font);
-	m_statusText.setCharacterSize(18);
-	m_statusText.setFillColor(sf::Color::White);
+	m_statusText.setString(
+		"SELECTED: " + Game::getInstance().getSelectedWorldName());
+	m_statusText.setCharacterSize(16);
+	m_statusText.setFillColor(sf::Color(235, 235, 235));
+	const sf::FloatRect statusBounds = m_statusText.getLocalBounds();
+	m_statusText.setOrigin(
+		statusBounds.left + statusBounds.width / 2.f,
+		statusBounds.top + statusBounds.height / 2.f);
 	m_statusText.setPosition(640.f, 605.f);
 
 	Game::getInstance().getSoundManager().playBGM("name_entry", true);
@@ -73,9 +80,6 @@ void MainMenuState::processEvents(sf::Event& event) {
 		if (hovered != m_hoveredButton) {
 			m_hoveredButton = hovered;
 			if (hovered >= 0) {
-				if (hovered != m_selectedButton) {
-					m_statusText.setString("");
-				}
 				m_selectedButton = hovered;
 			}
 			updateButtonAppearance();
@@ -90,7 +94,6 @@ void MainMenuState::processEvents(sf::Event& event) {
 		if (clicked >= 0) {
 			m_selectedButton = clicked;
 			m_hoveredButton = clicked;
-			m_statusText.setString("");
 			updateButtonAppearance();
 			activateButton(clicked);
 		}
@@ -146,7 +149,6 @@ void MainMenuState::selectButton(int index) {
 		|| m_hoveredButton >= 0;
 	m_selectedButton = index;
 	m_hoveredButton = -1;
-	m_statusText.setString("");
 	if (appearanceChanged) updateButtonAppearance();
 }
 
@@ -169,10 +171,9 @@ void MainMenuState::activateButton(int index) {
 		return;
 	}
 	if (index == 2) {
-		m_statusText.setString("LEVELS - COMING SOON");
-		const sf::FloatRect bounds = m_statusText.getLocalBounds();
-		m_statusText.setOrigin(bounds.left + bounds.width / 2.f,
-		                       bounds.top + bounds.height / 2.f);
+		Game::getInstance().changeState(
+			std::make_unique<LevelSelectState>());
+		return;
 	}
 }
 

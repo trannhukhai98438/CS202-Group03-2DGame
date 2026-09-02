@@ -80,7 +80,7 @@ void RunState::update(Hero* hero, float deltatime){
     }
 
     // Return to Idle when no real input and essentially stopped
-    if (std::abs(vel.x) < PhysicsConstants::STOP_THRESHOLD){
+    if (!pressLeft && !pressRight && std::abs(vel.x) < PhysicsConstants::STOP_THRESHOLD){
         hero->setState(std::make_unique<IdleState>());
         return;
     }

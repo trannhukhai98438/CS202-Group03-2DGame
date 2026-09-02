@@ -6,44 +6,52 @@ void WitchAnimator::initAnimations(Witch& witch) {
     witch.loadSpriteTexture("assets/textures/witch.png", 1, 64.0f, 1);
     
     sf::Sprite& sprite = witch.getSprite();
-    // 1024 x 558 resolution -> walk frame height is ~149px -> scale to 64px game height
-    float scale = 64.0f / 149.0f;
+    
+    // Scale based on the Walk frame's actual visual height (165px)
+    float scale = 64.0f / 165.0f;
     sprite.setScale(scale, scale);
 
-    // Exact sub-rectangle frames for the new clean Witch sheet (no labels)
+    // Walk: 7 frames (Uniform W=130 centered on spine, H=165 to touch feet perfectly)
     witch.getAnimator().addAnimation("walk", Animation({
-        sf::IntRect(33,  32, 87, 149),
-        sf::IntRect(204, 32, 104, 149),
-        sf::IntRect(371, 32, 107, 148),
-        sf::IntRect(537, 32, 91, 148),
-        sf::IntRect(684, 29, 105, 151),
-        sf::IntRect(878, 32, 91, 148)
-    }, 0.12f));
+        sf::IntRect(35,  19, 130, 165),
+        sf::IntRect(169, 19, 130, 165),
+        sf::IntRect(302, 19, 130, 165),
+        sf::IntRect(440, 19, 130, 165),
+        sf::IntRect(580, 19, 130, 165),
+        sf::IntRect(720, 19, 130, 165),
+        sf::IntRect(858, 19, 130, 165)
+    }, 0.10f));
 
-    // Hold: ready to throw (arm raised holding potion high)
+    // Hold: ready to throw (Uniform W=180 centered on spine, H=184 to include feet at Y=370)
     witch.getAnimator().addAnimation("hold", Animation({
-        sf::IntRect(424, 383, 155, 155)
+        sf::IntRect(46, 186, 180, 184)
     }, 1.0f));
 
-    // Throw: arm extended throwing potion forward
+    // Throw: arm extended tossing potion (Uniform W=180 centered on spine, H=184 to include feet)
     witch.getAnimator().addAnimation("throw", Animation({
-        sf::IntRect(654, 383, 162, 155)
+        sf::IntRect(526, 186, 180, 184)
     }, 1.0f));
 
-    // Death frame: upside down tumbling (using first frame)
+    // Squished: 2 frames lying flat / dizzy on the floor (Y=372 to cleanly cut off Attack frames)
+    // H=158 so bottom is at Y=529 (the actual lowest pixel), preventing floating
+    witch.getAnimator().addAnimation("squished", Animation({
+        sf::IntRect(24,  372, 186, 158),
+        sf::IntRect(229, 372, 186, 158)
+    }, 0.2f));
+
+    // Death animation: tumbling frames (Y=372, H=158)
     witch.getAnimator().addAnimation("flippingDeath", Animation({
-        sf::IntRect(33, 32, 87, 149)
-    }, 1.0f));
+        sf::IntRect(431, 372, 186, 158),
+        sf::IntRect(619, 372, 186, 158),
+        sf::IntRect(827, 372, 186, 158)
+    }, 0.12f));
 }
 
 void WitchAnimator::applyAnimation(Witch& witch) {
-    if (witch.getStateName() == "Squished") return;
-
     sf::Sprite& sprite = witch.getSprite();
     float absScaleX = std::abs(sprite.getScale().x);
     float absScaleY = std::abs(sprite.getScale().y);
 
-    // Match Koopa's correct facing/flip logic
     if (witch.getDirection() == MoveDirection::Right) {
         sprite.setScale(absScaleX, absScaleY);
     } else {
@@ -53,6 +61,8 @@ void WitchAnimator::applyAnimation(Witch& witch) {
     std::string sName = witch.getStateName();
     if (sName == "FlippingDeath") {
         witch.getAnimator().playAnimation("flippingDeath", 0.016f);
+    } else if (sName == "Squished") {
+        witch.getAnimator().playAnimation("squished", 0.016f);
     } else if (sName == "Throw") {
         ThrowState* throwState = dynamic_cast<ThrowState*>(witch.getCurrentState());
         if (throwState && throwState->hasThrownFlag()) {
@@ -63,4 +73,10 @@ void WitchAnimator::applyAnimation(Witch& witch) {
     } else {
         witch.getAnimator().playAnimation("walk", 0.016f);
     }
+
+    // Anchor bottom-center of frame directly to feet on the floor
+    // Because we aligned the spine to exactly width/2 for all frames, this prevents horizontal jitter
+    // Because we ensured height reaches the exact feet pixels, this prevents vertical sinking
+    sf::IntRect curRect = sprite.getTextureRect();
+    sprite.setOrigin(curRect.width / 2.0f, static_cast<float>(curRect.height));
 }

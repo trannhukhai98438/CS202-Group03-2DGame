@@ -23,11 +23,15 @@ private:
 
     sf::Texture m_overworldBrick;
     sf::Texture m_undergroundBrick;
+    sf::Texture m_castleBrick;
     sf::Texture m_overworldLifter;
     sf::Texture m_undergroundLifter;
+    sf::Texture m_castleLifter;
 
     bool m_overworldBrickLoaded{false};
     bool m_undergroundBrickLoaded{false};
+    bool m_castleBrickLoaded{false};
     bool m_overworldLifterLoaded{false};
     bool m_undergroundLifterLoaded{false};
+    bool m_castleLifterLoaded{false};
 };

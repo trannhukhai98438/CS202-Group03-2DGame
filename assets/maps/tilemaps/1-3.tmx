@@ -6,8 +6,12 @@
   <object id="16" type="start" x="96" y="512">
    <point/>
   </object>
-  <object id="17" type="end" x="3840" y="64" width="32" height="256"/>
-  <object id="19" type="playable_region" x="0" y="0" width="1920" height="704">
+  <object id="17" type="end" x="3904" y="256" width="32" height="64">
+   <properties>
+    <property name="goal" value="princess"/>
+   </properties>
+  </object>
+  <object id="19" type="playable_region" x="0" y="0" width="1920" height="672">
    <properties>
     <property name="theme" value="castle"/>
    </properties>

@@ -1,10 +1,41 @@
 #include "Managers/LevelManager.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <limits>
+#include <utility>
 
 namespace {
-constexpr const char* FLAG_LAYER_NAME = "Flag";
+std::filesystem::path getTilesetImagePath(
+    const std::filesystem::path& mapPath,
+    const std::string& tilesetSource) {
+    const std::filesystem::path tsxPath =
+        (mapPath.parent_path() / tilesetSource).lexically_normal();
+    std::ifstream tsxFile(tsxPath);
+    std::string line;
+    while (std::getline(tsxFile, line)) {
+        const std::size_t imageTag = line.find("<image");
+        if (imageTag == std::string::npos) continue;
+
+        constexpr const char* SOURCE_ATTRIBUTE = "source=\"";
+        const std::size_t sourceStart = line.find(
+            SOURCE_ATTRIBUTE, imageTag);
+        if (sourceStart == std::string::npos) continue;
+
+        const std::size_t valueStart =
+            sourceStart + std::char_traits<char>::length(SOURCE_ATTRIBUTE);
+        const std::size_t valueEnd = line.find('"', valueStart);
+        if (valueEnd == std::string::npos) continue;
+
+        return (tsxPath.parent_path()
+                / line.substr(valueStart, valueEnd - valueStart))
+            .lexically_normal();
+    }
+    return {};
+}
 }
 
 bool LevelManager::loadLevel(
@@ -35,25 +66,49 @@ bool LevelManager::loadLevel(
     m_tilesetTexture.setSmooth(false);
     m_tilesetTexture.setRepeated(false);
 
-    // 3. Load Object Tileset Texture
-    //
-    // 1-1.tmj:
-    // object.tsx -> firstgid = 925
-    //
-    // object.tsx references the separate object tileset image.
-    const std::string objectTexturePath =
-        "assets/maps/resources/object.png";
+    // 3. Resolve optional secondary object tileset from this map's metadata.
+    m_mainFirstGid = 1;
+    m_objectFirstGid = 0;
+    m_objectLastGid = 0;
+    m_hasObjectTileset = false;
 
-    if (!m_objectTexture.loadFromFile(objectTexturePath)) {
-        std::cerr
-            << "[LevelManager] Error: Failed to load object image: "
-            << objectTexturePath
-            << std::endl;
-        return false;
+    const TilesetReference* objectTileset = nullptr;
+    bool mainTilesetFound = false;
+    for (const TilesetReference& tileset : m_currentMap.tilesets) {
+        const std::filesystem::path sourcePath(tileset.source);
+        if (sourcePath.stem() == "object") {
+            objectTileset = &tileset;
+            m_objectFirstGid = tileset.firstGid;
+        } else if (!mainTilesetFound) {
+            m_mainFirstGid = tileset.firstGid;
+            mainTilesetFound = true;
+        }
     }
 
-    m_objectTexture.setSmooth(false);
-    m_objectTexture.setRepeated(false);
+    if (objectTileset) {
+        m_objectLastGid = std::numeric_limits<int>::max();
+        for (const TilesetReference& tileset : m_currentMap.tilesets) {
+            if (tileset.firstGid > m_objectFirstGid) {
+                m_objectLastGid = std::min(
+                    m_objectLastGid, tileset.firstGid - 1);
+            }
+        }
+
+        const std::filesystem::path objectTexturePath =
+            getTilesetImagePath(jsonPath, objectTileset->source);
+        if (objectTexturePath.empty()
+            || !m_objectTexture.loadFromFile(objectTexturePath.string())) {
+            std::cerr
+                << "[LevelManager] Error: Failed to load object tileset image for "
+                << objectTileset->source
+                << std::endl;
+            return false;
+        }
+
+        m_objectTexture.setSmooth(false);
+        m_objectTexture.setRepeated(false);
+        m_hasObjectTileset = true;
+    }
 
     // 4. Build VertexArray meshes
     if (!buildMapMesh()) {
@@ -72,17 +127,7 @@ bool LevelManager::loadLevel(
 }
 
 bool LevelManager::buildMapMesh() {
-    // -------------------------------------------------------------------------
-    // Reset main tileset mesh
-    // -------------------------------------------------------------------------
-    m_vertices.clear();
-    m_vertices.setPrimitiveType(sf::Quads);
-
-    // -------------------------------------------------------------------------
-    // Reset object/Flag mesh
-    // -------------------------------------------------------------------------
-    m_flagVertices.clear();
-    m_flagVertices.setPrimitiveType(sf::Quads);
+    m_layerMeshes.clear();
 
     if (m_currentMap.tileWidth == 0
         || m_currentMap.tileHeight == 0) {
@@ -91,255 +136,136 @@ bool LevelManager::buildMapMesh() {
 
     const int tileWidth = m_currentMap.tileWidth;
     const int tileHeight = m_currentMap.tileHeight;
-
     const int tilesetColumns =
-        static_cast<int>(m_tilesetTexture.getSize().x)
-        / tileWidth;
-
-    const int objectColumns =
-        static_cast<int>(m_objectTexture.getSize().x)
-        / tileWidth;
+        static_cast<int>(m_tilesetTexture.getSize().x) / tileWidth;
+    const int objectColumns = m_hasObjectTileset
+        ? static_cast<int>(m_objectTexture.getSize().x) / tileWidth
+        : 0;
 
     if (tilesetColumns <= 0) {
-        std::cerr
-            << "[LevelManager] ERROR: Invalid main tileset dimensions."
-            << std::endl;
+        std::cerr << "[LevelManager] ERROR: Invalid main tileset dimensions.\n";
+        return false;
+    }
+    if (m_hasObjectTileset && objectColumns <= 0) {
+        std::cerr << "[LevelManager] ERROR: Invalid object tileset dimensions.\n";
         return false;
     }
 
-    if (objectColumns <= 0) {
-        std::cerr
-            << "[LevelManager] ERROR: Invalid object tileset dimensions."
-            << std::endl;
-        return false;
-    }
+    const auto writeQuad = [tileWidth, tileHeight](
+                               sf::VertexArray& vertices,
+                               std::size_t index,
+                               float positionX,
+                               float positionY,
+                               float textureX,
+                               float textureY) {
+        vertices[index + 0].position = {positionX, positionY};
+        vertices[index + 1].position = {
+            positionX + tileWidth, positionY};
+        vertices[index + 2].position = {
+            positionX + tileWidth, positionY + tileHeight};
+        vertices[index + 3].position = {
+            positionX, positionY + tileHeight};
 
-    // -------------------------------------------------------------------------
-    // 1. Count quads separately
-    // -------------------------------------------------------------------------
-    std::size_t totalQuads = 0;
-    std::size_t totalFlagQuads = 0;
+        vertices[index + 0].texCoords = {textureX, textureY};
+        vertices[index + 1].texCoords = {
+            textureX + tileWidth, textureY};
+        vertices[index + 2].texCoords = {
+            textureX + tileWidth, textureY + tileHeight};
+        vertices[index + 3].texCoords = {
+            textureX, textureY + tileHeight};
+    };
 
-    for (const auto& layer : m_currentMap.tileLayers) {
-        if (!layer.visible) {
-            continue;
-        }
+    m_layerMeshes.reserve(m_currentMap.tileLayers.size());
+    for (const TileLayer& layer : m_currentMap.tileLayers) {
+        if (!layer.visible) continue;
 
-        for (int gid : layer.data) {
-            if (gid <= 0) {
-                continue;
-            }
+        LayerMesh mesh;
+        mesh.mainVertices.setPrimitiveType(sf::Quads);
+        mesh.objectVertices.setPrimitiveType(sf::Quads);
 
-            if (layer.name == FLAG_LAYER_NAME) {
-                ++totalFlagQuads;
+        std::size_t mainQuadCount = 0;
+        std::size_t objectQuadCount = 0;
+        for (const int gid : layer.data) {
+            if (gid <= 0) continue;
+            const bool isObjectTile =
+                m_hasObjectTileset
+                && gid >= m_objectFirstGid
+                && gid <= m_objectLastGid;
+            if (isObjectTile) {
+                ++objectQuadCount;
             } else {
-                ++totalQuads;
+                ++mainQuadCount;
             }
         }
-    }
 
-    // Resize once to avoid repeated reallocations.
-    m_vertices.resize(totalQuads * 4);
-    m_flagVertices.resize(totalFlagQuads * 4);
-
-    std::size_t vertexIndex = 0;
-    std::size_t flagVertexIndex = 0;
-
-    // -------------------------------------------------------------------------
-    // 2. Populate vertex buffers
-    // -------------------------------------------------------------------------
-    for (const auto& layer : m_currentMap.tileLayers) {
-        if (!layer.visible) {
-            continue;
-        }
-
-        const bool isFlagLayer =
-            layer.name == FLAG_LAYER_NAME;
+        mesh.mainVertices.resize(mainQuadCount * 4);
+        mesh.objectVertices.resize(objectQuadCount * 4);
+        std::size_t mainVertexIndex = 0;
+        std::size_t objectVertexIndex = 0;
 
         for (int y = 0; y < layer.height; ++y) {
             for (int x = 0; x < layer.width; ++x) {
-
-                const int dataIndex =
-                    y * layer.width + x;
-
+                const int dataIndex = y * layer.width + x;
                 if (dataIndex < 0
                     || dataIndex >= static_cast<int>(layer.data.size())) {
                     continue;
                 }
 
-                // Tiled stores the GLOBAL tile GID here.
-                const int globalGid =
-                    layer.data[dataIndex];
+                const int globalGid = layer.data[dataIndex];
+                if (globalGid <= 0) continue;
 
-                if (globalGid <= 0) {
-                    continue;
-                }
+                const float positionX =
+                    static_cast<float>(x * tileWidth) + layer.offsetX;
+                const float positionY =
+                    static_cast<float>(y * tileHeight) + layer.offsetY;
+                const bool isObjectTile =
+                    m_hasObjectTileset
+                    && globalGid >= m_objectFirstGid
+                    && globalGid <= m_objectLastGid;
 
-                float posX = static_cast<float>(x * tileWidth);
-
-                float posY = static_cast<float>(y * tileHeight);
-
-                // =============================================================
-                // FLAG LAYER
-                // =============================================================
-                if (isFlagLayer) {
-                    posX += 16.f;
-                    // object.tsx starts at firstgid 925.
-                    //
-                    // Examples:
-                    //
-                    // GID 925 -> local tile 0
-                    // GID 926 -> local tile 1
-                    // GID 927 -> local tile 2
-                    //
-                    // Your TMJ contains Flag GIDs such as:
-                    // 1005, etc.
+                if (isObjectTile) {
                     const int localTileIndex =
-                        globalGid - OBJECT_FIRST_GID;
-
-                    if (localTileIndex < 0) {
-                        std::cerr
-                            << "[LevelManager] WARNING: Flag GID "
-                            << globalGid
-                            << " is smaller than object firstgid "
-                            << OBJECT_FIRST_GID
-                            << ". Skipping."
-                            << std::endl;
-                        continue;
-                    }
-
-                    const int tu =
+                        globalGid - m_objectFirstGid;
+                    const int textureColumn =
                         localTileIndex % objectColumns;
-
-                    const int tv =
+                    const int textureRow =
                         localTileIndex / objectColumns;
-
-                    const float texX =
-                        static_cast<float>(
-                            tu * tileWidth);
-
-                    const float texY =
-                        static_cast<float>(
-                            tv * tileHeight);
-
-                    // Position
-                    m_flagVertices[flagVertexIndex + 0].position =
-                        sf::Vector2f(
-                            posX,
-                            posY);
-
-                    m_flagVertices[flagVertexIndex + 1].position =
-                        sf::Vector2f(
-                            posX + tileWidth,
-                            posY);
-
-                    m_flagVertices[flagVertexIndex + 2].position =
-                        sf::Vector2f(
-                            posX + tileWidth,
-                            posY + tileHeight);
-
-                    m_flagVertices[flagVertexIndex + 3].position =
-                        sf::Vector2f(
-                            posX,
-                            posY + tileHeight);
-
-                    // Texture coordinates
-                    m_flagVertices[flagVertexIndex + 0].texCoords =
-                        sf::Vector2f(
-                            texX,
-                            texY);
-
-                    m_flagVertices[flagVertexIndex + 1].texCoords =
-                        sf::Vector2f(
-                            texX + tileWidth,
-                            texY);
-
-                    m_flagVertices[flagVertexIndex + 2].texCoords =
-                        sf::Vector2f(
-                            texX + tileWidth,
-                            texY + tileHeight);
-
-                    m_flagVertices[flagVertexIndex + 3].texCoords =
-                        sf::Vector2f(
-                            texX,
-                            texY + tileHeight);
-
-                    flagVertexIndex += 4;
-
+                    writeQuad(
+                        mesh.objectVertices,
+                        objectVertexIndex,
+                        positionX,
+                        positionY,
+                        static_cast<float>(textureColumn * tileWidth),
+                        static_cast<float>(textureRow * tileHeight));
+                    objectVertexIndex += 4;
                     continue;
                 }
 
-                // =============================================================
-                // NORMAL TILE LAYERS
-                // =============================================================
-
-                // Main tileset starts at GID 1.
-                const int tileIndex_UV =
-                    globalGid - 1;
-
-                if (tileIndex_UV < 0) {
+                const int localTileIndex = globalGid - m_mainFirstGid;
+                if (localTileIndex < 0) {
+                    std::cerr << "[LevelManager] WARNING: Tile GID "
+                              << globalGid
+                              << " is below main tileset firstgid "
+                              << m_mainFirstGid << ". Skipping.\n";
                     continue;
                 }
 
-                const int tu =
-                    tileIndex_UV % tilesetColumns;
-
-                const int tv =
-                    tileIndex_UV / tilesetColumns;
-
-                const float texX =
-                    static_cast<float>(
-                        tu * tileWidth);
-
-                const float texY =
-                    static_cast<float>(
-                        tv * tileHeight);
-
-                // Position
-                m_vertices[vertexIndex + 0].position =
-                    sf::Vector2f(
-                        posX,
-                        posY);
-
-                m_vertices[vertexIndex + 1].position =
-                    sf::Vector2f(
-                        posX + tileWidth,
-                        posY);
-
-                m_vertices[vertexIndex + 2].position =
-                    sf::Vector2f(
-                        posX + tileWidth,
-                        posY + tileHeight);
-
-                m_vertices[vertexIndex + 3].position =
-                    sf::Vector2f(
-                        posX,
-                        posY + tileHeight);
-
-                // Texture coordinates
-                m_vertices[vertexIndex + 0].texCoords =
-                    sf::Vector2f(
-                        texX,
-                        texY);
-
-                m_vertices[vertexIndex + 1].texCoords =
-                    sf::Vector2f(
-                        texX + tileWidth,
-                        texY);
-
-                m_vertices[vertexIndex + 2].texCoords =
-                    sf::Vector2f(
-                        texX + tileWidth,
-                        texY + tileHeight);
-
-                m_vertices[vertexIndex + 3].texCoords =
-                    sf::Vector2f(
-                        texX,
-                        texY + tileHeight);
-
-                vertexIndex += 4;
+                const int textureColumn =
+                    localTileIndex % tilesetColumns;
+                const int textureRow =
+                    localTileIndex / tilesetColumns;
+                writeQuad(
+                    mesh.mainVertices,
+                    mainVertexIndex,
+                    positionX,
+                    positionY,
+                    static_cast<float>(textureColumn * tileWidth),
+                    static_cast<float>(textureRow * tileHeight));
+                mainVertexIndex += 4;
             }
         }
+
+        m_layerMeshes.push_back(std::move(mesh));
     }
 
     return true;
@@ -348,20 +274,17 @@ bool LevelManager::buildMapMesh() {
 void LevelManager::draw(
     sf::RenderTarget& target,
     sf::RenderStates states) const {
-
-    // -------------------------------------------------------------------------
-    // Draw normal map layers
-    // -------------------------------------------------------------------------
-    states.texture = &m_tilesetTexture;
-    target.draw(m_vertices, states);
-
-    // -------------------------------------------------------------------------
-    // Draw Flag layer from object.png
-    // -------------------------------------------------------------------------
-    states.texture = &m_objectTexture;
-    target.draw(m_flagVertices, states);
+    for (const LayerMesh& layer : m_layerMeshes) {
+        if (layer.mainVertices.getVertexCount() > 0) {
+            states.texture = &m_tilesetTexture;
+            target.draw(layer.mainVertices, states);
+        }
+        if (layer.objectVertices.getVertexCount() > 0) {
+            states.texture = &m_objectTexture;
+            target.draw(layer.objectVertices, states);
+        }
+    }
 }
-
 // --- TILE QUERY IMPLEMENTATION ----------------------------------------------
 
 int LevelManager::getTileID(
