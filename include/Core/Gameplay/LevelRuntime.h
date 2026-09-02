@@ -39,10 +39,7 @@ public:
                 const std::string& tilesetPath,
                 HeroType heroType);
     
-    void setSoundManager(SoundManager* sm) {
-        m_soundManager = sm;
-        m_world.setSoundManager(sm);
-    }
+    void setSoundManager(SoundManager* sm);
     SoundManager* getSoundManager() const { return m_soundManager; }
 
     LevelUpdateResult update(float deltaTime,

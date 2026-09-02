@@ -1,14 +1,30 @@
 #include "Entities/Character/Enemy/ThorKingState.h"
 #include "Entities/Character/Enemy/ThorKing.h"
 
-// TKPatrolState
+// ==================== TKPatrolState ====================
 TKPatrolState::TKPatrolState(float fireCooldown) : m_fireCooldown(fireCooldown) {}
 
-void TKPatrolState::onEnter(Enemy& enemy) {}
+void TKPatrolState::onEnter(Enemy& enemy) {
+    ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
+    if (!boss) return;
+
+    float speed = boss->getSpeed();
+    if (speed <= 0.0f) speed = 150.0f;
+
+    float dirSign = (boss->getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
+    boss->setVelocity({ speed * dirSign, boss->getVelocity().y });
+}
 
 void TKPatrolState::update(Enemy& enemy, float deltaTime) {
     ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
     if (!boss) return;
+
+    if (std::abs(boss->getVelocity().x) < 1.0f) {
+        float speed = boss->getSpeed();
+        if (speed <= 0.0f) speed = 150.0f;
+        float dirSign = (boss->getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
+        boss->setVelocity({ speed * dirSign, boss->getVelocity().y });
+    }
 
     m_fireCooldown -= deltaTime;
     if (m_fireCooldown <= 0.f) {
@@ -20,10 +36,11 @@ void TKPatrolState::update(Enemy& enemy, float deltaTime) {
     boss->applyAnimation();
 }
 
-// TKCrouchState
+// ==================== TKCrouchState ====================
 TKCrouchState::TKCrouchState() : m_timer(0.5f) {}
 
-void TKCrouchState::onEnter(Enemy& enemy) {}
+void TKCrouchState::onEnter(Enemy& enemy) {
+}
 
 void TKCrouchState::update(Enemy& enemy, float deltaTime) {
     m_timer -= deltaTime;
@@ -33,8 +50,15 @@ void TKCrouchState::update(Enemy& enemy, float deltaTime) {
     enemy.applyAnimation();
 }
 
-// TKRollingState
-void TKRollingState::onEnter(Enemy& enemy) {}
+// ==================== TKRollingState ====================
+void TKRollingState::onEnter(Enemy& enemy) {
+    ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
+    if (!boss) return;
+
+    float rollSpeed = boss->getRollSpeed();
+    float dirSign = (boss->getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
+    boss->setVelocity({ rollSpeed * dirSign, boss->getVelocity().y });
+}
 
 void TKRollingState::update(Enemy& enemy, float deltaTime) {
     ThorKing* boss = dynamic_cast<ThorKing*>(&enemy);
@@ -44,7 +68,7 @@ void TKRollingState::update(Enemy& enemy, float deltaTime) {
     boss->applyAnimation();
 }
 
-// TKStunnedState
+// ==================== TKStunnedState ====================
 TKStunnedState::TKStunnedState(float duration) : m_timer(duration) {}
 
 void TKStunnedState::onEnter(Enemy& enemy) {}
@@ -57,7 +81,7 @@ void TKStunnedState::update(Enemy& enemy, float deltaTime) {
     enemy.applyAnimation();
 }
 
-// TKFireAttackState
+// ==================== TKFireAttackState ====================
 TKFireAttackState::TKFireAttackState() : m_timer(0.90f), m_shotsFired(0), m_totalShots(1), m_nextShotTime(0.5f) {}
 
 void TKFireAttackState::onEnter(Enemy& enemy) {
@@ -102,7 +126,7 @@ void TKFireAttackState::update(Enemy& enemy, float deltaTime) {
     enemy.applyAnimation();
 }
 
-// TKRoarState
+// ==================== TKRoarState ====================
 TKRoarState::TKRoarState(float duration) : m_timer(duration) {}
 
 void TKRoarState::onEnter(Enemy& enemy) {}

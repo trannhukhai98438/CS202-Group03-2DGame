@@ -87,6 +87,11 @@ void LevelRuntime::reload(const std::string& mapPath,
     }
 }
 
+void LevelRuntime::setSoundManager(SoundManager* sm) {
+    m_soundManager = sm;
+    m_world.setSoundManager(sm);
+}
+
 LevelUpdateResult LevelRuntime::update(float deltaTime,
                                        PipeDirection pipeDirection) {
     LevelUpdateResult result;

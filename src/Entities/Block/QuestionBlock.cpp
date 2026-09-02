@@ -1,11 +1,18 @@
 #include "QuestionBlock.h"
 
+sf::Texture QuestionBlock::s_texture;
+bool QuestionBlock::s_isTextureLoaded = false;
+
 QuestionBlock::QuestionBlock(float x, float y)
     : Block(x, y)
 {
-    if (texture.loadFromFile("assets/textures/QuestionBrick.png")) {
-        sprite.setTexture(texture);
+    if (!s_isTextureLoaded) {
+        if (s_texture.loadFromFile("assets/textures/QuestionBrick.png")) {
+            s_isTextureLoaded = true;
+        }
     }
+
+    sprite.setTexture(s_texture);
 
     std::vector<sf::IntRect> questionFrames;
     for (int i = 0; i < 3; ++i) {
