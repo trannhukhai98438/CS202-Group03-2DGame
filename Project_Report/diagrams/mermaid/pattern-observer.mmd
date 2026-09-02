@@ -1,0 +1,15 @@
+flowchart LR
+    Hero["Hero"] -->|spawn callback| World["GameWorld<br/>addProjectile"]
+    Witch["Witch"] -->|spawn callback| World
+    Boss["ThorKing"] -->|spawn callback| World
+    Hero -->|sound callback| Sound["SoundManager"]
+    Boss -->|sound callback| Sound
+    Runtime["LevelRuntime"] -->|LevelUpdateResult| Playing["PlayingState"]
+    Hero -->|coin · death · form queries| Playing
+    Playing -->|display updates| HUD["HUDManager"]
+    Goal["LevelGoal"] -->|activation result| Interaction["InteractionSystem"]
+
+    classDef publisher fill:#EAF2FF,stroke:#2F75B5,color:#17324D,stroke-width:2px
+    classDef receiver fill:#EAF8F0,stroke:#3B8D63,color:#173A2B,stroke-width:2px
+    class Hero,Witch,Boss,Runtime,Goal publisher
+    class World,Sound,Playing,HUD,Interaction receiver

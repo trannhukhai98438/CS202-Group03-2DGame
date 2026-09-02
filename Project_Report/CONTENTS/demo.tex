@@ -1,0 +1,22 @@
+\section{Project Demonstration}
+
+Due to the dynamic nature of the game engine, real-time mechanics, and audio subsystems, static images cannot fully capture the gameplay experience. Therefore, a comprehensive gameplay demonstration has been recorded and published on YouTube to showcase the integration of our core systems in action.
+
+\subsection{Gameplay Walkthrough}
+The demonstration video covers the following key engineering and gameplay features:
+\begin{itemize}
+    \item \textbf{Initialization and Persistence:} Loading a saved game state using the JSON Save/Load mechanism, which accurately restores the hero's form, inventory, and the state of destroyed map blocks.
+    \item \textbf{Item Mechanics and Power-Ups:} Interacting with collectible items such as Mushrooms and Fire Flowers to trigger multi-tier hero evolution forms, alongside collecting coins and hitting interactive \texttt{QuestionBlocks}.
+    \item \textbf{Pipe Warp Navigation:} Utilizing pipe entrances to seamlessly travel between different sections of the level, demonstrating smooth sub-area transitions and position resets.
+    \item \textbf{Hero Special Abilities:} Executing hero-specific special abilities to defeat enemies.
+    \item \textbf{Physics and AI Interaction:} Navigating terrain using dynamic gravity acceleration, dual-pass AABB collision snapping, and engaging patrol-based AI enemies (e.g., Goombas and Koopas).
+    \item \textbf{Multi-Phase Boss Encounter:} The climactic battle against \textbf{ThorKing} in Level 1-3. The sequence demonstrates spatial boundary locking, localized SFX playback via the \texttt{SoundManager}, and the boss's complex FSM state transitions.
+    \item \textbf{Real-Time UI Integration:} The \texttt{HUDManager} interfacing with the \texttt{PlayingState} to dynamically display and update score, coins, lives, and the remaining time.
+\end{itemize}
+
+\subsection{Video Link}
+To view the full gameplay recording and system demonstration, please access the link below:
+
+\begin{center}
+\url{https://www.youtube.com/watch?v=3uOq83P2HQk}
+\end{center}

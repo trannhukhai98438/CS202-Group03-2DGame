@@ -1,0 +1,78 @@
+classDiagram
+direction TB
+
+class Game {
+  <<Singleton>>
+  -stateStack
+  -soundManager
+  +run()
+  +pushState(state)
+  +changeState(state)
+}
+class State {
+  <<abstract>>
+  +processEvents(event)
+  +update(dt)
+  +render(window)
+}
+class PlayingState
+class HUDManager
+class SoundManager
+class LevelRuntime {
+  <<Facade>>
+  +update(dt) LevelUpdateResult
+  +renderWorld(window)
+}
+class GameWorld {
+  +hero
+  +blocks
+  +items
+  +enemies
+  +projectiles
+  +goals
+}
+class LevelBuilder
+class WorldPhysicsSystem
+class InteractionSystem
+class Character { <<abstract>> }
+class Hero { <<abstract>> }
+class Enemy { <<abstract>> }
+class HeroForm { <<Strategy>> }
+class HeroState { <<State>> }
+class EnemyState { <<State>> }
+class Block { <<abstract>> }
+class Item { <<abstract>> }
+class Projectile { <<abstract>> }
+class LevelGoal { <<interface>> }
+class MapManager
+class LevelManager
+class SaveManager
+class Animator
+
+Game "1" o-- "many" State : owns
+Game "1" *-- "1" SoundManager : owns
+State <|-- PlayingState
+PlayingState "1" *-- "1" LevelRuntime : owns
+PlayingState "1" o-- "1" HUDManager : shares
+PlayingState --> SaveManager : save / resume
+LevelRuntime "1" *-- "1" GameWorld
+LevelRuntime "1" *-- "1" WorldPhysicsSystem
+LevelRuntime "1" *-- "1" InteractionSystem
+LevelBuilder --> GameWorld : builds
+LevelBuilder --> MapManager : parses through
+GameWorld "1" *-- "1" LevelManager
+GameWorld "1" o-- "0..1" Hero
+GameWorld "1" o-- "many" Enemy
+GameWorld "1" o-- "many" Block
+GameWorld "1" o-- "many" Item
+GameWorld "1" o-- "many" Projectile
+GameWorld "1" o-- "many" LevelGoal
+Character <|-- Hero
+Character <|-- Enemy
+Hero "1" *-- "1" HeroForm
+Hero "1" *-- "1" HeroState
+Enemy "1" *-- "1" EnemyState
+Character *-- Animator
+Block "1" o-- "0..1" Item : hidden prototype
+WorldPhysicsSystem --> GameWorld
+InteractionSystem --> GameWorld

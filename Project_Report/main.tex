@@ -1,0 +1,63 @@
+\documentclass[12pt]{article}
+\usepackage{placeins}
+\usepackage{hcmus-report-template}
+
+% Disable indentation on new paragraphs
+\setlength{\parindent}{0pt}
+
+% Line spacing 1.5
+\renewcommand{\baselinestretch}{1.5}
+
+% Optional: graphic path
+% \graphicspath{PATH_TO_GRAPHIC_FOLDER}
+
+% To use Times font family, uncomment this row
+% \usepackage{mathptmx}
+
+% To use roman section / subsection, uncomment these rows
+% \renewcommand{\thesection}{\Roman{section}}
+% \renewcommand{\thesubsection}{\thesection.\Roman{subsection}}
+
+% Define course name, report name and report title.
+\newcommand{\coursename}{CS202 -- Programming Systems}
+\newcommand{\reportname}{Mario 2D Game}
+\newcommand{\reporttitle}{Mario Game Project Report}
+
+\newcommand{\studentname}{
+\begin{itemize}
+    \item Tran Minh Khoa -- 25125057
+    \item Tran Nhu Khai -- 25125045
+    \item Do Viet Hoang Long -- 25125024
+    \item Tran Dang Khoa -- 25125056
+\end{itemize}
+}
+
+% Header
+\lhead{\reporttitle}
+\rhead{
+CS202 -- Group 3
+}
+
+
+% ============ DOCUMENT ============
+\begin{document}
+
+\pagenumbering{arabic}
+\input{content/title.tex}
+
+\tableofcontents
+\include{CONTENTS/abstract}
+\include{CONTENTS/introduction}
+\include{CONTENTS/group_info}
+\include{CONTENTS/project_design}
+\include{CONTENTS/pattern}
+\include{CONTENTS/problem}
+\include{CONTENTS/future_improvement}
+\include{CONTENTS/demo}
+\include{CONTENTS/conclusion}
+
+\pagebreak
+\setcounter{page}{1}
+
+
+\end{document}

@@ -1,0 +1,69 @@
+classDiagram
+direction TB
+class Character {
+  <<abstract>>
+  +update(dt)
+  +render(window)
+  +takeDamage()
+}
+class Hero {
+  <<abstract>>
+  -hp
+  -coins
+  -invincibilityTimer
+  -form
+  -state
+  +specialAbility()
+  #createSpecialProjectile()
+}
+class Mario
+class Luigi
+class Flash
+class HeroForm {
+  <<Strategy>>
+  +update(hero, dt)
+  +takeDamage(hero)
+}
+class SmallForm
+class GiantForm
+class FireForm
+class HeroState {
+  <<State>>
+  +enter(hero)
+  +update(hero, dt)
+  +exit(hero)
+}
+class IdleState
+class RunState
+class JumpState
+class SlideState
+class SitState
+class GrowState
+class ShrinkState
+class DeadState
+class CheerState
+class MarioFireball
+class LuigiWaterBomb
+class FlashThunder
+
+Character <|-- Hero
+Hero <|-- Mario
+Hero <|-- Luigi
+Hero <|-- Flash
+Hero "1" *-- "1" HeroForm
+Hero "1" *-- "1" HeroState
+HeroForm <|-- SmallForm
+HeroForm <|-- GiantForm
+HeroForm <|-- FireForm
+HeroState <|-- IdleState
+HeroState <|-- RunState
+HeroState <|-- JumpState
+HeroState <|-- SlideState
+HeroState <|-- SitState
+HeroState <|-- GrowState
+HeroState <|-- ShrinkState
+HeroState <|-- DeadState
+HeroState <|-- CheerState
+Mario ..> MarioFireball : creates
+Luigi ..> LuigiWaterBomb : creates
+Flash ..> FlashThunder : creates

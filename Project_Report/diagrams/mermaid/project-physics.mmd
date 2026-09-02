@@ -1,0 +1,35 @@
+classDiagram
+direction LR
+class LevelRuntime {
+  +update(dt)
+}
+class WorldPhysicsSystem {
+  +update(world, dt)
+  +resolveSolids(entity)
+}
+class InteractionSystem {
+  +resolve(world)
+  +collectItems()
+  +resolveCombat()
+}
+class PhysicsEngine {
+  +intersects(a, b)
+  +collisionSide(a, b)
+  +resolve(a, b)
+}
+class GameWorld
+class LevelManager {
+  +nearbySolidTiles(bounds)
+}
+class Block {
+  +isSolid() bool
+}
+
+LevelRuntime "1" *-- "1" WorldPhysicsSystem
+LevelRuntime "1" *-- "1" InteractionSystem
+WorldPhysicsSystem "1" *-- "1" PhysicsEngine
+InteractionSystem "1" *-- "1" PhysicsEngine
+WorldPhysicsSystem --> GameWorld : moves entities
+InteractionSystem --> GameWorld : applies rules
+WorldPhysicsSystem --> LevelManager : queries tiles
+WorldPhysicsSystem --> Block : resolves active solids

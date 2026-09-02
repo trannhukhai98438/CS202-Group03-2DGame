@@ -1,0 +1,15 @@
+classDiagram
+direction LR
+class Block { -hiddenItemPrototype Item +hit(hero) Item }
+class Item { <<Prototype>> +clone(hero) Item }
+class PowerUpPrototype { +clone(hero) Item }
+class Mushroom
+class Flower
+class Hero { +isSmall() bool }
+
+Block "1" o-- "0..1" Item : stores prototype
+Item <|.. PowerUpPrototype
+Block ..> Item : clone(hero)
+PowerUpPrototype ..> Hero : inspects form
+PowerUpPrototype ..> Mushroom : small hero
+PowerUpPrototype ..> Flower : powered hero

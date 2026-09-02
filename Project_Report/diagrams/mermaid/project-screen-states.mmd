@@ -1,0 +1,47 @@
+classDiagram
+direction TB
+class State {
+  <<abstract>>
+  +processEvents(event)
+  +update(dt)
+  +render(window)
+  +rendersBelow() bool
+}
+class Game {
+  <<Singleton>>
+  -stateStack
+  +pushState(state)
+  +popState()
+  +changeState(state)
+}
+class MainMenuState
+class ContinuePromptState { +rendersBelow() bool }
+class CharacterSelectState
+class LevelSelectState
+class GuideState
+class SettingsState
+class TransitionState
+class PlayingState
+class PausedState { +rendersBelow() bool }
+class VictoryState { +rendersBelow() bool }
+class GameOverState
+
+Game "1" o-- "many" State : owns
+State <|-- MainMenuState
+State <|-- ContinuePromptState
+State <|-- CharacterSelectState
+State <|-- LevelSelectState
+State <|-- GuideState
+State <|-- SettingsState
+State <|-- TransitionState
+State <|-- PlayingState
+State <|-- PausedState
+State <|-- VictoryState
+State <|-- GameOverState
+MainMenuState ..> ContinuePromptState : continue save
+MainMenuState ..> TransitionState : new game
+TransitionState ..> PlayingState : begin / resume
+PlayingState ..> PausedState : pause
+PlayingState ..> VictoryState : goal reached
+PlayingState ..> GameOverState : lives exhausted
+VictoryState ..> TransitionState : next level

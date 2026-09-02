@@ -1,0 +1,33 @@
+classDiagram
+direction TB
+class Hero {
+  -form HeroForm
+  -state HeroState
+  +setForm(form)
+  +takeDamage()
+  +specialAbility()
+}
+class HeroForm {
+  <<Strategy>>
+  +enter(hero)
+  +update(hero, dt)
+  +takeDamage(hero)
+  +canSpecialAttack() bool
+}
+class HeroState { <<State>> }
+class SmallForm {
+  +takeDamage(hero)
+}
+class GiantForm {
+  +takeDamage(hero)
+}
+class FireForm {
+  +canSpecialAttack() bool
+  +takeDamage(hero)
+}
+
+Hero "1" *-- "1" HeroForm : delegates form policy
+Hero "1" *-- "1" HeroState : delegates movement
+HeroForm <|.. SmallForm
+HeroForm <|.. GiantForm
+HeroForm <|.. FireForm
