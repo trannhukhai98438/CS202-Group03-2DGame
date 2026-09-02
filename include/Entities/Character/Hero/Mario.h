@@ -1,0 +1,13 @@
+#pragma once
+#include "Hero.h"
+
+class Mario:public Hero{
+protected:
+    std::unique_ptr<Projectile> createSpecialProjectile() const override;
+public:
+    Mario(float x, float y, ProjectileSpawnCallback spawnCallback = nullptr);
+    ~Mario()=default;
+    std::string getHeroType() const override { return "Mario"; }
+    float getSpecialCooldown() const override { return 2.0f; }
+    std::string getSpecialAbilitySfx() const override { return "fireball"; }
+};
