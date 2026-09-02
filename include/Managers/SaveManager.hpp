@@ -3,6 +3,7 @@
 #include "Entities/Character/Enemy/Projectile.h"
 
 #include <SFML/Graphics.hpp>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include <memory>
@@ -43,6 +44,14 @@ struct SaveData {
         bool isGrounded{true};
         std::string aiState{"Patrol"}; // AI state name (e.g., "Patrol", "Squished", "Shell")
         float stateTimer{-1.0f};      // Timer for timed states (e.g., SquishedState duration)
+
+        int bossHp{3};
+        int fireCount{0};
+        int wallBounceCount{0};
+        int shotSeq{0};
+        bool isSkyLaunching{false};
+        float skyLaunchTimer{0.0f};
+        float groundY{0.0f};
     };
     std::vector<EnemyData> aliveEnemies;
 
@@ -86,13 +95,16 @@ class SaveManager {
 public:
     SaveManager() = default;
 
-    bool saveToFile(const std::string& filePath,
+    static std::filesystem::path defaultSavePath();
+    static std::filesystem::path existingSavePath();
+
+    bool saveToFile(const std::filesystem::path& filePath,
                 const std::string& mapPath,
                 const std::string& tilesetPath,
                 const GameWorld& world,
                 const HUDManager& hud);
 
-    bool loadFromFile(const std::string& filePath, GameWorld& world);
+    bool loadFromFile(const std::filesystem::path& filePath);
 
     bool applySaveToWorld(GameWorld& world, HUDManager& hud) const;
 

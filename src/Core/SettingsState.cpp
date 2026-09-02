@@ -106,11 +106,6 @@ SettingsState::SettingsState() {
     refreshSlider(0);
     refreshSlider(1);
     refreshAppearance();
-
-    m_previewSoundManager.setBGMVolume(m_sliders[0].value);
-    m_previewSoundManager.setSFXVolume(m_sliders[1].value);
-    m_previewSoundManager.loadAllSFX();
-    m_previewSoundManager.playBGM("ground");
 }
 
 void SettingsState::processEvents(sf::Event& event) {
@@ -155,7 +150,7 @@ void SettingsState::processEvents(sf::Event& event) {
     if (event.type == sf::Event::MouseButtonReleased
         && event.mouseButton.button == sf::Mouse::Left) {
         if (m_draggingSlider == 1) {
-            m_previewSoundManager.playSFX("coin");
+            Game::getInstance().getSoundManager().playSFX("coin");
         }
         m_draggingSlider = -1;
         return;
@@ -191,7 +186,7 @@ void SettingsState::processEvents(sf::Event& event) {
         if (m_selectedControl == 2) {
             returnToMenu();
         } else if (m_selectedControl == 1) {
-            m_previewSoundManager.playSFX("coin");
+            Game::getInstance().getSoundManager().playSFX("coin");
         }
     }
 }
@@ -245,14 +240,12 @@ void SettingsState::setSliderValue(int index, float value, bool previewSfx) {
     Game& game = Game::getInstance();
     if (index == 0) {
         game.setThemeMusicVolume(slider.value);
-        m_previewSoundManager.setBGMVolume(slider.value);
     } else {
         game.setSfxVolume(slider.value);
-        m_previewSoundManager.setSFXVolume(slider.value);
     }
     refreshSlider(index);
     if (previewSfx && index == 1) {
-        m_previewSoundManager.playSFX("coin");
+        game.getSoundManager().playSFX("coin");
     }
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 
 class GameWorld;
+class SoundManager;
 
 class LevelBuilder {
 public:

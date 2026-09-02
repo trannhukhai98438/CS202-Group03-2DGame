@@ -2,6 +2,7 @@
 
 #include "Entities/Block/Block.h"
 #include "Entities/Character/Enemy/Enemy.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Character/Enemy/Projectile.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/IdleState.h"
@@ -48,6 +49,11 @@ LevelRuntime::LevelRuntime(const std::string& mapPath,
         cachePlayableRegions();
         cachePipeRoutes();
         syncActiveRegionToHero();
+        std::vector<MapObject> bossArenas = m_world.levelManager().getObjectsByClass("Trigger", "boss_arena");
+        if (!bossArenas.empty()) {
+            m_bossArena = bossArenas[0];
+            m_hasBossArena = true;
+        }
     }
 }
 
@@ -73,7 +79,17 @@ void LevelRuntime::reload(const std::string& mapPath,
         cachePlayableRegions();
         cachePipeRoutes();
         syncActiveRegionToHero();
+        std::vector<MapObject> bossArenas = m_world.levelManager().getObjectsByClass("Trigger", "boss_arena");
+        if (!bossArenas.empty()) {
+            m_bossArena = bossArenas[0];
+            m_hasBossArena = true;
+        }
     }
+}
+
+void LevelRuntime::setSoundManager(SoundManager* sm) {
+    m_soundManager = sm;
+    m_world.setSoundManager(sm);
 }
 
 LevelUpdateResult LevelRuntime::update(float deltaTime,
@@ -124,6 +140,8 @@ LevelUpdateResult LevelRuntime::update(float deltaTime,
 
     m_worldPhysics.update(m_world, deltaTime);
     result.scoreDelta = m_interactions.resolve(m_world);
+
+    updateBossArenaBoundary();
 
     // Pipe entrances are checked after collision resolution so the Hero has
     // already been snapped exactly onto the pipe mouth. A successful travel
@@ -225,6 +243,11 @@ bool LevelRuntime::syncActiveRegionToHero() {
 
     if (regionIndex == INVALID_REGION_INDEX) {
         setActiveRegion(INVALID_REGION_INDEX);
+        const MapTheme fallbackTheme = findFallbackThemeAt(
+            centerX, feet - REGION_EDGE_EPSILON);
+        if (fallbackTheme != MapTheme::Unspecified) {
+            m_world.blockThemePalette().setActiveTheme(fallbackTheme);
+        }
         std::cerr << "[LevelRuntime] WARNING: Hero is not inside a unique "
                   << "Trigger/playable_region; using map bounds.\n";
         return false;
@@ -431,6 +454,24 @@ std::size_t LevelRuntime::findPlayableRegionAt(float worldX,
     return match;
 }
 
+MapTheme LevelRuntime::findFallbackThemeAt(float worldX,
+                                            float worldY) const {
+    const auto bossArenas = m_world.levelManager()
+                                .getMapData()
+                                .getObjectsByClass("boss_arena");
+    for (const MapObject& arena : bossArenas) {
+        const bool containsPoint =
+            worldX >= arena.x
+            && worldX < arena.x + arena.width
+            && worldY >= arena.y
+            && worldY < arena.y + arena.height;
+        if (containsPoint && arena.theme != MapTheme::Unspecified) {
+            return arena.theme;
+        }
+    }
+    return MapTheme::Unspecified;
+}
+
 void LevelRuntime::setActiveRegion(std::size_t regionIndex) {
     m_activeRegionIndex = regionIndex;
     m_activeRegionBottom = getRegionBottom(regionIndex);
@@ -507,11 +548,61 @@ float LevelRuntime::getRegionBottom(std::size_t regionIndex) const {
         m_world.levelManager().getMapHeightPixels());
 }
 
+void LevelRuntime::updateBossArenaBoundary()
+{
+    if (!m_hasBossArena)
+        return;
+
+    Hero* hero = m_world.hero();
+    if (!hero || hero->isDead())
+        return;
+
+    ThorKing* boss = nullptr;
+
+    for (const auto& enemy : m_world.enemies()) {
+        if (!enemy)
+            continue;
+
+        boss = dynamic_cast<ThorKing*>(enemy.get());
+
+        if (boss)
+            break;
+    }
+
+    // Boss đã chết → không còn giới hạn
+    if (!boss || !boss->getIsAlive())
+        return;
+
+    const sf::FloatRect heroBounds = hero->getBounds();
+
+    const float arenaRight =
+        m_bossArena.x + m_bossArena.width;
+
+    const float heroRight =
+        heroBounds.left + heroBounds.width;
+
+    if (heroRight > arenaRight) {
+        hero->setPosition(
+            arenaRight - heroBounds.width,
+            hero->getPosition().y
+        );
+    }
+}
+
 bool LevelRuntime::hasActivatedGoal() const {
     for (const auto& goal : m_world.goals()) {
         if (goal && goal->isActivated()) return true;
     }
     return false;
+}
+
+std::string LevelRuntime::getActivatedGoalBgm() const {
+    for (const auto& goal : m_world.goals()) {
+        if (goal && goal->isActivated()) {
+            return goal->getCompletionBgm();
+        }
+    }
+    return {};
 }
 
 bool LevelRuntime::isReady() const {

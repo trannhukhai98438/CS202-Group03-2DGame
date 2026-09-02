@@ -3,7 +3,9 @@
 #include "Entities/Block/BlockFactory.h"
 #include "Entities/Block/Lifter.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Goal/Flag.h"
+#include "Entities/Goal/Princess.h"
 #include "Entities/Item/Coin.h"
 #include "Gameplay/GameWorld.h"
 
@@ -112,8 +114,14 @@ bool LevelBuilder::build(GameWorld& world,
         world.levelManager().getObjectsByClass("Trigger", "end");
     for (const auto& trigger : endTriggers) {
         if (trigger.width <= 0.f || trigger.height <= 0.f) continue;
-        world.addGoal(std::make_unique<Flag>(sf::FloatRect(
-            trigger.x, trigger.y, trigger.width, trigger.height)));
+
+        const sf::FloatRect triggerBounds(
+            trigger.x, trigger.y, trigger.width, trigger.height);
+        if (trigger.getProperty("goal") == "princess") {
+            world.addGoal(std::make_unique<Princess>(triggerBounds));
+        } else {
+            world.addGoal(std::make_unique<Flag>(triggerBounds));
+        }
         hasGoalTrigger = true;
     }
 
@@ -252,10 +260,28 @@ bool LevelBuilder::build(GameWorld& world,
                 spawnCallback);
         } else if (spawner.className == "thorking"
                    || spawner.className == "ThorKing"
-                   || spawner.className == "thor_king") {
+                   || spawner.className == "thor_king"
+                   || spawner.className == "boss"
+                   || spawner.className == "Boss") {
+            // Level 1-3 uses the generic boss marker at the end of its
+            // dedicated boss_arena. ThorKing is the current level boss.
             enemy = EnemyFactory::createEnemy(
                 EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);
+            if (auto boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                boss->setSoundCallback([&world](BossSoundEvent event) {
+                    SoundManager* sm = world.getSoundManager();
+                    if (!sm) {
+                        return; // Hoặc log cảnh báo nếu vẫn null
+                    }
+
+                    if (event == BossSoundEvent::Attack) {
+                        sm->playSFX("bowser_fire");
+                    } else if (event == BossSoundEvent::Defeated) {
+                        sm->playSFX("bowser_falls");
+                    }
+                });
+            }
         }
         if (!enemy) continue;
 

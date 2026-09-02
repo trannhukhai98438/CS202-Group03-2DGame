@@ -42,3 +42,11 @@ sf::FloatRect Flag::getTriggerBounds() const {
 bool Flag::isActivated() const {
     return m_activated;
 }
+
+std::string Flag::getActivationSfx() const {
+    return "flagpole";
+}
+
+std::string Flag::getCompletionBgm() const {
+    return "course_clear";
+}

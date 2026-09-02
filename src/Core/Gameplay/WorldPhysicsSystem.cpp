@@ -11,6 +11,69 @@
 #include <cmath>
 #include <utility>
 
+namespace {
+constexpr float TERRAIN_QUERY_MARGIN = 1.0f;
+
+sf::FloatRect combinedBounds(const sf::FloatRect& first,
+                             const sf::FloatRect& second) {
+    const float left = std::min(first.left, second.left);
+    const float top = std::min(first.top, second.top);
+    const float right = std::max(first.left + first.width,
+                                 second.left + second.width);
+    const float bottom = std::max(first.top + first.height,
+                                  second.top + second.height);
+    return {left, top, right - left, bottom - top};
+}
+
+template <typename Visitor>
+bool forEachNearbyTerrain(const GameWorld& world,
+                          const sf::FloatRect& queryBounds,
+                          Visitor&& visitor) {
+    const LevelManager& level = world.levelManager();
+    const int tileWidth = level.getTileWidth();
+    const int tileHeight = level.getTileHeight();
+    const int mapWidth = level.getMapWidthTiles();
+    const int mapHeight = level.getMapHeightTiles();
+    if (tileWidth <= 0 || tileHeight <= 0
+        || mapWidth <= 0 || mapHeight <= 0) {
+        return true;
+    }
+
+    const int firstX = std::clamp(
+        static_cast<int>(std::floor(
+            (queryBounds.left - TERRAIN_QUERY_MARGIN) / tileWidth)),
+        0, mapWidth - 1);
+    const int lastX = std::clamp(
+        static_cast<int>(std::floor(
+            (queryBounds.left + queryBounds.width
+             + TERRAIN_QUERY_MARGIN) / tileWidth)),
+        0, mapWidth - 1);
+    const int firstY = std::clamp(
+        static_cast<int>(std::floor(
+            (queryBounds.top - TERRAIN_QUERY_MARGIN) / tileHeight)),
+        0, mapHeight - 1);
+    const int lastY = std::clamp(
+        static_cast<int>(std::floor(
+            (queryBounds.top + queryBounds.height
+             + TERRAIN_QUERY_MARGIN) / tileHeight)),
+        0, mapHeight - 1);
+
+    for (int tileY = firstY; tileY <= lastY; ++tileY) {
+        for (int tileX = firstX; tileX <= lastX; ++tileX) {
+            if (!level.isSolidAtTile(tileX, tileY)) continue;
+
+            const sf::FloatRect tileBounds(
+                static_cast<float>(tileX * tileWidth),
+                static_cast<float>(tileY * tileHeight),
+                static_cast<float>(tileWidth),
+                static_cast<float>(tileHeight));
+            if (!visitor(tileBounds)) return false;
+        }
+    }
+    return true;
+}
+}
+
 void WorldPhysicsSystem::update(GameWorld& world, float deltaTime) {
     resolveHero(world, deltaTime);
     resolveItems(world, deltaTime);
@@ -115,9 +178,13 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
             }
         };
 
-        for (const auto& collider : world.mapColliders()) {
-            considerWall(collider.getGlobalBounds());
-        }
+        const sf::FloatRect horizontalSweep = combinedBounds(
+            previousXBounds, proposedXBounds);
+        forEachNearbyTerrain(world, horizontalSweep,
+            [&](const sf::FloatRect& colliderBounds) {
+                considerWall(colliderBounds);
+                return true;
+            });
         for (const auto& block : world.blocks()) {
             if (block->getIsActive() && block->isSolid()) {
                 considerWall(block->getBounds());
@@ -136,9 +203,12 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
 
     // Retain overlap-based recovery for entities that begin a frame already
     // intersecting a solid (for example, after an external position change).
-    for (auto& collider : world.mapColliders()) {
-        m_physics.resolveCollisionX(hero->getHitbox(), collider, velocity.x);
-    }
+    forEachNearbyTerrain(world, hero->getBounds(),
+        [&](const sf::FloatRect& colliderBounds) {
+            m_physics.resolveCollisionX(
+                hero->getHitbox(), colliderBounds, velocity.x);
+            return true;
+        });
     for (auto& block : world.blocks()) {
         if (block->getIsActive() && block->isSolid()) {
             m_physics.resolveCollisionX(hero->getHitbox(), block->getHitbox(),
@@ -223,9 +293,13 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
             }
         };
 
-        for (const auto& collider : world.mapColliders()) {
-            considerLandingSurface(collider.getGlobalBounds());
-        }
+        const sf::FloatRect verticalSweep = combinedBounds(
+            previousBounds, proposedBounds);
+        forEachNearbyTerrain(world, verticalSweep,
+            [&](const sf::FloatRect& colliderBounds) {
+                considerLandingSurface(colliderBounds);
+                return true;
+            });
         for (const auto& block : world.blocks()) {
             if (block->getIsActive() && block->isSolid()) {
                 considerLandingSurface(block->getBounds());
@@ -246,8 +320,10 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
 
         // Terrain participates in the same swept selection so a block behind
         // a closer ceiling cannot activate through that ceiling.
-        for (const auto& collider : world.mapColliders()) {
-            const sf::FloatRect colliderBounds = collider.getGlobalBounds();
+        const sf::FloatRect verticalSweep = combinedBounds(
+            previousBounds, proposedBounds);
+        forEachNearbyTerrain(world, verticalSweep,
+          [&](const sf::FloatRect& colliderBounds) {
             const float colliderBottom =
                 colliderBounds.top + colliderBounds.height;
             const float horizontalOverlap =
@@ -257,7 +333,9 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
             const bool crossedColliderBottom =
                 previousBounds.top >= colliderBottom
                 && proposedBounds.top < colliderBottom;
-            if (!crossedColliderBottom || horizontalOverlap <= 0.0f) continue;
+            if (!crossedColliderBottom || horizontalOverlap <= 0.0f) {
+                return true;
+            }
 
             const float centerDistance = std::abs(
                 heroCenterX
@@ -283,7 +361,8 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
                 targetHorizontalOverlap = horizontalOverlap;
                 targetCenterDistance = centerDistance;
             }
-        }
+            return true;
+        });
 
         for (auto& block : world.blocks()) {
             if (!block->getIsActive()
@@ -345,13 +424,16 @@ void WorldPhysicsSystem::resolveHero(GameWorld& world, float deltaTime) {
     }
 
     bool grounded = hasDownwardTarget;
-    for (auto& collider : world.mapColliders()) {
-        if (m_physics.checkCollision(hero->getHitbox(), collider)
-            == SideType::Top) {
-            grounded = true;
-        }
-        m_physics.resolveCollisionY(hero->getHitbox(), collider, velocity.y);
-    }
+    forEachNearbyTerrain(world, hero->getBounds(),
+        [&](const sf::FloatRect& colliderBounds) {
+            if (m_physics.checkCollision(
+                    hero->getBounds(), colliderBounds) == SideType::Top) {
+                grounded = true;
+            }
+            m_physics.resolveCollisionY(
+                hero->getHitbox(), colliderBounds, velocity.y);
+            return true;
+        });
     for (auto& block : world.blocks()) {
         if (!block->getIsActive()) continue;
 
@@ -389,10 +471,12 @@ void WorldPhysicsSystem::resolveItems(GameWorld& world, float deltaTime) {
         const float oldVelocityX = velocity.x;
         item->setPosition(oldPosition.x + velocity.x * deltaTime,
                           oldPosition.y);
-        for (auto& collider : world.mapColliders()) {
-            m_physics.resolveCollisionX(item->getHitbox(), collider,
-                                        velocity.x);
-        }
+        forEachNearbyTerrain(world, item->getBounds(),
+            [&](const sf::FloatRect& colliderBounds) {
+                m_physics.resolveCollisionX(
+                    item->getHitbox(), colliderBounds, velocity.x);
+                return true;
+            });
         for (auto& block : world.blocks()) {
             if (block->getIsActive() && block->isSolid()) {
                 m_physics.resolveCollisionX(item->getHitbox(),
@@ -409,14 +493,16 @@ void WorldPhysicsSystem::resolveItems(GameWorld& world, float deltaTime) {
         item->setPosition(item->getHitbox().getPosition().x,
                           oldPosition.y + velocity.y * deltaTime);
         bool grounded = false;
-        for (auto& collider : world.mapColliders()) {
-            if (m_physics.checkCollision(item->getHitbox(), collider)
-                == SideType::Top) {
-                grounded = true;
-            }
-            m_physics.resolveCollisionY(item->getHitbox(), collider,
-                                        velocity.y);
-        }
+        forEachNearbyTerrain(world, item->getBounds(),
+            [&](const sf::FloatRect& colliderBounds) {
+                if (m_physics.checkCollision(
+                        item->getBounds(), colliderBounds) == SideType::Top) {
+                    grounded = true;
+                }
+                m_physics.resolveCollisionY(
+                    item->getHitbox(), colliderBounds, velocity.y);
+                return true;
+            });
         for (auto& block : world.blocks()) {
             if (!block->getIsActive() || !block->isSolid()) continue;
 
@@ -448,18 +534,20 @@ void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
         velocity.y += 1500.0f * deltaTime;
 
         bool hitWall = false;
-        for (auto& collider : world.mapColliders()) {
+        forEachNearbyTerrain(world, enemy->getBounds(),
+          [&](const sf::FloatRect& colliderBounds) {
             const SideType side =
-                m_physics.checkCollision(enemy->getHitbox(), collider);
+                m_physics.checkCollision(enemy->getBounds(), colliderBounds);
             if (side == SideType::Left || side == SideType::Right) {
                 hitWall = true;
             }
 
             float horizontalVelocity =
                 static_cast<float>(enemy->getDirection()) * enemy->getSpeed();
-            m_physics.resolveCollisionX(enemy->getHitbox(), collider,
+            m_physics.resolveCollisionX(enemy->getHitbox(), colliderBounds,
                                         horizontalVelocity);
-        }
+            return true;
+        });
         for (auto& block : world.blocks()) {
             if (!block->getIsActive() || !block->isSolid()) continue;
 
@@ -484,10 +572,12 @@ void WorldPhysicsSystem::resolveEnemies(GameWorld& world, float deltaTime) {
         enemy->setPosition(sf::Vector2f(
             enemy->getHitbox().getPosition().x,
             oldPosition.y + velocity.y * deltaTime));
-        for (auto& collider : world.mapColliders()) {
-            m_physics.resolveCollisionY(enemy->getHitbox(), collider,
-                                        velocity.y);
-        }
+        forEachNearbyTerrain(world, enemy->getBounds(),
+            [&](const sf::FloatRect& colliderBounds) {
+                m_physics.resolveCollisionY(
+                    enemy->getHitbox(), colliderBounds, velocity.y);
+                return true;
+            });
         for (auto& block : world.blocks()) {
             if (!block->getIsActive() || !block->isSolid()) continue;
 
@@ -510,10 +600,9 @@ void WorldPhysicsSystem::resolveProjectiles(GameWorld& world,
 
         sf::Vector2f velocity = projectile.getVelocity();
 
-        auto forEachSolid = [&](auto&& visitor) {
-            for (const auto& collider : world.mapColliders()) {
-                if (!visitor(collider.getGlobalBounds())) return;
-            }
+        auto forEachSolid = [&](const sf::FloatRect& queryBounds,
+                                auto&& visitor) {
+            if (!forEachNearbyTerrain(world, queryBounds, visitor)) return;
             for (const auto& block : world.blocks()) {
                 if (block->getIsActive() && block->isSolid()
                     && !visitor(block->getHitbox().getGlobalBounds())) {
@@ -526,7 +615,8 @@ void WorldPhysicsSystem::resolveProjectiles(GameWorld& world,
         projectile.setPosition({oldPosition.x + velocity.x * deltaTime,
                                 oldPosition.y});
 
-        forEachSolid([&](const sf::FloatRect& solidBounds) {
+        forEachSolid(projectile.getBounds(),
+          [&](const sf::FloatRect& solidBounds) {
             const SideType side =
                 m_physics.checkCollision(projectile.getBounds(), solidBounds);
             if (side != SideType::Left && side != SideType::Right) return true;
@@ -548,7 +638,8 @@ void WorldPhysicsSystem::resolveProjectiles(GameWorld& world,
         projectile.setPosition({oldPosition.x,
                                 oldPosition.y + velocity.y * deltaTime});
 
-        forEachSolid([&](const sf::FloatRect& solidBounds) {
+        forEachSolid(projectile.getBounds(),
+          [&](const sf::FloatRect& solidBounds) {
             const SideType side =
                 m_physics.checkCollision(projectile.getBounds(), solidBounds);
             if (side == SideType::None) return true;

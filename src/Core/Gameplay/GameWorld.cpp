@@ -31,6 +31,18 @@ const BlockThemePalette& GameWorld::blockThemePalette() const {
     return m_blockThemePalette;
 }
 
+void GameWorld::setSoundManager(SoundManager* soundManager) {
+    m_soundManager = soundManager;
+
+    if (m_hero) {
+        m_hero->playSFXCallback = [this](const std::string& name) {
+            if (m_soundManager) {
+                m_soundManager->playSFX(name);
+            }
+        };
+    }
+}
+
 Hero* GameWorld::hero() {
     return m_hero.get();
 }
@@ -41,6 +53,14 @@ const Hero* GameWorld::hero() const {
 
 void GameWorld::setHero(std::unique_ptr<Hero> hero) {
     m_hero = std::move(hero);
+
+    if (m_hero) {
+        m_hero->playSFXCallback = [this](const std::string& name) {
+            if (m_soundManager) {
+                m_soundManager->playSFX(name);
+            }
+        };
+    }
 }
 
 std::vector<std::unique_ptr<Block>>& GameWorld::blocks() {

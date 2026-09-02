@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "Utilities/Animator.h"
 #include <memory>
+#include <string>
 
 class Hero;
 
@@ -18,6 +19,7 @@ public:
     virtual std::unique_ptr<Item> clone(Hero* hero) const = 0;
 
     virtual std::string getItemType() const = 0;
+    virtual std::string getCollectionSfx() const { return "powerup"; }
 
     bool isCollected() const;
     virtual void getCollected(Hero* hero)=0;

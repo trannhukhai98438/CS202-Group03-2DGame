@@ -186,7 +186,9 @@ public:
     }
 };
 
-ThorKing::ThorKing(float startX, float startY, std::function<void(std::unique_ptr<Projectile>)> spawnCallback, float patrolRange)
+ThorKing::ThorKing(float startX, float startY,
+                   std::function<void(std::unique_ptr<Projectile>)> spawnCallback,
+                   float patrolRange)
     : Enemy(startX, startY, 60.f, patrolRange), m_bossHp(3), m_rollSpeed(500.f), m_spawnCallback(spawnCallback) {
     shape.setSize(sf::Vector2f(72.f, 116.f));
     health = 3;
@@ -200,7 +202,19 @@ ThorKing::ThorKing(float startX, float startY, std::function<void(std::unique_pt
 }
 
 void ThorKing::update(float deltaTime) {
+    if (m_pendingDieSound) {
+        m_dieSoundTimer -= deltaTime;
+        if (m_dieSoundTimer <= 0.0f) {
+            m_pendingDieSound = false;
+
+            if (m_soundCallback) {
+                m_soundCallback(BossSoundEvent::Defeated);
+            }
+        }
+    }
+
     if (!isAlive) return;
+
     if (currentState) {
         currentState->update(*this, deltaTime);
     }
@@ -239,6 +253,10 @@ void ThorKing::onSideCollision(Character* attacker) {
 
 void ThorKing::takeDamage(int damage) {
     physics.takeDamage(*this, damage);
+    if ((m_bossHp <= 0 || !isAlive) && m_soundCallback) {
+        m_pendingDieSound = true;
+        m_dieSoundTimer = DIE_SOUND_DELAY;
+    }
 }
 
 void ThorKing::notifyWallHit() {
@@ -271,6 +289,8 @@ void ThorKing::spawnFireProjectile() {
                 m_spawnCallback(std::make_unique<BossMeteor>(mouthX, mouthY, dirX * 220.f, -1250.f, floorY, true));
             }
         }
+        if (m_soundCallback)
+            m_soundCallback(BossSoundEvent::Attack);
     }
 }
 
@@ -319,6 +339,21 @@ void ThorKing::updateSkyLaunch(float dt) {
         m_skyLaunchTimer = 0.f;
     }
     shape.setPosition(position.x, position.y);
+}
+
+void ThorKing::restoreBossState(int hp, int fireCount, int wallBounce, int shotSeq, bool isSkyLaunch, float groundY) {
+    setBossHp(hp);
+    m_fireCount = fireCount;
+    m_wallBounceCount = wallBounce;
+    m_shotSeq = shotSeq;
+    m_isSkyLaunching = isSkyLaunch;
+    m_groundY = groundY;
+
+    if (!m_isSkyLaunching) {
+        float moveSpeed = getSpeed();
+        float dirSign = (getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
+        setVelocity({ moveSpeed * dirSign, getVelocity().y });
+    }
 }
 
 void ThorKing::applyAnimation() {

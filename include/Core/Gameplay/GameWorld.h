@@ -2,6 +2,7 @@
 
 #include "Gameplay/BlockThemePalette.h"
 #include "Managers/LevelManager.hpp"
+#include "Managers/SoundManager.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <memory>
@@ -29,6 +30,9 @@ public:
 
     BlockThemePalette& blockThemePalette();
     const BlockThemePalette& blockThemePalette() const;
+
+    void setSoundManager(SoundManager* sm);
+    SoundManager* getSoundManager() const { return m_soundManager; }
 
     Hero* hero();
     const Hero* hero() const;
@@ -67,6 +71,7 @@ public:
     void clear();
 
 private:
+    SoundManager* m_soundManager = nullptr;
     LevelManager m_levelManager;
     BlockThemePalette m_blockThemePalette;
     std::unique_ptr<Hero> m_hero;

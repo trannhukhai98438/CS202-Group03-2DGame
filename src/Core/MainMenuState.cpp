@@ -1,4 +1,5 @@
 #include "Core/MainMenuState.h"
+#include "Core/ContinuePromptState.h"
 #include "Core/Game.h"
 #include "Core/PlayingState.h"
 #include "Core/TransitionState.h"
@@ -6,7 +7,9 @@
 #include "Core/GuideState.h"
 #include "Core/LevelSelectState.h"
 #include "Core/SettingsState.h"
+#include "Managers/SaveManager.hpp"
 #include <array>
+#include <filesystem>
 #include <iostream>
 
 MainMenuState::MainMenuState() {
@@ -67,6 +70,8 @@ MainMenuState::MainMenuState() {
 		statusBounds.left + statusBounds.width / 2.f,
 		statusBounds.top + statusBounds.height / 2.f);
 	m_statusText.setPosition(640.f, 605.f);
+
+	Game::getInstance().getSoundManager().playBGM("name_entry", true);
 }
 
 void MainMenuState::processEvents(sf::Event& event) {
@@ -152,7 +157,18 @@ void MainMenuState::selectButton(int index) {
 
 void MainMenuState::activateButton(int index) {
 	if (index == 0) {
-		Game::getInstance().changeState(std::make_unique<TransitionState>());
+		std::error_code error;
+		const std::filesystem::path savePath =
+			SaveManager::existingSavePath();
+		const bool hasSave = std::filesystem::is_regular_file(
+			savePath, error) && !error;
+		if (hasSave) {
+			Game::getInstance().pushState(
+				std::make_unique<ContinuePromptState>());
+		} else {
+			Game::getInstance().changeState(
+				std::make_unique<TransitionState>());
+		}
 		return;
 	}
 	if (index == 1) {

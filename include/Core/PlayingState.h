@@ -3,13 +3,15 @@
 #include "Core/State.h"
 #include "Gameplay/LevelRuntime.h"
 #include "Managers/HUDManager.hpp"
-#include "Managers/SoundManager.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
 class PlayingState : public State {
 public:
-    explicit PlayingState(std::shared_ptr<HUDManager> hudManager, const std::string& levelPath = "assets/maps/levels/1-1.tmj");
+    explicit PlayingState(
+        std::shared_ptr<HUDManager> hudManager,
+        const std::string& levelPath = "assets/maps/levels/1-1.tmj",
+        bool resumeSavedProgress = false);
     ~PlayingState() override;
 
     void processEvents(sf::Event& event) override;
@@ -17,9 +19,9 @@ public:
     void render(sf::RenderWindow& window) override;
 
 private:
-    void quickSave();
-    void quickLoad();
-    void syncRegionPresentation();
+    bool saveProgress();
+    bool loadSavedProgress();
+    void syncRegionPresentation(bool forcePlayback = false);
 
     static constexpr float DEFEAT_DELAY_SECONDS = 2.0f;
     bool updateTimer(float deltaTime);
@@ -28,13 +30,13 @@ private:
     std::shared_ptr<HUDManager> m_hudManager;
     std::string m_levelPath;
     LevelRuntime m_levelRuntime;
-    SoundManager m_soundManager;
     MapTheme m_presentedTheme{MapTheme::Unspecified};
     int m_lastCoinCount{0};
     int m_attemptStartScore{0};
     int m_attemptStartCoins{0};
     int m_attemptStartLives{0};
     PipeDirection m_latchedPipeDirection{PipeDirection::None};
+    bool m_invincibilityBgmActive{false};
 
     bool m_victoryPending{false};
     float m_victoryDelayRemaining{0.0f};

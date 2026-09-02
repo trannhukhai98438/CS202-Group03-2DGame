@@ -2,36 +2,29 @@
 #include "Entities/Character/Character.h"
 #include "Utilities/ThunderFlashTexture.h"
 
-#include <iostream>
+namespace {
+const sf::IntRect THUNDER_STRIKE_FRAME{772, 246, 210, 76};
+constexpr float STRIKE_RENDER_WIDTH = 96.f;
+constexpr std::size_t IMPACT_FRAME_COUNT = 4;
+}
 
 FlashThunder::FlashThunder(float startX, float startY, float velocityX)
 	: Projectile(startX, startY, velocityX, 0.f,
-	             ProjectileFaction::Hero, 1) {
-	shape.setSize({32.f, 32.f});
+	             ProjectileFaction::Hero, 1),
+	  travelsRight(velocityX >= 0.f) {
+	shape.setSize({64.f, 24.f});
 	shape.setFillColor(sf::Color(165, 70, 255));
-	
-	// Since thunderflash2.png lacks a clear projectile sprite, we use the fireball texture
-	// from FireMario and tint it purple to look like a ball of lightning/plasma.
-	static sf::Texture staticTex;
-	static bool loaded = false;
-	if (!loaded) {
-		if (staticTex.loadFromFile("assets/textures/FireMario.png")) {
-			staticTex.setSmooth(true);
-			loaded = true;
-		}
-	}
-	
-	if (loaded) {
-		const sf::IntRect flyingFrame{250, 446, 91, 75};
-		const float renderScale = 40.f / flyingFrame.width;
-		sprite.setTexture(staticTex);
-		sprite.setTextureRect(flyingFrame);
-		sprite.setOrigin(flyingFrame.width * 0.5f,
-		                 flyingFrame.height * 0.5f);
-		sprite.setScale(velocityX < 0.f ? -renderScale : renderScale,
+
+	if (const sf::Texture* thunderTexture = ThunderFlashTexture::get()) {
+		const float renderScale =
+			STRIKE_RENDER_WIDTH / THUNDER_STRIKE_FRAME.width;
+		sprite.setTexture(*thunderTexture);
+		sprite.setTextureRect(THUNDER_STRIKE_FRAME);
+		sprite.setOrigin(THUNDER_STRIKE_FRAME.width * 0.5f,
+		                 THUNDER_STRIKE_FRAME.height * 0.5f);
+		sprite.setScale(travelsRight ? renderScale : -renderScale,
 		                renderScale);
-		// Tint it bright purple/white for lightning
-		sprite.setColor(sf::Color(220, 150, 255));
+		sprite.setColor(sf::Color::White);
 	}
 	setPosition({startX, startY});
 }
@@ -49,7 +42,7 @@ void FlashThunder::update(float deltaTime) {
 	while (frameTimer >= FRAME_DURATION && isAlive) {
 		frameTimer -= FRAME_DURATION;
 		++impactFrame;
-		if (impactFrame >= impactFrames.size()) {
+		if (impactFrame >= IMPACT_FRAME_COUNT) {
 			die();
 		} else {
 			applyImpactFrame();
@@ -97,31 +90,27 @@ void FlashThunder::enterImpact() {
 	damageWindowOpen = true;
 	impactFrame = 0;
 	frameTimer = 0.f;
-	shape.setSize({112.f, 112.f});
-	setPosition({center.x - 56.f, center.y - 56.f});
+	shape.setSize({120.f, 64.f});
+	setPosition({center.x - 60.f, center.y - 32.f});
 	applyImpactFrame();
 }
 
 void FlashThunder::applyImpactFrame() {
-	// The texture is already loaded into sprite by the constructor.
-    // If not loaded, we just return.
-    if (!sprite.getTexture() || impactFrame >= impactFrames.size()) return;
-	
-    // We use the Mario Fireball impact frames since it's the same texture now.
-    // We tint it purple to match.
-    const std::array<sf::IntRect, 4> customImpactFrames{{
-        {181, 608, 116, 111}, {360, 605, 128, 126},
-        {523, 606, 124, 123}, {708, 626, 85, 87}
-    }};
+	if (!sprite.getTexture() || impactFrame >= IMPACT_FRAME_COUNT) return;
 
-	const sf::IntRect& frame = customImpactFrames[impactFrame];
-	sprite.setTextureRect(frame);
-	sprite.setOrigin(frame.width * 0.5f, frame.height * 0.5f);
-	// One common scale preserves the sheet's intended progression from a
-	// small spark into the full-size final burst.
-	const float renderScale = 112.f / 128.f;
-	sprite.setScale(renderScale, renderScale);
-    sprite.setColor(sf::Color(220, 150, 255));
+	const float progress = static_cast<float>(impactFrame)
+		/ static_cast<float>(IMPACT_FRAME_COUNT - 1);
+	const float baseScale =
+		STRIKE_RENDER_WIDTH / THUNDER_STRIKE_FRAME.width;
+	const float pulseScale = baseScale * (1.f + progress * 0.45f);
+	sprite.setTextureRect(THUNDER_STRIKE_FRAME);
+	sprite.setOrigin(THUNDER_STRIKE_FRAME.width * 0.5f,
+	                 THUNDER_STRIKE_FRAME.height * 0.5f);
+	sprite.setScale(travelsRight ? pulseScale : -pulseScale,
+	                pulseScale);
+	const sf::Uint8 alpha = static_cast<sf::Uint8>(
+		255.f - progress * 160.f);
+	sprite.setColor(sf::Color(255, 255, 255, alpha));
 	sprite.setPosition(position.x + shape.getSize().x * 0.5f,
 	                   position.y + shape.getSize().y * 0.5f);
 }

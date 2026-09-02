@@ -5,7 +5,6 @@
         {
          "draworder":"topdown",
          "id":5,
-         "locked":true,
          "name":"Trigger",
          "objects":[
                 {
@@ -22,37 +21,25 @@
                  "y":512
                 }, 
                 {
-                 "height":256,
+                 "height":64,
                  "id":17,
-                 "name":"",
-                 "opacity":1,
-                 "rotation":0,
-                 "type":"end",
-                 "visible":true,
-                 "width":32,
-                 "x":3840,
-                 "y":64
-                }, 
-                {
-                 "height":672,
-                 "id":19,
                  "name":"",
                  "opacity":1,
                  "properties":[
                         {
-                         "name":"theme",
+                         "name":"goal",
                          "type":"string",
-                         "value":"underground"
+                         "value":"princess"
                         }],
                  "rotation":0,
-                 "type":"playable_region",
+                 "type":"end",
                  "visible":true,
-                 "width":1920,
-                 "x":0,
-                 "y":0
+                 "width":32,
+                 "x":3904,
+                 "y":256
                 }, 
                 {
-                 "height":672,
+                 "height":704,
                  "id":20,
                  "name":"",
                  "opacity":1,
@@ -60,7 +47,7 @@
                         {
                          "name":"theme",
                          "type":"string",
-                         "value":"underground"
+                         "value":"castle"
                         }],
                  "rotation":0,
                  "type":"boss_arena",
@@ -70,26 +57,20 @@
                  "y":0
                 }, 
                 {
-                 "height":672,
-                 "id":21,
+                 "height":704,
+                 "id":22,
                  "name":"",
                  "opacity":1,
-                 "properties":[
-                        {
-                         "name":"theme",
-                         "type":"string",
-                         "value":"underground"
-                        }],
                  "rotation":0,
                  "type":"playable_region",
                  "visible":true,
-                 "width":800,
-                 "x":3200,
+                 "width":3968,
+                 "x":0,
                  "y":0
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }, 
@@ -319,8 +300,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":22,
+ "nextlayerid":8,
+ "nextobjectid":23,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

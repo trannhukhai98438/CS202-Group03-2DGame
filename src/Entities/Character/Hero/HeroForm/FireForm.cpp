@@ -34,6 +34,10 @@ void FireForm::update(Hero* hero, float deltatime){
         && counttime >= hero->getSpecialCooldown()) {
         if (s == "Idle" || s == "Run" || s == "Jump"){
             if (hero->specialAbility()) {
+                const std::string abilitySfx = hero->getSpecialAbilitySfx();
+                if (!abilitySfx.empty()) {
+                    hero->playSFX(abilitySfx);
+                }
                 hero->playOverrideAnimation("FireSpecial", 0.3f);
                 counttime = 0.f;
                 return;

@@ -5,6 +5,7 @@
 #include "Gameplay/InteractionSystem.h"
 #include "Gameplay/WorldPhysicsSystem.h"
 #include "Managers/MapData.hpp"
+#include "Managers/SoundManager.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <cstddef>
@@ -37,6 +38,9 @@ public:
     void reload(const std::string& mapPath,
                 const std::string& tilesetPath,
                 HeroType heroType);
+    
+    void setSoundManager(SoundManager* sm);
+    SoundManager* getSoundManager() const { return m_soundManager; }
 
     LevelUpdateResult update(float deltaTime,
                              PipeDirection pipeDirection = PipeDirection::None);
@@ -50,7 +54,9 @@ public:
     float getWorldWidth() const;
     float getActiveRegionBottom() const;
     bool syncActiveRegionToHero();
+    void updateBossArenaBoundary();
     bool hasActivatedGoal() const;
+    std::string getActivatedGoalBgm() const;
     bool isReady() const;
 
     const std::string& getMapPath() const { return m_mapPath; }
@@ -73,6 +79,7 @@ private:
     bool isAlignedWithPipe(const sf::FloatRect& heroBounds,
                            const PipeRoute& route) const;
     std::size_t findPlayableRegionAt(float worldX, float worldY) const;
+    MapTheme findFallbackThemeAt(float worldX, float worldY) const;
     void setActiveRegion(std::size_t regionIndex);
     bool syncActiveRegionFromHeroMovement();
     bool isInsideActiveRegion(const sf::FloatRect& bounds) const;
@@ -81,11 +88,15 @@ private:
     std::string m_mapPath;
     std::string m_tilesetPath;
 
+    SoundManager* m_soundManager = nullptr;
+
     GameWorld m_world;
     WorldPhysicsSystem m_worldPhysics;
     InteractionSystem m_interactions;
     std::vector<MapObject> m_playableRegions;
     std::vector<PipeRoute> m_pipeRoutes;
+    MapObject m_bossArena;
+    bool m_hasBossArena{ false };
     bool m_ready{false};
     std::size_t m_activeRegionIndex{INVALID_REGION_INDEX};
     float m_activeRegionBottom{0.0f};

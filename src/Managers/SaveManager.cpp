@@ -6,6 +6,7 @@
 #include "Entities/Character/Enemy/Enemy.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Character/Enemy/EnemyStateFactory.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Entities/Item/Item.h"
@@ -15,16 +16,109 @@
 #include "Entities/Projectile/ProjectileFactory.h"
 #include "Core/Gameplay/GameWorld.h"
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
+#include <cstdlib>
+#include <filesystem>
 #include <set>
 #include <utility>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
-bool SaveManager::saveToFile(const std::string& filePath,
+namespace {
+constexpr const char* SAVE_FILE_NAME = "savegame.json";
+constexpr const char* GAME_DATA_DIRECTORY = "Custom2DPlatformer";
+
+bool isRegularFile(const std::filesystem::path& path) {
+    std::error_code error;
+    return std::filesystem::is_regular_file(path, error) && !error;
+}
+
+std::string pathForLog(const std::filesystem::path& path) {
+    try {
+        return path.u8string();
+    } catch (const std::exception&) {
+        return "<save path>";
+    }
+}
+
+#ifdef _WIN32
+std::filesystem::path getEnvironmentPath(const wchar_t* variableName) {
+    const DWORD requiredSize = GetEnvironmentVariableW(
+        variableName, nullptr, 0);
+    if (requiredSize == 0) return {};
+
+    std::vector<wchar_t> value(requiredSize);
+    const DWORD copied = GetEnvironmentVariableW(
+        variableName, value.data(), requiredSize);
+    if (copied == 0 || copied >= requiredSize) return {};
+    return std::filesystem::path(value.data());
+}
+#endif
+}
+
+std::filesystem::path SaveManager::defaultSavePath() {
+    std::filesystem::path dataRoot;
+
+#ifdef _WIN32
+    dataRoot = getEnvironmentPath(L"LOCALAPPDATA");
+    if (dataRoot.empty()) dataRoot = getEnvironmentPath(L"APPDATA");
+#elif defined(__APPLE__)
+    if (const char* userHome = std::getenv("HOME")) {
+        dataRoot = std::filesystem::path(userHome)
+            / "Library" / "Application Support";
+    }
+#else
+    if (const char* xdgDataHome = std::getenv("XDG_DATA_HOME")) {
+        dataRoot = xdgDataHome;
+    } else if (const char* userHome = std::getenv("HOME")) {
+        dataRoot = std::filesystem::path(userHome) / ".local" / "share";
+    }
+#endif
+
+    if (dataRoot.empty()) {
+        std::error_code error;
+        dataRoot = std::filesystem::current_path(error);
+        if (error) return std::filesystem::path(SAVE_FILE_NAME);
+    }
+
+    return dataRoot / GAME_DATA_DIRECTORY / SAVE_FILE_NAME;
+}
+
+std::filesystem::path SaveManager::existingSavePath() {
+    const std::filesystem::path preferred = defaultSavePath();
+    if (isRegularFile(preferred)) return preferred;
+
+    // Older builds wrote next to whichever working directory launched the
+    // game. Check that location and two parents so Debug/Release builds can
+    // still discover an existing repository-root save.
+    std::error_code error;
+    std::filesystem::path directory = std::filesystem::current_path(error);
+    if (!error) {
+        for (int depth = 0; depth <= 2 && !directory.empty(); ++depth) {
+            const std::filesystem::path legacy = directory / SAVE_FILE_NAME;
+            if (isRegularFile(legacy)) return legacy;
+
+            const std::filesystem::path parent = directory.parent_path();
+            if (parent == directory) break;
+            directory = parent;
+        }
+    }
+
+    return preferred;
+}
+
+bool SaveManager::saveToFile(const std::filesystem::path& filePath,
                            const std::string& mapPath,
                            const std::string& tilesetPath,
                            const GameWorld& world,
@@ -35,7 +129,8 @@ bool SaveManager::saveToFile(const std::string& filePath,
         return false;
     }
 
-    std::cout << "[SaveManager] Starting game save process to '" << filePath << "'...\n";
+    std::cout << "[SaveManager] Starting game save process to '"
+              << pathForLog(filePath) << "'...\n";
 
     // 1. Level & Camera Metadata
     m_saveData.mapPath = mapPath;
@@ -67,6 +162,16 @@ bool SaveManager::saveToFile(const std::string& filePath,
             eData.isGrounded = enemy->getGrounded();
             eData.aiState = enemy->getStateName();
             eData.stateTimer = enemy->getStateTimer();
+
+            if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                eData.bossHp = boss->getBossHp();
+                eData.fireCount = boss->getFireCount();
+                eData.wallBounceCount = boss->getWallBounceCount();
+                eData.shotSeq = boss->getShotSeq();
+                eData.isSkyLaunching = boss->isSkyLaunching();
+                eData.groundY = boss->getGroundY();
+            }
+
             m_saveData.aliveEnemies.push_back(eData);
         }
     }
@@ -148,7 +253,7 @@ bool SaveManager::saveToFile(const std::string& filePath,
 
     j["aliveEnemies"] = json::array();
     for (const auto& enemy : m_saveData.aliveEnemies) {
-        j["aliveEnemies"].push_back({
+        json eJson = {
             {"type", enemy.type},
             {"posX", enemy.posX},
             {"posY", enemy.posY},
@@ -159,7 +264,18 @@ bool SaveManager::saveToFile(const std::string& filePath,
             {"isGrounded", enemy.isGrounded},
             {"aiState", enemy.aiState},
             {"stateTimer", enemy.stateTimer}
-        });
+        };
+
+        if (enemy.type == "ThorKing" || enemy.type == "thorking" || enemy.type == "thor_king") {
+            eJson["bossHp"] = enemy.bossHp;
+            eJson["fireCount"] = enemy.fireCount;
+            eJson["wallBounceCount"] = enemy.wallBounceCount;
+            eJson["shotSeq"] = enemy.shotSeq;
+            eJson["isSkyLaunching"] = enemy.isSkyLaunching;
+            eJson["groundY"] = enemy.groundY;
+        }
+
+        j["aliveEnemies"].push_back(eJson);
     }
 
     j["hitBlocks"] = json::array();
@@ -200,14 +316,73 @@ bool SaveManager::saveToFile(const std::string& filePath,
         {"remainingTime", m_saveData.hud.remainingTime}
     };
 
-    std::ofstream outFile(filePath);
+    const std::filesystem::path destination(filePath);
+    if (destination.empty()) {
+        std::cerr << "[SaveManager] Error: Save path is empty.\n";
+        return false;
+    }
+
+    std::error_code fileError;
+    const std::filesystem::path parent = destination.parent_path();
+    if (!parent.empty()) {
+        std::filesystem::create_directories(parent, fileError);
+        if (fileError) {
+            std::cerr << "[SaveManager] Error creating save directory: "
+                      << fileError.message() << "\n";
+            return false;
+        }
+    }
+
+    std::filesystem::path temporary = destination;
+    temporary += ".tmp";
+    std::filesystem::remove(temporary, fileError);
+    fileError.clear();
+
+    std::ofstream outFile(temporary, std::ios::out | std::ios::trunc);
     if (!outFile.is_open()) {
-        std::cerr << "[SaveManager] Error: Could not open file for writing: " << filePath << "\n";
+        std::cerr << "[SaveManager] Error: Could not open file for writing: "
+                  << pathForLog(temporary) << "\n";
         return false;
     }
     outFile << j.dump(4);
-    
-    std::cout << "[SaveManager] Game saved successfully to '" << filePath << "'! "
+    outFile.flush();
+    if (!outFile.good()) {
+        std::cerr << "[SaveManager] Error writing save file: "
+                  << pathForLog(temporary) << "\n";
+        outFile.close();
+        std::filesystem::remove(temporary, fileError);
+        return false;
+    }
+    outFile.close();
+    if (outFile.fail()) {
+        std::cerr << "[SaveManager] Error closing save file: "
+                  << pathForLog(temporary) << "\n";
+        std::filesystem::remove(temporary, fileError);
+        return false;
+    }
+
+#ifdef _WIN32
+    const bool replaced = MoveFileExW(
+        temporary.c_str(), destination.c_str(),
+        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+    if (!replaced) {
+        std::cerr << "[SaveManager] Error replacing save file (Windows error "
+                  << GetLastError() << ").\n";
+        std::filesystem::remove(temporary, fileError);
+        return false;
+    }
+#else
+    std::filesystem::rename(temporary, destination, fileError);
+    if (fileError) {
+        std::cerr << "[SaveManager] Error replacing save file: "
+                  << fileError.message() << "\n";
+        std::filesystem::remove(temporary, fileError);
+        return false;
+    }
+#endif
+
+    std::cout << "[SaveManager] Game saved successfully to '"
+              << pathForLog(filePath) << "'! "
               << "(" << m_saveData.aliveEnemies.size() << " enemies, "
               << m_saveData.activeItems.size() << " active items, "
               << m_saveData.activeProjectiles.size() << " projectiles, "
@@ -216,103 +391,154 @@ bool SaveManager::saveToFile(const std::string& filePath,
     return true;
 }
 
-bool SaveManager::loadFromFile(const std::string& filePath, GameWorld& world) {
-    std::cout << "[SaveManager] Loading save data from file '" << filePath << "'...\n";
-    
+bool SaveManager::loadFromFile(const std::filesystem::path& filePath) {
+    std::cout << "[SaveManager] Loading save data from file '"
+              << pathForLog(filePath) << "'...\n";
+
     std::ifstream inFile(filePath);
     if (!inFile.is_open()) {
-        std::cerr << "[SaveManager] Error: Could not open save file: " << filePath << "\n";
+        std::cerr << "[SaveManager] Error: Could not open save file: "
+                  << pathForLog(filePath) << "\n";
         return false;
     }
 
-    json j;
-    try { 
-        inFile >> j; 
-    } catch (const std::exception& e) { 
-        std::cerr << "[SaveManager] Error parsing JSON file: " << e.what() << "\n";
-        return false; 
-    }
-
-    m_saveData.mapPath = j.value("mapPath", "");
-    m_saveData.tilesetPath = j.value("tilesetPath", "");
-
-    if (j.contains("hero")) {
-        auto h = j["hero"];
-        m_saveData.hero.posX = h.value("posX", 0.0f);
-        m_saveData.hero.posY = h.value("posY", 0.0f);
-        m_saveData.hero.hp = h.value("hp", 1);
-        m_saveData.hero.coin = h.value("coin", 0);
-        m_saveData.hero.heroType = h.value("heroType", "Mario");
-        m_saveData.hero.formName = h.value("formName", "SmallForm");
-        m_saveData.hero.invincibleTimer = h.value("invincibleTimer", 0.0f);
-        m_saveData.hero.isStarman = h.value("isStarman", false);
-    }
-
-    m_saveData.aliveEnemies.clear();
-    if (j.contains("aliveEnemies") && j["aliveEnemies"].is_array()) {
-        for (const auto& item : j["aliveEnemies"]) {
-            SaveData::EnemyData eData;
-            eData.type = item.value("type", "Goomba");
-            eData.posX = item.value("posX", 0.0f);
-            eData.posY = item.value("posY", 0.0f);
-            eData.velX = item.value("velX", 0.0f);
-            eData.velY = item.value("velY", 0.0f);
-            eData.direction = item.value("direction", -1);
-            eData.health = item.value("health", 1);
-            eData.isGrounded = item.value("isGrounded", true);
-            eData.aiState = item.value("aiState", "Patrol");
-            eData.stateTimer = item.value("stateTimer", -1.0f);
-            m_saveData.aliveEnemies.push_back(eData);
+    SaveData loadedData;
+    try {
+        json j;
+        inFile >> j;
+        if (!j.is_object()) {
+            throw std::runtime_error("save root must be a JSON object");
         }
-    }
 
-    m_saveData.hitBlocks.clear();
-    if (j.contains("hitBlocks") && j["hitBlocks"].is_array()) {
-        for (const auto& item : j["hitBlocks"]) {
-            m_saveData.hitBlocks.push_back({item.value("posX", 0.0f), item.value("posY", 0.0f)});
+        loadedData.mapPath = j.value("mapPath", "");
+        loadedData.tilesetPath = j.value("tilesetPath", "");
+        if (loadedData.mapPath.empty() || loadedData.tilesetPath.empty()) {
+            throw std::runtime_error("save is missing its level paths");
         }
-    }
 
-    m_saveData.destroyedBlocks.clear();
-    if (j.contains("destroyedBlocks") && j["destroyedBlocks"].is_array()) {
-        for (const auto& item : j["destroyedBlocks"]) {
-            m_saveData.destroyedBlocks.push_back({item.value("posX", 0.0f), item.value("posY", 0.0f)});
+        if (!j.contains("hero") || !j["hero"].is_object()) {
+            throw std::runtime_error("save is missing valid hero data");
         }
-    }
-
-    m_saveData.activeItems.clear();
-    if (j.contains("activeItems") && j["activeItems"].is_array()) {
-        for (const auto& item : j["activeItems"]) {
-            SaveData::ItemData iData;
-            iData.type = item.value("type", "");
-            iData.posX = item.value("posX", 0.0f);
-            iData.posY = item.value("posY", 0.0f);
-            m_saveData.activeItems.push_back(iData);
+        const auto& hero = j["hero"];
+        loadedData.hero.posX = hero.value("posX", 0.0f);
+        loadedData.hero.posY = hero.value("posY", 0.0f);
+        loadedData.hero.hp = hero.value("hp", 1);
+        loadedData.hero.coin = hero.value("coin", 0);
+        loadedData.hero.heroType = hero.value("heroType", "Mario");
+        loadedData.hero.formName = hero.value("formName", "SmallForm");
+        loadedData.hero.invincibleTimer = hero.value("invincibleTimer", 0.0f);
+        loadedData.hero.isStarman = hero.value("isStarman", false);
+        if (loadedData.hero.heroType != "Mario"
+            && loadedData.hero.heroType != "Luigi"
+            && loadedData.hero.heroType != "Flash") {
+            throw std::runtime_error("save contains an unknown hero type");
         }
-    }
 
-    m_saveData.activeProjectiles.clear();
-    if (j.contains("activeProjectiles") && j["activeProjectiles"].is_array()) {
-        for (const auto& item : j["activeProjectiles"]) {
-            SaveData::ProjectileData pData;
-            pData.type = item.value("type", "");
-            pData.posX = item.value("posX", 0.0f);
-            pData.posY = item.value("posY", 0.0f);
-            pData.velX = item.value("velX", 0.0f);
-            pData.velY = item.value("velY", 0.0f);
-            int factionInt = item.value("faction", 0);
-            pData.faction = static_cast<ProjectileFaction>(factionInt);
-            m_saveData.activeProjectiles.push_back(pData);
+        const auto requireArray = [&j](const char* key) -> const json* {
+            if (!j.contains(key)) return nullptr;
+            if (!j[key].is_array()) {
+                throw std::runtime_error(std::string("save field '")
+                    + key + "' must be an array");
+            }
+            return &j[key];
+        };
+
+        if (const json* enemies = requireArray("aliveEnemies")) {
+            for (const auto& item : *enemies) {
+                if (!item.is_object()) {
+                    throw std::runtime_error("enemy save entry must be an object");
+                }
+                SaveData::EnemyData enemy;
+                enemy.type = item.value("type", "Goomba");
+                enemy.posX = item.value("posX", 0.0f);
+                enemy.posY = item.value("posY", 0.0f);
+                enemy.velX = item.value("velX", 0.0f);
+                enemy.velY = item.value("velY", 0.0f);
+                enemy.direction = item.value("direction", -1);
+                enemy.health = item.value("health", 1);
+                enemy.isGrounded = item.value("isGrounded", true);
+                enemy.aiState = item.value("aiState", "Patrol");
+                enemy.stateTimer = item.value("stateTimer", -1.0f);
+                enemy.bossHp = item.value("bossHp", 3);
+                enemy.fireCount = item.value("fireCount", 0);
+                enemy.wallBounceCount = item.value("wallBounceCount", 0);
+                enemy.shotSeq = item.value("shotSeq", 0);
+                enemy.isSkyLaunching = item.value("isSkyLaunching", false);
+                enemy.groundY = item.value("groundY", 0.0f);
+                loadedData.aliveEnemies.push_back(enemy);
+            }
         }
+
+        const auto loadBlocks = [&requireArray](
+                const char* key,
+                std::vector<SaveData::BlockPosition>& destination) {
+            if (const json* blocks = requireArray(key)) {
+                for (const auto& item : *blocks) {
+                    if (!item.is_object()) {
+                        throw std::runtime_error("block save entry must be an object");
+                    }
+                    destination.push_back({
+                        item.value("posX", 0.0f),
+                        item.value("posY", 0.0f)
+                    });
+                }
+            }
+        };
+        loadBlocks("hitBlocks", loadedData.hitBlocks);
+        loadBlocks("destroyedBlocks", loadedData.destroyedBlocks);
+
+        if (const json* items = requireArray("activeItems")) {
+            for (const auto& item : *items) {
+                if (!item.is_object()) {
+                    throw std::runtime_error("item save entry must be an object");
+                }
+                loadedData.activeItems.push_back({
+                    item.value("type", ""),
+                    item.value("posX", 0.0f),
+                    item.value("posY", 0.0f)
+                });
+            }
+        }
+
+        if (const json* projectiles = requireArray("activeProjectiles")) {
+            for (const auto& item : *projectiles) {
+                if (!item.is_object()) {
+                    throw std::runtime_error("projectile save entry must be an object");
+                }
+                SaveData::ProjectileData projectile;
+                projectile.type = item.value("type", "");
+                projectile.posX = item.value("posX", 0.0f);
+                projectile.posY = item.value("posY", 0.0f);
+                projectile.velX = item.value("velX", 0.0f);
+                projectile.velY = item.value("velY", 0.0f);
+                const int faction = item.value("faction", 0);
+                if (faction < 0 || faction > 1) {
+                    throw std::runtime_error("projectile has an invalid faction");
+                }
+                projectile.faction = static_cast<ProjectileFaction>(faction);
+                loadedData.activeProjectiles.push_back(projectile);
+            }
+        }
+
+        if (j.contains("hud")) {
+            if (!j["hud"].is_object()) {
+                throw std::runtime_error("save contains invalid HUD data");
+            }
+            const auto& hud = j["hud"];
+            loadedData.hud.score = hud.value("score", 0);
+            loadedData.hud.coins = hud.value("coins", 0);
+            loadedData.hud.lives = hud.value("lives", 3);
+            loadedData.hud.remainingTime = hud.value(
+                "remainingTime", 300.0f);
+        }
+    } catch (const std::exception& e) {
+        m_saveData = SaveData{};
+        std::cerr << "[SaveManager] Error parsing save file: "
+                  << e.what() << "\n";
+        return false;
     }
 
-    if (j.contains("hud")) {
-        auto h = j["hud"];
-        m_saveData.hud.score = h.value("score", 0);
-        m_saveData.hud.coins = h.value("coins", 0);
-        m_saveData.hud.lives = h.value("lives", 3);
-        m_saveData.hud.remainingTime = h.value("remainingTime", 300.0f);
-    }
+    m_saveData = std::move(loadedData);
 
     std::cout << "[SaveManager] Save data loaded into memory successfully!\n";
     return true;
@@ -396,7 +622,6 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
         }
     }
 
-    // Xóa thực thể đã inactive ra khỏi vector world.blocks()
     world.removeInactiveEntities();
 
     std::cout << "[SaveManager] Restored " << hitBlockCount << " hit blocks, removed " 
@@ -429,13 +654,31 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
             enemy->setDirection(dir);
             enemy->setHealth(eData.health);
             enemy->setPosition({eData.posX, eData.posY});
-
-            enemy->setVelocity({eData.velX, eData.velY});
             enemy->setGrounded(eData.isGrounded);
 
-            auto restoredState = EnemyStateFactory::createStateFromString(eData.aiState, eData.stateTimer);
-            if (restoredState) {
-                enemy->changeState(std::move(restoredState));
+            if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                boss->restoreBossState(
+                    eData.bossHp, 
+                    eData.fireCount, 
+                    eData.wallBounceCount, 
+                    eData.shotSeq, 
+                    eData.isSkyLaunching, 
+                    eData.groundY
+                );
+                
+                boss->changeState(std::make_unique<TKPatrolState>(2.0f));
+
+                if (std::abs(eData.velY) > 0.01f) {
+                    boss->setVelocity({ boss->getVelocity().x, eData.velY });
+                }
+            } 
+            else {
+                auto restoredState = EnemyStateFactory::createStateFromString(eData.aiState, eData.stateTimer);
+                if (restoredState) {
+                    enemy->changeState(std::move(restoredState));
+                }
+                
+                enemy->setVelocity({eData.velX, eData.velY});
             }
 
             world.addEnemy(std::move(enemy));
