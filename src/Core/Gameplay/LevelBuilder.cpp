@@ -259,7 +259,11 @@ bool LevelBuilder::build(GameWorld& world,
                 spawnCallback);
         } else if (spawner.className == "thorking"
                    || spawner.className == "ThorKing"
-                   || spawner.className == "thor_king") {
+                   || spawner.className == "thor_king"
+                   || spawner.className == "boss"
+                   || spawner.className == "Boss") {
+            // Level 1-3 uses the generic boss marker at the end of its
+            // dedicated boss_arena. ThorKing is the current level boss.
             enemy = EnemyFactory::createEnemy(
                 EnemyType::ThorKing, spawner.x, spawner.y, 150.f,
                 spawnCallback);

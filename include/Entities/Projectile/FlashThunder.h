@@ -2,7 +2,6 @@
 
 #include "Entities/Character/Enemy/Projectile.h"
 
-#include <array>
 #include <unordered_set>
 
 class FlashThunder : public Projectile {
@@ -15,11 +14,8 @@ private:
 	float frameTimer{0.f};
 	std::size_t impactFrame{0};
 	bool damageWindowOpen{false};
+	bool travelsRight{true};
 	std::unordered_set<const Character*> hitTargets;
-	const std::array<sf::IntRect, 4> impactFrames{{
-		{455, 280, 90, 228}, {455, 280, 90, 228},
-		{455, 280, 90, 228}, {455, 280, 90, 228}
-	}};
 
 	void enterImpact();
 	void applyImpactFrame();
