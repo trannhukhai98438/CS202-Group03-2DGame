@@ -18,7 +18,7 @@ inline constexpr std::array<LevelDefinition, 3> LEVELS = {{
      "WORLD 1-1", "1-1"},
     {"2", "WORLD 1-2", "READY", "assets/maps/levels/1-2.tmj",
      "WORLD 1-2", "1-2"},
-    {"3", "WORLD 1-3", "IN DEVELOPMENT",
+    {"3", "WORLD 1-3", "READY",
      "assets/maps/levels/1-3.tmj", "WORLD 1-3", "1-3"}
 }};
 

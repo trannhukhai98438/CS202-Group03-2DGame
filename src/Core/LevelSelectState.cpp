@@ -69,7 +69,7 @@ LevelSelectState::LevelSelectState() {
 
         card.status.setFont(m_font);
         card.status.setString(option.status);
-        card.status.setCharacterSize(i == 2 ? 13 : 16);
+        card.status.setCharacterSize(16);
         centerText(card.status, {xPositions[i], 445.f});
     }
 
@@ -202,11 +202,9 @@ void LevelSelectState::refreshAppearance() {
             ? sf::Color(135, 25, 20) : sf::Color::White;
         card.number.setFillColor(labelColor);
         card.name.setFillColor(labelColor);
-        card.status.setFillColor(i == 2
-            ? (selected ? sf::Color(150, 35, 25)
-                        : sf::Color(255, 190, 70))
-            : (selected ? sf::Color(30, 105, 55)
-                        : sf::Color(135, 235, 165)));
+        card.status.setFillColor(selected
+            ? sf::Color(30, 105, 55)
+            : sf::Color(135, 235, 165));
     }
 
     const auto styleButton = [](sf::RectangleShape& button,
