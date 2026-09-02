@@ -2,6 +2,7 @@
 
 #include "Entities/Block/Block.h"
 #include "Entities/Character/Enemy/Enemy.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Character/Enemy/Projectile.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroState/IdleState.h"
@@ -48,6 +49,11 @@ LevelRuntime::LevelRuntime(const std::string& mapPath,
         cachePlayableRegions();
         cachePipeRoutes();
         syncActiveRegionToHero();
+        std::vector<MapObject> bossArenas = m_world.levelManager().getObjectsByClass("Trigger", "boss_arena");
+        if (!bossArenas.empty()) {
+            m_bossArena = bossArenas[0];
+            m_hasBossArena = true;
+        }
     }
 }
 
@@ -73,6 +79,11 @@ void LevelRuntime::reload(const std::string& mapPath,
         cachePlayableRegions();
         cachePipeRoutes();
         syncActiveRegionToHero();
+        std::vector<MapObject> bossArenas = m_world.levelManager().getObjectsByClass("Trigger", "boss_arena");
+        if (!bossArenas.empty()) {
+            m_bossArena = bossArenas[0];
+            m_hasBossArena = true;
+        }
     }
 }
 
@@ -124,6 +135,8 @@ LevelUpdateResult LevelRuntime::update(float deltaTime,
 
     m_worldPhysics.update(m_world, deltaTime);
     result.scoreDelta = m_interactions.resolve(m_world);
+
+    updateBossArenaBoundary();
 
     // Pipe entrances are checked after collision resolution so the Hero has
     // already been snapped exactly onto the pipe mouth. A successful travel
@@ -528,6 +541,47 @@ float LevelRuntime::getRegionBottom(std::size_t regionIndex) const {
 
     return static_cast<float>(
         m_world.levelManager().getMapHeightPixels());
+}
+
+void LevelRuntime::updateBossArenaBoundary()
+{
+    if (!m_hasBossArena)
+        return;
+
+    Hero* hero = m_world.hero();
+    if (!hero || hero->isDead())
+        return;
+
+    ThorKing* boss = nullptr;
+
+    for (const auto& enemy : m_world.enemies()) {
+        if (!enemy)
+            continue;
+
+        boss = dynamic_cast<ThorKing*>(enemy.get());
+
+        if (boss)
+            break;
+    }
+
+    // Boss đã chết → không còn giới hạn
+    if (!boss || !boss->getIsAlive())
+        return;
+
+    const sf::FloatRect heroBounds = hero->getBounds();
+
+    const float arenaRight =
+        m_bossArena.x + m_bossArena.width;
+
+    const float heroRight =
+        heroBounds.left + heroBounds.width;
+
+    if (heroRight > arenaRight) {
+        hero->setPosition(
+            arenaRight - heroBounds.width,
+            hero->getPosition().y
+        );
+    }
 }
 
 bool LevelRuntime::hasActivatedGoal() const {

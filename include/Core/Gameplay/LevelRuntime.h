@@ -57,6 +57,7 @@ public:
     float getWorldWidth() const;
     float getActiveRegionBottom() const;
     bool syncActiveRegionToHero();
+    void updateBossArenaBoundary();
     bool hasActivatedGoal() const;
     std::string getActivatedGoalBgm() const;
     bool isReady() const;
@@ -97,6 +98,8 @@ private:
     InteractionSystem m_interactions;
     std::vector<MapObject> m_playableRegions;
     std::vector<PipeRoute> m_pipeRoutes;
+    MapObject m_bossArena;
+    bool m_hasBossArena{ false };
     bool m_ready{false};
     std::size_t m_activeRegionIndex{INVALID_REGION_INDEX};
     float m_activeRegionBottom{0.0f};
