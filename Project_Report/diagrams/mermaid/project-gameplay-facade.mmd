@@ -1,0 +1,46 @@
+classDiagram
+direction TB
+class PlayingState {
+  -camera
+  -hud
+  -levelRuntime
+}
+class LevelRuntime {
+  <<Facade>>
+  +update(dt)
+  +renderWorld(window)
+  +getActiveRegion()
+}
+class GameWorld {
+  +hero
+  +blocks
+  +items
+  +enemies
+  +projectiles
+  +goals
+}
+class LevelBuilder { +build(world, map) }
+class WorldPhysicsSystem { +update(world, dt) }
+class InteractionSystem { +resolve(world) }
+class LevelManager
+class BlockThemePalette
+class Hero
+class Block
+class Item
+class Enemy
+class Projectile
+class LevelGoal
+
+PlayingState "1" *-- "1" LevelRuntime
+LevelRuntime "1" *-- "1" GameWorld
+LevelRuntime "1" *-- "1" WorldPhysicsSystem
+LevelRuntime "1" *-- "1" InteractionSystem
+LevelBuilder ..> GameWorld : builds / rebuilds
+GameWorld "1" *-- "1" LevelManager
+GameWorld "1" *-- "1" BlockThemePalette
+GameWorld "1" o-- "0..1" Hero
+GameWorld "1" o-- "many" Block
+GameWorld "1" o-- "many" Item
+GameWorld "1" o-- "many" Enemy
+GameWorld "1" o-- "many" Projectile
+GameWorld "1" o-- "many" LevelGoal

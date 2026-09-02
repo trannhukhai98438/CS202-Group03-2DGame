@@ -1,0 +1,32 @@
+classDiagram
+direction TB
+class Game {
+  -stateStack
+  +applyPendingStateAction()
+}
+class State {
+  <<State>>
+  +processEvents(event)
+  +update(dt)
+  +render(window)
+  +rendersBelow() bool
+}
+class MainMenuState
+class PlayingState
+class PausedState { <<overlay>> }
+class VictoryState { <<overlay>> }
+class TransitionState
+class GameOverState
+
+Game "1" o-- "many" State : owns
+State <|-- MainMenuState
+State <|-- PlayingState
+State <|-- PausedState
+State <|-- VictoryState
+State <|-- TransitionState
+State <|-- GameOverState
+MainMenuState ..> TransitionState : navigate
+TransitionState ..> PlayingState
+PlayingState ..> PausedState : push overlay
+PlayingState ..> VictoryState : goal
+PlayingState ..> GameOverState : defeat

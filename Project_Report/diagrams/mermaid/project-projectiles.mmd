@@ -1,0 +1,44 @@
+classDiagram
+direction TB
+class Projectile {
+  <<abstract>>
+  -position
+  -velocity
+  -damage
+  -faction
+  -alive
+  +update(dt)
+  +onImpact()
+}
+class MarioFireball {
+  +bounce()
+  +explode()
+}
+class LuigiWaterBomb {
+  +beginSplash()
+}
+class FlashThunder {
+  +beginImpact()
+}
+class Potion {
+  +beginPuddle()
+}
+class ProjectileFactory {
+  +createProjectile(type) Projectile
+}
+class ProjectileFaction {
+  <<enumeration>>
+  Hero
+  Enemy
+}
+class Hero
+class Enemy
+
+Projectile <|-- MarioFireball
+Projectile <|-- LuigiWaterBomb
+Projectile <|-- FlashThunder
+Projectile <|-- Potion
+ProjectileFactory ..> Projectile : creates
+Projectile --> ProjectileFaction
+ProjectileFaction ..> Enemy : Hero targets
+ProjectileFaction ..> Hero : Enemy targets

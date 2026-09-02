@@ -1,0 +1,17 @@
+classDiagram
+direction TB
+class LevelGoal {
+  <<interface>>
+  +tryActivate(hero) bool
+  +getTriggerBounds()
+  +getScore() int
+}
+class Flag { +scoreByHeight(heroY) }
+class Princess { +rescueScore }
+class Hero
+class InteractionSystem
+
+LevelGoal <|.. Flag
+LevelGoal <|.. Princess
+InteractionSystem --> LevelGoal : tests activation
+LevelGoal ..> Hero : activates for

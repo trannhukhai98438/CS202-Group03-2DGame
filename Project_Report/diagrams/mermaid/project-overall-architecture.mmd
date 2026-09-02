@@ -1,0 +1,18 @@
+flowchart TB
+    Bootstrap["main.cpp<br/>Bootstrap"] --> Game["Game<br/><b>Singleton application shell</b><br/>window · fixed loop · audio · selections"]
+    Game --> Stack["State stack<br/>menus · selection · play · overlays"]
+    Stack --> Playing["PlayingState<br/>camera · HUD · presentation"]
+    Playing --> Runtime["LevelRuntime<br/><b>Gameplay facade</b>"]
+    Runtime --> World["GameWorld<br/>entity ownership"]
+    Runtime --> Physics["WorldPhysicsSystem<br/>movement and solids"]
+    Runtime --> Interaction["InteractionSystem<br/>gameplay contacts"]
+    World --> Data["Level and map data"]
+    World --> Entities["Polymorphic entities"]
+    World -. events .-> Audio["SoundManager"]
+
+    classDef core fill:#EAF2FF,stroke:#2F75B5,color:#17324D,stroke-width:2px
+    classDef gameplay fill:#EAF8F0,stroke:#3B8D63,color:#173A2B,stroke-width:2px
+    classDef support fill:#FFF3D6,stroke:#C88A18,color:#4B350A,stroke-width:1.5px
+    class Game,Stack,Playing core
+    class Runtime,World,Physics,Interaction gameplay
+    class Bootstrap,Data,Entities,Audio support

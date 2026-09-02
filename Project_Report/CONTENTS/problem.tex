@@ -1,0 +1,195 @@
+\section{Technical Problems and Solutions}
+\label{sec:technical_problems_and_solutions}
+
+During the development, architectural refactoring, and feature expansion of the 2D Platformer engine, several critical technical challenges emerged across the \textbf{Animation Subsystem}, \textbf{Finite State Machine (FSM)}, \textbf{Object-Oriented Hierarchy}, \textbf{World Physics Engine}, and \textbf{State Persistence Architecture}. This section details the most prominent engineering bottlenecks encountered and the mathematical, algorithmic, and architectural solutions designed to resolve them.
+
+% =========================================================================
+% SECTION 4.1
+% =========================================================================
+\subsection{Sprite Origin Misalignment and Center-of-Mass Jittering}
+\label{subsec:sprite_misalignment}
+
+\subsubsection{Problem Formulation}
+When integrating high-resolution, non-uniform sprite sheets for advanced character forms (e.g., \textit{Epic Archmage Flash}, \textit{Fire Mario}, and \textit{Kitsune Luigi}), significant visual anomalies were observed during gameplay:
+\begin{enumerate}
+    \item \textbf{Horizontal Jerking / Positional Sliding:} Transitioning between discrete animation states (e.g., $\text{Idle} \rightarrow \text{Run} \rightarrow \text{Special Skill}$) caused characters to abruptly shift horizontally across the terrain.
+    \item \textbf{Limb and Prop Truncation:} Attempting to eliminate jitter by tightly cropping sprite bounding boxes inadvertently severed character extremities (such as Mario's outstretched casting arm or Luigi's bushy fox tail).
+\end{enumerate}
+
+The root cause originated from the generic origin assignment implemented in the rendering utility:
+\begin{equation}
+    \mathbf{O}_{\text{generic}} = \left( \frac{W_{\text{rect}}}{2}, \; H_{\text{rect}} \right)
+\end{equation}
+Because character silhouettes within tight rectangular bounds ($W_{\text{rect}}$) are geometrically asymmetric, the bounding box midpoint $\frac{W_{\text{rect}}}{2}$ deviated substantially from the character's physical vertical anchor axis (the physical center of mass, $CM_x$), generating an instantaneous visual displacement upon every state transition.
+
+\subsubsection{Engineering Solution}
+Rather than compromising asset integrity through tight cropping or polluting the core engine with hardcoded per-frame offsets, an automated \textbf{Mathematical Center-of-Mass ($CM$) Padding Algorithm} was formulated and executed via image-processing scripts.
+
+\paragraph{1. Center of Mass Computation:} For an arbitrary frame sub-region of width $W$ and height $H$, the horizontal center of mass is computed across all opaque body pixels:
+\begin{equation}
+    CM_x = \frac{\sum_{y=Y_{\min}}^{Y_{\max}} \sum_{x=X_{\min}}^{X_{\max}} x \cdot \mathbb{I}(\alpha(x, y) > \tau)}{\sum_{y=Y_{\min}}^{Y_{\max}} \sum_{x=X_{\min}}^{X_{\max}} \mathbb{I}(\alpha(x, y) > \tau)}
+\end{equation}
+where $\alpha(x, y) \in [0, 255]$ represents the pixel alpha channel, $\tau = 25$ is the opacity threshold, and $\mathbb{I}(\cdot)$ is the indicator function.
+
+\paragraph{2. Symmetric Geometric Padding:} Given the calculated anchor $CM_x$ and the true visual bounds $[X_{\min}, X_{\max}]$, symmetric transparent space is injected to force the geometric midpoint to coincide with $CM_x$:
+\begin{equation}
+    X_{\text{rect}}, W_{\text{rect}} = 
+    \begin{cases} 
+        \left( X_{\min}, \; 2 \cdot (CM_x - X_{\min}) \right) & \text{if } CM_x \ge \frac{X_{\min} + X_{\max}}{2} \\
+        \left( 2 \cdot CM_x - X_{\max}, \; 2 \cdot (X_{\max} - CM_x) \right) & \text{if } CM_x < \frac{X_{\min} + X_{\max}}{2}
+    \end{cases}
+\end{equation}
+This formulation guarantees that the origin $\frac{W_{\text{rect}}}{2}$ remains strictly aligned with the character's physical foot position ($100\%$ jitter elimination) while preserving all extended visual effects and staff/tail animations.
+
+% =========================================================================
+% SECTION 4.2
+% =========================================================================
+\subsection{Finite State Machine (FSM) Oscillation and Frame Freezing}
+\label{subsec:fsm_oscillation}
+
+\subsubsection{Problem Formulation}
+During locomotion testing, characters exhibited a severe defect where holding the movement keys caused the sprite to freeze on a single static frame while translating across the floor (appearing to ``skate'' without playing the stride animation).
+
+Code inspection of the locomotion state machine (\texttt{RunState.cpp}) revealed an unguarded velocity threshold check:
+\begin{equation}
+    \text{if } (|v_x| < v_{\text{stop}}) \implies \text{Transition to } \mathtt{IdleState}
+\end{equation}
+When accelerating from rest, initial horizontal velocity $v_x$ initiates at $0.0\,\text{px/s}$, which is strictly below $v_{\text{stop}} = 8.0\,\text{px/s}$. Consequently, on every frame:
+\begin{enumerate}
+    \item \texttt{IdleState} detected keypress $\rightarrow$ transitioned to \texttt{RunState}.
+    \item On the immediate subsequent tick, \texttt{RunState} detected $|v_x| < 8.0\,\text{px/s}$ $\rightarrow$ prematurely reverted to \texttt{IdleState}.
+    \item This high-frequency state oscillation continuously triggered \texttt{Hero::setState()}, resetting the animation accumulator ($\mathtt{currentFrameIndex} = 0$), permanently locking the character on Frame 0.
+\end{enumerate}
+
+\subsubsection{Engineering Solution}
+The transition guard was redesigned to decouple player intentionality from instantaneous kinematic magnitude by constructing a composite boolean invariant:
+\begin{equation}
+    \text{Transition}(\mathtt{RunState} \rightarrow \mathtt{IdleState}) \iff \left( \neg \mathtt{pressLeft} \land \neg \mathtt{pressRight} \right) \land \left( |v_x| < v_{\text{stop}} \right)
+\end{equation}
+This condition ensures that as long as directional input remains active, the FSM remains locked in \texttt{RunState}, allowing uninterrupted animation frame delta accumulation and fluid multi-frame locomotion.
+
+% =========================================================================
+% SECTION 4.3
+% =========================================================================
+\subsection{Elimination of Hardcoded Ground Constraints via Dynamic Gravity Kinematics}
+\label{subsec:dynamic_gravity}
+
+\subsubsection{Problem Formulation}
+In early engine iterations, physical entities (including power-up items such as \textit{Mushrooms} and \textit{Flowers}, dynamic throwables such as \textit{Potions}, and spawned \textit{Enemies}) relied on static, hardcoded vertical offsets ($Y$-coordinates) mapped to flat ground planes. This introduced severe structural fragility:
+\begin{itemize}
+    \item When deploying multi-tier levels (such as underground rooms, floating platforms, and elevated pipe structures in World 1-1 and World 1-3), entities spawned with fixed parameters either hovered in mid-air or intersected solid terrain blocks.
+    \item Kinematic item trajectories (e.g., mushrooms popping out of Question Blocks) lacked realistic arc landing mechanics across irregular terrain contours.
+\end{itemize}
+
+\subsubsection{Engineering Solution}
+To enforce map-agnostic behavior, static spatial assumptions were eliminated in favor of a \textbf{Unified Dynamic Gravity and AABB Collision Resolution Subsystem} within \texttt{WorldPhysicsSystem}:
+
+\paragraph{1. Kinematic Velocity Integration:} Every dynamic entity updates vertical velocity under constant gravitational acceleration:
+\begin{align}
+    v_y(t + \Delta t) &= \min\left(v_y(t) + g \cdot \Delta t, \; v_{\text{terminal}}\right) \\
+    y(t + \Delta t) &= y(t) + v_y(t + \Delta t) \cdot \Delta t
+\end{align}
+where $g = 1568\,\text{px/s}^2$ and $v_{\text{terminal}} = 960\,\text{px/s}$ prevents collision tunneling through thin tile boundaries.
+
+\paragraph{2. Continuous Ground Snapping:} During vertical collision passes against the terrain grid, ground contact is resolved dynamically:
+\begin{equation}
+    \text{if } \text{CollisionSide} == \mathtt{Top} \implies 
+    \begin{cases}
+        y_{\text{resolved}} = y_{\text{tile\_top}} - H_{\text{hitbox}} \\
+        v_y = 0 \\
+        \mathtt{isGrounded} = \text{true}
+    \end{cases}
+\end{equation}
+This mathematical resolution guarantees that all characters, dropped items, and projectiles dynamically conform to arbitrary terrain topography with zero manual configuration.
+
+% =========================================================================
+% SECTION 4.4
+% =========================================================================
+\subsection{Polymorphic Multi-Tier Hero Evolution and Texture Routing}
+\label{subsec:polymorphic_evolution}
+
+\subsubsection{Problem Formulation}
+Procedural texture loading in \texttt{HeroForm} subclasses previously invoked \texttt{hero->loadTexture(baseTexturePath)} directly upon entry. When integrating heroes with independent asset sets (e.g., \textit{Flash} utilizing \texttt{thunderflash2.png} or \textit{Luigi} utilizing \texttt{KitsuneLuigi.png}), procedural transitions caused texture coordinate mismatches and skipped growth forms, violating the \textbf{Open/Closed Principle (OCP)}.
+
+\subsubsection{Engineering Solution}
+The evolution subsystem was refactored using the \textbf{State/Strategy Pattern}:
+\begin{enumerate}
+    \item \textbf{Polymorphic Texture Dispatch:} Overrode \texttt{Hero::loadTexture()} in specialized classes to dynamically resolve resource bindings based on active form state.
+    \item \textbf{Decoupled Multi-Tier Scaling:} Implemented independent rendering scale metrics:
+    \begin{equation}
+        S_{\text{render}} = 
+        \begin{cases} 
+            S_{\text{small}} & \text{if } \mathtt{Form} == \text{Small} \quad (32\times 32\,\text{px hitbox}) \\
+            S_{\text{giant}} & \text{if } \mathtt{Form} == \text{Giant} \quad (32\times 64\,\text{px hitbox}) \\
+            S_{\text{special}} & \text{if } \mathtt{Form} == \text{Fire/Special} \quad (32\times 64\,\text{px hitbox})
+        \end{cases}
+    \end{equation}
+    \item \textbf{Uniform 3-Tier Hierarchy:} Standardized progression across all playable heroes: $\text{Small Form} \xrightarrow{\text{Mushroom}} \text{Giant Form} \xrightarrow{\text{Flower}} \text{Tier-3 Special Form}$.
+\end{enumerate}
+
+% =========================================================================
+% SECTION 4.5
+% =========================================================================
+\subsection{World State Serialization and Dynamic Deserialization (Save/Load)}
+\label{subsec:save_load_architecture}
+
+\subsubsection{Problem Formulation}
+Implementing persistent world serialization (\texttt{F5} Quick Save, \texttt{F9} Quick Load) required capturing a heterogeneous runtime state containing:
+\begin{itemize}
+    \item Dynamic entities (enemies with remaining state timers, active projectiles, roaming items).
+    \item Spatial world modifications (permanently hit question blocks, shattered brick blocks removed from the collision matrix).
+    \item Player inventory, form type, invincibility I-frames, and HUD progress metrics.
+\end{itemize}
+
+\subsubsection{Engineering Solution}
+A \textbf{Base Level Reload $\rightarrow$ State Overlay Pipeline} was engineered within \texttt{SaveManager} using JSON serialization:
+\begin{enumerate}
+    \item \textbf{Phase 1: Deterministic Base Reload:} \texttt{LevelRuntime::reload()} re-instantiates the raw TMX/TMJ tile matrix and baseline colliders.
+    \item \textbf{Phase 2: Dynamic State Overlay:}
+    \begin{itemize}
+        \item \textbf{Tile Matrix Mutation:} Querying coordinates $(T_x, T_y)$ against serialized \texttt{destroyedBlocks} updates the interactive vertex mesh via \texttt{setTileID("Interactive", tx, ty, 0)}.
+        \item \textbf{Polymorphic Entity Reconstruction:} \texttt{EnemyFactory} and \texttt{EnemyStateFactory} reconstruct surviving enemies with precise velocity vectors and remaining AI timers (e.g., maintaining a Koopa shell's retreat countdown).
+        \item \textbf{Hero State Restoration:} Re-injects exact health, coin count, form name, and remaining invulnerability duration.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Dynamic Spatial Partitioning via Playable Regions and Context-Aware Theming}
+\label{subsec:playable_regions}
+\subsubsection{Problem Formulation}
+In traditional monolithic 2D platformers, levels often encompass multiple distinct sub-environments within a single continuous tilemap (e.g., the sunny Overworld surface alongside subterranean coin chambers or deep castle arenas). Managing such multi-room levels through a single global coordinate system created three critical architectural bottlenecks:
+\begin{enumerate}
+    \item \textbf{Camera Viewport Bleeding:} A naive player-following camera easily drifted out of room boundaries, exposing unrendered void areas, black borders, or adjacent hidden rooms on the screen.
+    \item \textbf{Static Pit-Death Invalidation:} In early iterations, the ``pit-fall'' death boundary was defined as a single hardcoded global horizontal line ($Y_{\text{death}} = Y_{\text{global\_bottom}}$). When a player entered an elevated room or a deep underground chamber situated far below the main level surface, this static threshold caused either \textit{instantaneous false deaths upon entering lower rooms} or \textit{unbounded falling through infinite space} without triggering character death.
+    \item \textbf{Heterogeneous Environmental Theming:} Objects, terrain tiles, and background visual styles (e.g., vibrant Overworld vs. dark blue Underground vs. molten Castle) required dynamic context-aware rendering based strictly on the player's active containment zone.
+\end{enumerate}
+\subsubsection{Engineering Solution}
+To resolve these spatial and visual conflicts, the engine implemented a **Data-Driven Dynamic Spatial Partitioning Architecture** based on decoupled \texttt{PlayableRegion} bounding zones and active \texttt{Theme} identifiers parsed dynamically from Tiled map triggers:
+\paragraph{1. Spatial Zone Partitioning:} Each distinct chamber within the map is encapsulated by a geometric bounding volume:
+\begin{equation}
+    \mathcal{R}_k = \left\{ (x, y) \in \mathbb{R}^2 \;\middle|\; X_k^{\min} \le x \le X_k^{\max}, \; Y_k^{\min} \le y \le Y_k^{\max} \right\}
+\end{equation}
+The engine tracks the hero's position $\mathbf{P}_{\text{hero}}(t)$ and dynamically resolves the active region:
+\begin{equation}
+    \mathcal{R}_{\text{active}}(t) = \left\{ \mathcal{R}_k \;\middle|\; \mathbf{P}_{\text{hero}}(t) \in \mathcal{R}_k \right\}
+\end{equation}
+\paragraph{2. Constrained Camera Viewport Clamping:} The game camera dynamically clamps its center $(C_x, C_y)$ to ensure that the rendering viewport of dimension $(W_{\text{cam}}, H_{\text{cam}})$ never exposes out-of-bounds void:
+\begin{align}
+    C_x &= \text{clamp}\left( P_{\text{hero}, x}, \; X_k^{\min} + \frac{W_{\text{cam}}}{2}, \; X_k^{\max} - \frac{W_{\text{cam}}}{2} \right) \\
+    C_y &= \text{clamp}\left( P_{\text{hero}, y}, \; Y_k^{\min} + \frac{H_{\text{cam}}}{2}, \; Y_k^{\max} - \frac{H_{\text{cam}}}{2} \right)
+\end{align}
+\paragraph{3. Dynamic Context-Aware Kill Planes:} Rather than relying on a static coordinate, the lethal pit threshold ($Y_{\text{kill}}$) for both the Hero and Enemies is computed dynamically relative to the active region's bottom boundary:
+\begin{equation}
+    Y_{\text{kill}}(\mathcal{R}_k) = Y_k^{\max} + \delta_{\text{threshold}}
+\end{equation}
+where $\delta_{\text{threshold}}$ represents the vertical grace offset before triggering \texttt{Hero::die()} or enemy entity deallocation. When traveling through pipes into an underground cavern, $Y_{\text{kill}}$ instantly re-binds to the subterranean floor baseline.
+\paragraph{4. Context-Driven Visual and Audio Theming:} Each $\mathcal{R}_k$ is mapped to a dedicated environmental descriptor (\texttt{Theme::Overworld}, \texttt{Theme::Underground}, \texttt{Theme::Castle}):
+\begin{equation}
+    \mathcal{T}_{\text{render}} = f(\mathcal{R}_{\text{active}}) \implies 
+    \begin{cases}
+        \text{Background Asset \& Clear Color Binding} \\
+        \text{Interactive Object / Palette Shader Dispatch} \\
+        \text{Background Music (BGM) Stream Switching}
+    \end{cases}
+\end{equation}
+\subsubsection{Resulting Impact}
+This architecture completely eliminates camera visual bleeding across room transitions, guarantees mathematical accuracy for pit-fall death detection across arbitrary multi-tier map layouts, and enables rich, heterogeneous environmental theming within a single seamless level file.   

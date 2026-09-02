@@ -1,0 +1,18 @@
+classDiagram
+direction LR
+class main_cpp { <<bootstrap>> }
+class Game {
+  <<Singleton>>
+  -window
+  -states
+  -soundManager
+  -selectedHero
+  -selectedLevel
+  -Game()
+  +getInstance() Game
+  +run()
+  +pushState(state)
+  +popState()
+  +changeState(state)
+}
+main_cpp ..> Game : getInstance()

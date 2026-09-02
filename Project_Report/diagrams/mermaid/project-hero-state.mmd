@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Run: horizontal input
+    Run --> Idle: released / slowed
+    Idle --> Jump: jump
+    Run --> Jump: jump
+    Jump --> Idle: land without input
+    Jump --> Run: land while moving
+    Idle --> Sit: crouch while powered
+    Run --> Slide: fast direction reversal
+    Slide --> Idle: slowed
+    Sit --> Idle: stand
+    Idle --> Grow: Small + Mushroom
+    Run --> Grow: Small + Mushroom
+    Grow --> Idle: install Giant form
+    Idle --> Shrink: Giant / Fire damaged
+    Run --> Shrink: Giant / Fire damaged
+    Shrink --> Idle: install Small form
+    Idle --> Dead: lethal event
+    Run --> Dead: lethal event
+    Jump --> Dead: lethal event
+    Idle --> Cheer: goal activated
+    Run --> Cheer: goal activated
+    Dead --> [*]
+    Cheer --> [*]

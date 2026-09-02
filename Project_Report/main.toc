@@ -1,0 +1,123 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Abstract}{5}{section.1}%
+\contentsline {section}{\numberline {2}Introduction}{6}{section.2}%
+\contentsline {section}{\numberline {3}Group Information}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Team Roles and Contributions}{8}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Tran Minh Khoa}{8}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Tran Nhu Khai}{8}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Do Viet Hoang Long}{8}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Tran Dang Khoa}{9}{subsubsection.3.1.4}%
+\contentsline {subsection}{\numberline {3.2}Overall Contribution}{9}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Commit List (Git History) - brief version}{9}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Project Design}{10}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Scope and Architectural Objectives}{10}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}High-Level Architecture}{10}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Overall Class Diagram}{10}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Application Bootstrap, Main Loop, and State Stack}{12}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Bootstrap and resource lifetime}{12}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}Screen-state class diagram}{14}{subsubsection.4.4.2}%
+\contentsline {subsubsection}{\numberline {4.4.3}Responsibilities of each screen}{14}{subsubsection.4.4.3}%
+\contentsline {subsection}{\numberline {4.5}Gameplay Coordination and World Ownership}{16}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Facade and subsystem boundaries}{16}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}Per-frame update order}{17}{subsubsection.4.5.2}%
+\contentsline {subsubsection}{\numberline {4.5.3}Rendering order}{18}{subsubsection.4.5.3}%
+\contentsline {subsection}{\numberline {4.6}Level and Map System}{18}{subsection.4.6}%
+\contentsline {subsubsection}{\numberline {4.6.1}Data model and loading pipeline}{18}{subsubsection.4.6.1}%
+\contentsline {subsubsection}{\numberline {4.6.2}Level construction}{19}{subsubsection.4.6.2}%
+\contentsline {subsubsection}{\numberline {4.6.3}Playable regions, themes, pipes, and boss arena}{20}{subsubsection.4.6.3}%
+\contentsline {subsubsection}{\numberline {4.6.4}Current level catalogue}{20}{subsubsection.4.6.4}%
+\contentsline {subsection}{\numberline {4.7}Character and Hero System}{20}{subsection.4.7}%
+\contentsline {subsubsection}{\numberline {4.7.1}Base character abstraction}{20}{subsubsection.4.7.1}%
+\contentsline {subsubsection}{\numberline {4.7.2}Hero class diagram}{21}{subsubsection.4.7.2}%
+\contentsline {subsubsection}{\numberline {4.7.3}Concrete heroes and forms}{22}{subsubsection.4.7.3}%
+\contentsline {subsubsection}{\numberline {4.7.4}Hero movement state machine}{22}{subsubsection.4.7.4}%
+\contentsline {subsection}{\numberline {4.8}Enemy and Boss System}{23}{subsection.4.8}%
+\contentsline {subsubsection}{\numberline {4.8.1}Enemy hierarchy and composition}{23}{subsubsection.4.8.1}%
+\contentsline {subsubsection}{\numberline {4.8.2}Thor King boss}{24}{subsubsection.4.8.2}%
+\contentsline {subsection}{\numberline {4.9}Blocks and Items}{24}{subsection.4.9}%
+\contentsline {subsubsection}{\numberline {4.9.1}Class diagram}{24}{subsubsection.4.9.1}%
+\contentsline {subsection}{\numberline {4.10}Projectile System}{26}{subsection.4.10}%
+\contentsline {subsection}{\numberline {4.11}Physics and Interaction Systems}{27}{subsection.4.11}%
+\contentsline {subsubsection}{\numberline {4.11.1}Class relationships}{27}{subsubsection.4.11.1}%
+\contentsline {subsection}{\numberline {4.12}Goal and Level-Completion System}{28}{subsection.4.12}%
+\contentsline {subsection}{\numberline {4.13}Save, Load, HUD, and Audio Services}{30}{subsection.4.13}%
+\contentsline {subsubsection}{\numberline {4.13.1}Persistence class diagram and workflow}{30}{subsubsection.4.13.1}%
+\contentsline {subsubsection}{\numberline {4.13.2}HUD}{31}{subsubsection.4.13.2}%
+\contentsline {subsubsection}{\numberline {4.13.3}Audio}{31}{subsubsection.4.13.3}%
+\contentsline {subsection}{\numberline {4.14}Animation, Textures, and Other Utilities}{32}{subsection.4.14}%
+\contentsline {subsection}{\numberline {4.15}Ownership, Coupling, and Extension Rationale}{33}{subsection.4.15}%
+\contentsline {subsection}{\numberline {4.16}Current Constraints and Improvement Opportunities}{33}{subsection.4.16}%
+\contentsline {subsection}{\numberline {4.17}Build and Deployment Structure}{34}{subsection.4.17}%
+\contentsline {subsection}{\numberline {4.18}Complete Source-File Catalogue}{35}{subsection.4.18}%
+\contentsline {subsubsection}{\numberline {4.18.1}Bootstrap and core application}{35}{subsubsection.4.18.1}%
+\contentsline {subsubsection}{\numberline {4.18.2}Screen states}{35}{subsubsection.4.18.2}%
+\contentsline {subsubsection}{\numberline {4.18.3}Gameplay runtime}{36}{subsubsection.4.18.3}%
+\contentsline {subsubsection}{\numberline {4.18.4}Character and hero files}{36}{subsubsection.4.18.4}%
+\contentsline {subsubsection}{\numberline {4.18.5}Hero form and movement-state files}{37}{subsubsection.4.18.5}%
+\contentsline {subsubsection}{\numberline {4.18.6}Enemy and boss files}{38}{subsubsection.4.18.6}%
+\contentsline {subsubsection}{\numberline {4.18.7}Block files}{39}{subsubsection.4.18.7}%
+\contentsline {subsubsection}{\numberline {4.18.8}Item files}{40}{subsubsection.4.18.8}%
+\contentsline {subsubsection}{\numberline {4.18.9}Hero projectile and goal files}{40}{subsubsection.4.18.9}%
+\contentsline {subsubsection}{\numberline {4.18.10}Manager and utility files}{41}{subsubsection.4.18.10}%
+\contentsline {section}{\numberline {5}Applied Design Patterns}{42}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Singleton Pattern}{43}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Intent and participants}{43}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}Why it fits}{43}{subsubsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.2}Factory Patterns}{44}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Simple factories for entity families}{44}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Polymorphic factory interface}{46}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Factory Method for hero attacks}{46}{subsubsection.5.2.3}%
+\contentsline {subsection}{\numberline {5.3}State Pattern}{46}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Application and screen states}{46}{subsubsection.5.3.1}%
+\contentsline {subsubsection}{\numberline {5.3.2}Hero movement states}{48}{subsubsection.5.3.2}%
+\contentsline {subsubsection}{\numberline {5.3.3}Enemy and boss AI states}{48}{subsubsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.4}Strategy Pattern}{48}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Observer Pattern}{50}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Prototype Pattern}{51}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Facade Pattern}{52}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Object Pool Pattern}{52}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Pattern Collaboration and Design Consequences}{53}{subsection.5.9}%
+\contentsline {section}{\numberline {6}Technical Problems and Solutions}{54}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Sprite Origin Misalignment and Center-of-Mass Jittering}{54}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Problem Formulation}{54}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Engineering Solution}{55}{subsubsection.6.1.2}%
+\contentsline {paragraph}{1. Center of Mass Computation:}{55}{section*.2}%
+\contentsline {paragraph}{2. Symmetric Geometric Padding:}{55}{section*.3}%
+\contentsline {subsection}{\numberline {6.2}Finite State Machine (FSM) Oscillation and Frame Freezing}{55}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}Problem Formulation}{55}{subsubsection.6.2.1}%
+\contentsline {subsubsection}{\numberline {6.2.2}Engineering Solution}{56}{subsubsection.6.2.2}%
+\contentsline {subsection}{\numberline {6.3}Elimination of Hardcoded Ground Constraints via Dynamic Gravity Kinematics}{56}{subsection.6.3}%
+\contentsline {subsubsection}{\numberline {6.3.1}Problem Formulation}{56}{subsubsection.6.3.1}%
+\contentsline {subsubsection}{\numberline {6.3.2}Engineering Solution}{57}{subsubsection.6.3.2}%
+\contentsline {paragraph}{1. Kinematic Velocity Integration:}{57}{section*.4}%
+\contentsline {paragraph}{2. Continuous Ground Snapping:}{57}{section*.5}%
+\contentsline {subsection}{\numberline {6.4}Polymorphic Multi-Tier Hero Evolution and Texture Routing}{58}{subsection.6.4}%
+\contentsline {subsubsection}{\numberline {6.4.1}Problem Formulation}{58}{subsubsection.6.4.1}%
+\contentsline {subsubsection}{\numberline {6.4.2}Engineering Solution}{58}{subsubsection.6.4.2}%
+\contentsline {subsection}{\numberline {6.5}World State Serialization and Dynamic Deserialization (Save/Load)}{58}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Problem Formulation}{58}{subsubsection.6.5.1}%
+\contentsline {subsubsection}{\numberline {6.5.2}Engineering Solution}{59}{subsubsection.6.5.2}%
+\contentsline {subsection}{\numberline {6.6}Dynamic Spatial Partitioning via Playable Regions and Context-Aware Theming}{59}{subsection.6.6}%
+\contentsline {subsubsection}{\numberline {6.6.1}Problem Formulation}{59}{subsubsection.6.6.1}%
+\contentsline {subsubsection}{\numberline {6.6.2}Engineering Solution}{60}{subsubsection.6.6.2}%
+\contentsline {paragraph}{1. Spatial Zone Partitioning:}{60}{section*.6}%
+\contentsline {paragraph}{2. Constrained Camera Viewport Clamping:}{60}{section*.7}%
+\contentsline {paragraph}{3. Dynamic Context-Aware Kill Planes:}{60}{section*.8}%
+\contentsline {paragraph}{4. Context-Driven Visual and Audio Theming:}{61}{section*.9}%
+\contentsline {subsubsection}{\numberline {6.6.3}Resulting Impact}{61}{subsubsection.6.6.3}%
+\contentsline {section}{\numberline {7}Potential Future Development}{62}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Future Direction 1: In-Game Custom Map Builder}{62}{subsection.7.1}%
+\contentsline {subsubsection}{\numberline {7.1.1}Functional Overview}{62}{subsubsection.7.1.1}%
+\contentsline {subsubsection}{\numberline {7.1.2}Evaluation of the Current Design (OOP/SOLID Perspective)}{62}{subsubsection.7.1.2}%
+\contentsline {subsubsection}{\numberline {7.1.3}Proposed Architecture}{63}{subsubsection.7.1.3}%
+\contentsline {subsection}{\numberline {7.2}Future Direction 2: Data-Driven Gameplay Configuration}{64}{subsection.7.2}%
+\contentsline {subsubsection}{\numberline {7.2.1}Functional Overview}{64}{subsubsection.7.2.1}%
+\contentsline {subsubsection}{\numberline {7.2.2}Evaluation of the Current Design (OOP/SOLID Perspective)}{64}{subsubsection.7.2.2}%
+\contentsline {subsubsection}{\numberline {7.2.3}Proposed Architecture}{65}{subsubsection.7.2.3}%
+\contentsline {section}{\numberline {8}Project Demonstration}{66}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Gameplay Walkthrough}{66}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Video Link}{67}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Conclusion}{68}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Architectural Achievements and Design Integrity}{68}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Engineering Bottlenecks and Solutions}{68}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Team Synergy and Technical Growth}{69}{subsection.9.3}%

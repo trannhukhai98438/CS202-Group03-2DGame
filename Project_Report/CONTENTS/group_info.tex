@@ -1,0 +1,58 @@
+\section{Group Information}
+\subsection{Team Roles and Contributions}
+
+The project was developed collaboratively, with each member responsible for a specific data structure or system component. In addition to their core responsibilities, members also contributed to integration, testing, and ensuring consistency across the system.
+
+\subsubsection{Tran Minh Khoa}
+
+\textbf{Role:} Core Engine \& Physics \\
+\textbf{Responsibilities:}
+\begin{itemize}
+    \item Manage the SFML RenderWindow, Game Loop, and Game States.
+    \item Implement precise AABB collision detection.
+    \item Apply gravity and physics.
+\end{itemize}
+
+\subsubsection{Tran Nhu Khai}
+
+\textbf{Role:} Hero \& Items Mechanics \\
+\textbf{Responsibilities:}
+\begin{itemize}
+    \item Lead the project and design the initial workflow of the project.
+    \item Build the base \texttt{Character} class and the \texttt{Mario} class (and other Character class).
+    \item Implement classic items (Mushroom, Coin, Fire Flower) using the Factory Pattern.
+\end{itemize}
+
+\subsubsection{Do Viet Hoang Long}
+
+\textbf{Role:} Enemies \& AI \\
+\textbf{Responsibilities:}
+\begin{itemize}
+    \item Inherit the \texttt{Character} class to create the base \texttt{Enemy} abstract class.
+    \item Create classic enemies (Goombas, Koopas).
+    \item Implement standard patrol AI using the Template Method.
+\end{itemize}
+
+\subsubsection{Tran Dang Khoa}
+
+\textbf{Role:} Level, UI/UX \& Audio \\
+\textbf{Responsibilities:}
+\begin{itemize}
+    \item Build a Map Parser to load classic Mario levels from text/csv files.
+    \item Implement the HUD (score, coins, lives) via the Observer Pattern.
+    \item Develop a SoundManager for 8-bit BGM and SFX.
+\end{itemize}
+
+\subsection{Overall Contribution}
+The Mario game project was completed through close collaboration among all team members, with each person taking responsibility for a major gameplay system and then integrating their work into a unified project. Tran Minh Khoa focused on the core engine and physics aspects, including the render loop, collision handling, and gravity-based movement. Tran Nhu Khai developed the main character and item mechanics, constructing the base character hierarchy and implementing collectible items using a factory-based design. Do Viet Hoang Long handled enemies and AI by creating the enemy structure and basic patrol behaviors. Tran Dang Khoa designed the level system, HUD, and sound management, enabling stage loading, game status display, and audio feedback.
+
+Across the whole project, all members participated in debugging, testing, and refining the game to ensure stable gameplay, correct interactions, and smooth project integration. This division of responsibility allowed the team to build a complete and coherent Mario-style game while maintaining code organization and reusability.
+
+\subsection{Commit List (Git History) - brief version}
+
+It has been refined and condensed for easier reading compared to the original text from \texttt{git log}.
+
+Or  on gitHub:
+\href{https://github.com/trannhukhai98438/CS202-Group03-2DGame.git}{
+    \boxed{Click\;  here}
+}

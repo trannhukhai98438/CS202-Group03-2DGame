@@ -1,0 +1,17 @@
+flowchart TB
+    Pause["PausedState"] -->|onSave callback| Playing["PlayingState"]
+    Playing --> Save["SaveManager<br/>SaveData snapshot"]
+    World["GameWorld + HUDManager"] -->|capture| Save
+    Save -->|atomic write| Temp["savegame.json.tmp"]
+    Temp -->|replace| File["platform user-data<br/>savegame.json"]
+    Menu["MainMenuState"] --> Prompt["ContinuePromptState"]
+    File -->|load and validate| Prompt
+    Prompt --> Transition["TransitionState<br/>resume = true"]
+    Transition --> Restored["PlayingState<br/>rebuild level, apply snapshot"]
+
+    classDef state fill:#EAF2FF,stroke:#2F75B5,color:#17324D,stroke-width:2px
+    classDef service fill:#EAF8F0,stroke:#3B8D63,color:#173A2B,stroke-width:2px
+    classDef data fill:#FFF3D6,stroke:#C88A18,color:#4B350A,stroke-width:1.5px
+    class Pause,Playing,Menu,Prompt,Transition,Restored state
+    class Save service
+    class World,Temp,File data

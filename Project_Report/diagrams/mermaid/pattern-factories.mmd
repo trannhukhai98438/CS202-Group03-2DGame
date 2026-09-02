@@ -1,0 +1,38 @@
+classDiagram
+direction LR
+class MapSaveData { <<input>> }
+class HeroFactory { +createHero(type) Hero }
+class EnemyFactory { +createEnemy(type) Enemy }
+class BlockFactory { +createBlock(type) Block }
+class ItemFactory { +createItem(type) Item }
+class ProjectileFactory { +createProjectile(type) Projectile }
+class Hero { <<abstract>> }
+class Enemy { <<abstract>> }
+class Block { <<abstract>> }
+class Item { <<abstract>> }
+class Projectile { <<abstract>> }
+class Mario
+class Luigi
+class Flash
+class Goomba
+class Koopa
+class Witch
+class ThorKing
+
+MapSaveData ..> HeroFactory
+MapSaveData ..> EnemyFactory
+MapSaveData ..> BlockFactory
+MapSaveData ..> ItemFactory
+MapSaveData ..> ProjectileFactory
+HeroFactory ..> Hero : creates
+EnemyFactory ..> Enemy : creates
+BlockFactory ..> Block : creates
+ItemFactory ..> Item : creates
+ProjectileFactory ..> Projectile : creates
+Hero <|-- Mario
+Hero <|-- Luigi
+Hero <|-- Flash
+Enemy <|-- Goomba
+Enemy <|-- Koopa
+Enemy <|-- Witch
+Enemy <|-- ThorKing

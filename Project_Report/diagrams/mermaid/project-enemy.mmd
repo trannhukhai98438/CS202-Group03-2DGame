@@ -1,0 +1,60 @@
+classDiagram
+direction TB
+class Character { <<abstract>> }
+class Enemy {
+  <<abstract>>
+  -state
+  +changeState(state)
+  +takeDamage()
+}
+class EnemyState {
+  <<State>>
+  +onEnter(enemy)
+  +update(enemy, dt)
+  +onExit(enemy)
+}
+class Goomba
+class Koopa
+class Witch
+class ThorKing
+class GoombaPhysics
+class GoombaAnimator
+class KoopaPhysics
+class KoopaAnimator
+class WitchPhysics
+class WitchAnimator
+class ThorKingPhysics
+class ThorKingAnimator
+class Patrol
+class Squished
+class Shell
+class SpinningShell
+class FlippingDeath
+class Throw
+class ThorKingState
+class Potion
+class BossProjectile
+
+Character <|-- Enemy
+Enemy <|-- Goomba
+Enemy <|-- Koopa
+Enemy <|-- Witch
+Enemy <|-- ThorKing
+Enemy "1" *-- "1" EnemyState
+EnemyState <|-- Patrol
+EnemyState <|-- Squished
+EnemyState <|-- Shell
+EnemyState <|-- SpinningShell
+EnemyState <|-- FlippingDeath
+EnemyState <|-- Throw
+EnemyState <|-- ThorKingState
+Goomba *-- GoombaPhysics
+Goomba *-- GoombaAnimator
+Koopa *-- KoopaPhysics
+Koopa *-- KoopaAnimator
+Witch *-- WitchPhysics
+Witch *-- WitchAnimator
+ThorKing *-- ThorKingPhysics
+ThorKing *-- ThorKingAnimator
+Witch ..> Potion : spawns
+ThorKing ..> BossProjectile : spawns

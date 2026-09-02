@@ -1,0 +1,45 @@
+classDiagram
+direction TB
+class Block {
+  <<abstract>>
+  -active
+  -solid
+  -hiddenItemPrototype
+  +hit(hero)
+}
+class BrickBlock
+class QuestionBlock
+class InvisibleBlock
+class Lifter
+class BrickParticle
+class Item {
+  <<abstract>>
+  -active
+  -velocity
+  +clone(hero) Item
+  +apply(hero)
+}
+class Coin
+class Star
+class Mushroom
+class Flower
+class PowerUpPrototype
+class BlockFactory
+class ItemFactory
+class BlockThemePalette
+
+Block <|-- BrickBlock
+Block <|-- QuestionBlock
+QuestionBlock <|-- InvisibleBlock
+Block <|-- Lifter
+BrickBlock ..> BrickParticle : emits
+Block "1" o-- "0..1" Item : hidden prototype
+Item <|-- Coin
+Item <|-- Star
+Item <|-- Mushroom
+Item <|-- Flower
+Item <|-- PowerUpPrototype
+BlockFactory ..> Block : creates
+ItemFactory ..> Item : creates
+BlockThemePalette --> BrickBlock : themes
+BlockThemePalette --> Lifter : themes

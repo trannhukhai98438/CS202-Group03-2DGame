@@ -1,0 +1,30 @@
+classDiagram
+direction LR
+class Animation {
+  +frames
+  +frameTime
+}
+class Animator {
+  -animations
+  -sprite
+  +addAnimation(name)
+  +playAnimation(name, dt)
+}
+class sfSprite
+class ThunderFlashTexture {
+  <<utility>>
+  +get() Texture
+}
+class sfTexture
+class PhysicsConstants {
+  <<utility>>
+  gravity
+  moveSpeed
+  jumpSpeed
+}
+class HeroState
+
+Animator "1" o-- "many" Animation
+Animator --> sfSprite : updates
+ThunderFlashTexture ..> sfTexture : lazy shared texture
+HeroState ..> PhysicsConstants : reads tuning

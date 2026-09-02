@@ -1,0 +1,15 @@
+flowchart LR
+    TMJ["Level .tmj files"] -->|parse JSON| MapManager
+    MapManager --> MapData["MapData<br/>TileLayer · ObjectLayer<br/>MapObject · TilesetReference"]
+    TSX["tileset.tsx<br/>object.tsx"] -->|load textures| LevelManager
+    MapData --> Builder["LevelBuilder"]
+    LevelManager --> Builder
+    Builder --> Factories["Hero · Block · Item<br/>Enemy · Goal factories"]
+    Factories --> World["GameWorld"]
+
+    classDef data fill:#FFF3D6,stroke:#C88A18,color:#4B350A,stroke-width:1.5px
+    classDef service fill:#EAF2FF,stroke:#2F75B5,color:#17324D,stroke-width:2px
+    classDef result fill:#EAF8F0,stroke:#3B8D63,color:#173A2B,stroke-width:2px
+    class TMJ,TSX,MapData data
+    class MapManager,LevelManager,Builder,Factories service
+    class World result
