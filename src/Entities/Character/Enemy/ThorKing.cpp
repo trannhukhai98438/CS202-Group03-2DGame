@@ -341,6 +341,21 @@ void ThorKing::updateSkyLaunch(float dt) {
     shape.setPosition(position.x, position.y);
 }
 
+void ThorKing::restoreBossState(int hp, int fireCount, int wallBounce, int shotSeq, bool isSkyLaunch, float groundY) {
+    setBossHp(hp);
+    m_fireCount = fireCount;
+    m_wallBounceCount = wallBounce;
+    m_shotSeq = shotSeq;
+    m_isSkyLaunching = isSkyLaunch;
+    m_groundY = groundY;
+
+    if (!m_isSkyLaunching) {
+        float moveSpeed = getSpeed();
+        float dirSign = (getDirection() == MoveDirection::Right) ? 1.0f : -1.0f;
+        setVelocity({ moveSpeed * dirSign, getVelocity().y });
+    }
+}
+
 void ThorKing::applyAnimation() {
     animatorComp.applyAnimation(*this);
 }

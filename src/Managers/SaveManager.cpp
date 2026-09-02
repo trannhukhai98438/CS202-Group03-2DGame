@@ -6,6 +6,7 @@
 #include "Entities/Character/Enemy/Enemy.h"
 #include "Entities/Character/Enemy/EnemyFactory.h"
 #include "Entities/Character/Enemy/EnemyStateFactory.h"
+#include "Entities/Character/Enemy/ThorKing.h"
 #include "Entities/Character/Hero/Hero.h"
 #include "Entities/Character/Hero/HeroFactory.h"
 #include "Entities/Item/Item.h"
@@ -67,6 +68,16 @@ bool SaveManager::saveToFile(const std::string& filePath,
             eData.isGrounded = enemy->getGrounded();
             eData.aiState = enemy->getStateName();
             eData.stateTimer = enemy->getStateTimer();
+
+            if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                eData.bossHp = boss->getBossHp();
+                eData.fireCount = boss->getFireCount();
+                eData.wallBounceCount = boss->getWallBounceCount();
+                eData.shotSeq = boss->getShotSeq();
+                eData.isSkyLaunching = boss->isSkyLaunching();
+                eData.groundY = boss->getGroundY();
+            }
+
             m_saveData.aliveEnemies.push_back(eData);
         }
     }
@@ -148,7 +159,7 @@ bool SaveManager::saveToFile(const std::string& filePath,
 
     j["aliveEnemies"] = json::array();
     for (const auto& enemy : m_saveData.aliveEnemies) {
-        j["aliveEnemies"].push_back({
+        json eJson = {
             {"type", enemy.type},
             {"posX", enemy.posX},
             {"posY", enemy.posY},
@@ -159,7 +170,18 @@ bool SaveManager::saveToFile(const std::string& filePath,
             {"isGrounded", enemy.isGrounded},
             {"aiState", enemy.aiState},
             {"stateTimer", enemy.stateTimer}
-        });
+        };
+
+        if (enemy.type == "ThorKing" || enemy.type == "thorking" || enemy.type == "thor_king") {
+            eJson["bossHp"] = enemy.bossHp;
+            eJson["fireCount"] = enemy.fireCount;
+            eJson["wallBounceCount"] = enemy.wallBounceCount;
+            eJson["shotSeq"] = enemy.shotSeq;
+            eJson["isSkyLaunching"] = enemy.isSkyLaunching;
+            eJson["groundY"] = enemy.groundY;
+        }
+
+        j["aliveEnemies"].push_back(eJson);
     }
 
     j["hitBlocks"] = json::array();
@@ -262,6 +284,14 @@ bool SaveManager::loadFromFile(const std::string& filePath, GameWorld& world) {
             eData.isGrounded = item.value("isGrounded", true);
             eData.aiState = item.value("aiState", "Patrol");
             eData.stateTimer = item.value("stateTimer", -1.0f);
+
+            eData.bossHp = item.value("bossHp", 3);
+            eData.fireCount = item.value("fireCount", 0);
+            eData.wallBounceCount = item.value("wallBounceCount", 0);
+            eData.shotSeq = item.value("shotSeq", 0);
+            eData.isSkyLaunching = item.value("isSkyLaunching", false);
+            eData.groundY = item.value("groundY", 0.0f);
+
             m_saveData.aliveEnemies.push_back(eData);
         }
     }
@@ -396,7 +426,6 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
         }
     }
 
-    // Xóa thực thể đã inactive ra khỏi vector world.blocks()
     world.removeInactiveEntities();
 
     std::cout << "[SaveManager] Restored " << hitBlockCount << " hit blocks, removed " 
@@ -429,13 +458,31 @@ bool SaveManager::applySaveToWorld(GameWorld& world, HUDManager& hud) const {
             enemy->setDirection(dir);
             enemy->setHealth(eData.health);
             enemy->setPosition({eData.posX, eData.posY});
-
-            enemy->setVelocity({eData.velX, eData.velY});
             enemy->setGrounded(eData.isGrounded);
 
-            auto restoredState = EnemyStateFactory::createStateFromString(eData.aiState, eData.stateTimer);
-            if (restoredState) {
-                enemy->changeState(std::move(restoredState));
+            if (auto* boss = dynamic_cast<ThorKing*>(enemy.get())) {
+                boss->restoreBossState(
+                    eData.bossHp, 
+                    eData.fireCount, 
+                    eData.wallBounceCount, 
+                    eData.shotSeq, 
+                    eData.isSkyLaunching, 
+                    eData.groundY
+                );
+                
+                boss->changeState(std::make_unique<TKPatrolState>(2.0f));
+
+                if (std::abs(eData.velY) > 0.01f) {
+                    boss->setVelocity({ boss->getVelocity().x, eData.velY });
+                }
+            } 
+            else {
+                auto restoredState = EnemyStateFactory::createStateFromString(eData.aiState, eData.stateTimer);
+                if (restoredState) {
+                    enemy->changeState(std::move(restoredState));
+                }
+                
+                enemy->setVelocity({eData.velX, eData.velY});
             }
 
             world.addEnemy(std::move(enemy));

@@ -86,6 +86,8 @@ public:
 
     void spawnFireProjectile();
 
+    void restoreBossState(int hp, int fireCount, int wallBounce, int shotSeq, bool isSkyLaunch, float groundY);
+
 public:
     void checkObstacles() override;
     void move(float deltaTime) override;

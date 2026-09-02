@@ -43,6 +43,14 @@ struct SaveData {
         bool isGrounded{true};
         std::string aiState{"Patrol"}; // AI state name (e.g., "Patrol", "Squished", "Shell")
         float stateTimer{-1.0f};      // Timer for timed states (e.g., SquishedState duration)
+
+        int bossHp{3};
+        int fireCount{0};
+        int wallBounceCount{0};
+        int shotSeq{0};
+        bool isSkyLaunching{false};
+        float skyLaunchTimer{0.0f};
+        float groundY{0.0f};
     };
     std::vector<EnemyData> aliveEnemies;
 
