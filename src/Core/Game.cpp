@@ -20,11 +20,15 @@ const SoundManager& Game::getSoundManager() const {
 void Game::run() {
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
+	const sf::Time maxFrameTime = sf::seconds(0.25f);
 	// main() queues the initial state before entering the game loop.
 	applyPendingStateAction();
 
 	while (m_window.isOpen()) {
-		sf::Time elapsedTime = clock.restart();
+		// Loading a large level must not create seconds of fixed-update debt.
+		// Discard excess wall-clock time after a stall so the game remains
+		// responsive instead of trying to replay every missed frame.
+		sf::Time elapsedTime = std::min(clock.restart(), maxFrameTime);
 		timeSinceLastUpdate += elapsedTime;
 
 		while (timeSinceLastUpdate > TimePerFrame) {
