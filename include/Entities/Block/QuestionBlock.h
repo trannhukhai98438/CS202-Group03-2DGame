@@ -2,6 +2,10 @@
 #include "Block.h"
 
 class QuestionBlock : public Block {
+private:
+    static sf::Texture s_texture;
+    static bool s_isTextureLoaded;
+
 public:
     QuestionBlock(float x, float y);
     ~QuestionBlock() = default;
