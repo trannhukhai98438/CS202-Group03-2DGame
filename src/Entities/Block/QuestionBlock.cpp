@@ -1,18 +1,22 @@
 #include "QuestionBlock.h"
 
-sf::Texture QuestionBlock::s_texture;
-bool QuestionBlock::s_isTextureLoaded = false;
+namespace {
+sf::Texture& getQuestionBlockTexture() {
+    // Construct the shared OpenGL resource on first use, after SFML has
+    // initialized its graphics context. A namespace-scope sf::Texture can be
+    // initialized too early and crash Debug builds inside GlContext.
+    static sf::Texture texture;
+    static const bool loaded =
+        texture.loadFromFile("assets/textures/QuestionBrick.png");
+    (void)loaded;
+    return texture;
+}
+}
 
 QuestionBlock::QuestionBlock(float x, float y)
     : Block(x, y)
 {
-    if (!s_isTextureLoaded) {
-        if (s_texture.loadFromFile("assets/textures/QuestionBrick.png")) {
-            s_isTextureLoaded = true;
-        }
-    }
-
-    sprite.setTexture(s_texture);
+    sprite.setTexture(getQuestionBlockTexture());
 
     std::vector<sf::IntRect> questionFrames;
     for (int i = 0; i < 3; ++i) {
